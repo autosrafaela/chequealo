@@ -16,38 +16,54 @@ const Header = () => {
             <MapPin className="h-6 w-6 text-primary" />
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-6">
-            <div className="flex items-center space-x-1 text-navy-foreground">
-              <MapPin className="h-4 w-4" />
-              <span className="text-sm">Rafaela, Santa Fe</span>
+          {/* Desktop Navigation - Main Search Section */}
+          <div className="hidden lg:flex items-center flex-1 max-w-4xl mx-8">
+            {/* Location Display */}
+            <div className="flex items-center space-x-1 text-navy-foreground mr-6">
+              <MapPin className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Rafaela, Santa Fe</span>
             </div>
 
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <input
-                type="text"
-                placeholder="¿Qué servicio buscás?"
-                className="pl-10 pr-4 py-2 w-64 rounded-full border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            {/* Main Search Container */}
+            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+              <div className="flex items-center">
+                {/* Search Input */}
+                <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="¿Qué servicio buscás?"
+                    className="w-full pl-10 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
+                  />
+                </div>
+
+                {/* Province Select */}
+                <select className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer">
+                  <option value="">Provincia</option>
+                  <option value="santa-fe">Santa Fe</option>
+                  <option value="buenos-aires">Buenos Aires</option>
+                  <option value="cordoba">Córdoba</option>
+                  <option value="mendoza">Mendoza</option>
+                </select>
+
+                {/* City Select */}
+                <select className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer">
+                  <option value="">Ciudad</option>
+                  <option value="rafaela">Rafaela</option>
+                  <option value="santa-fe">Santa Fe</option>
+                  <option value="rosario">Rosario</option>
+                  <option value="esperanza">Esperanza</option>
+                </select>
+
+                {/* Search Button */}
+                <Button className="ml-2 bg-primary hover:bg-primary/90 px-6 py-3 h-auto rounded-md">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
-            <select className="px-4 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-              <option>Provincia</option>
-              <option>Santa Fe</option>
-              <option>Buenos Aires</option>
-              <option>Córdoba</option>
-            </select>
-
-            <select className="px-4 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-              <option>Ciudad</option>
-              <option>Rafaela</option>
-              <option>Santa Fe</option>
-              <option>Rosario</option>
-            </select>
-
-            <Button variant="secondary" size="sm">
+            {/* Filter Button */}
+            <Button variant="outline" className="ml-4 text-navy-foreground border-gray-300 hover:bg-white hover:text-gray-700">
               Últimas publicaciones
             </Button>
           </div>
