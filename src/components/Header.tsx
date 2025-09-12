@@ -97,14 +97,14 @@ const Header = () => {
               <div className="flex items-center">
                 {/* Search Input for Service/Professional */}
                 <div className="flex-1 relative">
-                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Search className="absolute left-10 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <input
                     type="text"
                     placeholder="Ej: plomero, grúa, veterinario..."
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
                     disabled={false}
-                    className="w-full pl-10 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-xs font-medium"
+                    className="w-full pl-20 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-xs font-medium"
                   />
                 </div>
 
