@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Filter, Grid, List, SlidersHorizontal } from "lucide-react";
 import Header from "@/components/Header";
@@ -116,6 +116,37 @@ const Search = () => {
     }
   ];
 
+  const sortedProfessionals = useMemo(() => {
+    const list = [...professionals];
+    switch (sortBy) {
+      case 'rating':
+        return list.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
+      case 'quality':
+        // Aproximación: más calidad = mejor combinación de rating y cantidad de reseñas
+        return list.sort((a, b) => (b.rating * b.reviewCount) - (a.rating * a.reviewCount));
+      case 'speed': {
+        // Prioriza disponibilidad más inmediata
+        const score = (a: string) => {
+          const map: Record<string, number> = {
+            'Disponible ahora': 4,
+            'Disponible hoy': 3,
+            'Disponible mañana': 2,
+            'Disponible esta semana': 1,
+            'Disponible próxima semana': 0,
+          };
+          return map[a] ?? 0;
+        };
+        return list.sort((a, b) => score(b.availability) - score(a.availability));
+      }
+      case 'price':
+        // Sin dato de precio, usamos orden alfabético como aproximación visible
+        return list.sort((a, b) => a.name.localeCompare(b.name));
+      case 'latest':
+      default:
+        return professionals; // orden original como "Últimas publicaciones"
+    }
+  }, [sortBy]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -168,7 +199,7 @@ const Search = () => {
             ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
             : 'grid-cols-1'
         }`}>
-          {professionals.map((professional) => (
+          {sortedProfessionals.map((professional) => (
             <ProfessionalCard
               key={professional.id}
               {...professional}
