@@ -15,8 +15,14 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleProvinceChange = (provinceValue: string) => {
+    console.log('Province changed to:', provinceValue);
     setSelectedProvince(provinceValue);
     setSelectedCity(''); // Reset city when province changes
+  };
+
+  const handleSearchTermChange = (value: string) => {
+    console.log('Search term changed to:', value);
+    setSearchTerm(value);
   };
 
   const getCitiesForProvince = (provinceValue: string) => {
@@ -96,7 +102,8 @@ const Header = () => {
                     type="text"
                     placeholder="Ej: plomero, grúa, veterinario..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchTermChange(e.target.value)}
+                    disabled={false}
                     className="w-full pl-12 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-xs font-medium"
                   />
                 </div>
