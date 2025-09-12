@@ -85,10 +85,30 @@ const Header = () => {
                 {/* Province Select */}
                 <select className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer">
                   <option value="">Provincia</option>
-                  <option value="santa-fe">Santa Fe</option>
                   <option value="buenos-aires">Buenos Aires</option>
+                  <option value="gba">GBA</option>
+                  <option value="catamarca">Catamarca</option>
+                  <option value="chaco">Chaco</option>
+                  <option value="chubut">Chubut</option>
                   <option value="cordoba">Córdoba</option>
+                  <option value="corrientes">Corrientes</option>
+                  <option value="entre-rios">Entre Ríos</option>
+                  <option value="formosa">Formosa</option>
+                  <option value="jujuy">Jujuy</option>
+                  <option value="la-pampa">La Pampa</option>
+                  <option value="la-rioja">La Rioja</option>
                   <option value="mendoza">Mendoza</option>
+                  <option value="misiones">Misiones</option>
+                  <option value="neuquen">Neuquén</option>
+                  <option value="rio-negro">Río Negro</option>
+                  <option value="salta">Salta</option>
+                  <option value="san-juan">San Juan</option>
+                  <option value="san-luis">San Luis</option>
+                  <option value="santa-cruz">Santa Cruz</option>
+                  <option value="santa-fe">Santa Fe</option>
+                  <option value="santiago-del-estero">Santiago del Estero</option>
+                  <option value="tierra-del-fuego">Tierra del Fuego</option>
+                  <option value="tucuman">Tucumán</option>
                 </select>
 
                 {/* City Select */}
@@ -97,6 +117,10 @@ const Header = () => {
                   <option value="rafaela">Rafaela</option>
                   <option value="santa-fe">Santa Fe</option>
                   <option value="rosario">Rosario</option>
+                  <option value="venado-tuerto">Venado Tuerto</option>
+                  <option value="reconquista">Reconquista</option>
+                  <option value="villa-constitucion">Villa Constitución</option>
+                  <option value="casilda">Casilda</option>
                   <option value="esperanza">Esperanza</option>
                 </select>
 
@@ -175,13 +199,38 @@ const Header = () => {
               <div className="flex space-x-2">
                 <select className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm">
                   <option>Provincia</option>
-                  <option>Santa Fe</option>
                   <option>Buenos Aires</option>
+                  <option>GBA</option>
+                  <option>Catamarca</option>
+                  <option>Chaco</option>
+                  <option>Chubut</option>
+                  <option>Córdoba</option>
+                  <option>Corrientes</option>
+                  <option>Entre Ríos</option>
+                  <option>Formosa</option>
+                  <option>Jujuy</option>
+                  <option>La Pampa</option>
+                  <option>La Rioja</option>
+                  <option>Mendoza</option>
+                  <option>Misiones</option>
+                  <option>Neuquén</option>
+                  <option>Río Negro</option>
+                  <option>Salta</option>
+                  <option>San Juan</option>
+                  <option>San Luis</option>
+                  <option>Santa Cruz</option>
+                  <option>Santa Fe</option>
+                  <option>Santiago del Estero</option>
+                  <option>Tierra del Fuego</option>
+                  <option>Tucumán</option>
                 </select>
                 <select className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm">
                   <option>Ciudad</option>
                   <option>Rafaela</option>
                   <option>Santa Fe</option>
+                  <option>Rosario</option>
+                  <option>Venado Tuerto</option>
+                  <option>Reconquista</option>
                 </select>
               </div>
 

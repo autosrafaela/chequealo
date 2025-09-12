@@ -26,10 +26,17 @@ const Hero = () => {
           <div className="mt-8 text-white/80">
             <p className="text-sm mb-3">Búsquedas populares:</p>
             <div className="flex flex-wrap justify-center gap-2">
-              {[
-                "Plomero", "Electricista", "Mecánico", "Limpieza", 
-                "Jardinero", "Pintor", "Carpintero", "Gasista"
-              ].map((service) => (
+              {(() => {
+                const allSearches = [
+                  "Plomero", "Electricista", "Mecánico", "Limpieza", 
+                  "Jardinero", "Pintor", "Carpintero", "Gasista",
+                  "Abogado", "Contador", "Kinesiólogo", "Dentista",
+                  "Veterinario", "Nutricionista", "Psicólogo", "Dermatólogo"
+                ];
+                // Shuffle array and take first 8
+                const shuffled = [...allSearches].sort(() => 0.5 - Math.random());
+                return shuffled.slice(0, 8);
+              })().map((service) => (
                 <button
                   key={service}
                   className="px-4 py-1 bg-white/20 hover:bg-white/30 rounded-full text-sm transition-colors"

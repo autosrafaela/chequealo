@@ -4,19 +4,20 @@ import {
 } from "lucide-react";
 
 const ServiceCategories = () => {
+  // Servicios ordenados por ranking de búsquedas (los más buscados primero)
   const categories = [
-    { name: "Técnico de Aire Acondicionado", icon: Wrench, color: "bg-blue-100 text-blue-600" },
-    { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600" },
-    { name: "Gestor del Automotor", icon: Car, color: "bg-red-100 text-red-600" },
-    { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600" },
-    { name: "Servicio Técnico (Línea Blanca)", icon: Wrench, color: "bg-gray-100 text-gray-600" },
-    { name: "Kinesiólogo / Fisioterapeuta", icon: Heart, color: "bg-pink-100 text-pink-600" },
-    { name: "Profesor de Apoyo Escolar", icon: Laptop, color: "bg-indigo-100 text-indigo-600" },
-    { name: "Mecánico", icon: Car, color: "bg-orange-100 text-orange-600" },
-    { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600" },
-    { name: "Limpieza de Tapizados", icon: Sparkles, color: "bg-cyan-100 text-cyan-600" },
-    { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600" },
-    { name: "Instalador de Durlock / Yesero", icon: Hammer, color: "bg-amber-100 text-amber-600" },
+    { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600", rank: 1 },
+    { name: "Mecánico", icon: Car, color: "bg-orange-100 text-orange-600", rank: 2 },
+    { name: "Técnico de Aire Acondicionado", icon: Wrench, color: "bg-blue-100 text-blue-600", rank: 3 },
+    { name: "Kinesiólogo / Fisioterapeuta", icon: Heart, color: "bg-pink-100 text-pink-600", rank: 4 },
+    { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600", rank: 5 },
+    { name: "Gestor del Automotor", icon: Car, color: "bg-red-100 text-red-600", rank: 6 },
+    { name: "Profesor de Apoyo Escolar", icon: Laptop, color: "bg-indigo-100 text-indigo-600", rank: 7 },
+    { name: "Servicio Técnico (Línea Blanca)", icon: Wrench, color: "bg-gray-100 text-gray-600", rank: 8 },
+    { name: "Limpieza de Tapizados", icon: Sparkles, color: "bg-cyan-100 text-cyan-600", rank: 9 },
+    { name: "Instalador de Durlock / Yesero", icon: Hammer, color: "bg-amber-100 text-amber-600", rank: 10 },
+    { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600", rank: 11 },
+    { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600", rank: 12 },
   ];
 
   return (
