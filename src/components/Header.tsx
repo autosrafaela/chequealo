@@ -85,17 +85,16 @@ const Header = () => {
           </Link>
 
           {/* Main Search Section */}
-          <div className="flex-1 max-w-5xl mx-4">
+          <div className="flex items-center flex-1 max-w-5xl mx-4">
             {/* Location Display - Hidden on small screens */}
-            <div className="hidden xl:flex items-center space-x-1 text-navy-foreground mr-4 mb-2">
+            <div className="hidden xl:flex items-center space-x-1 text-navy-foreground mr-4">
               <MapPin className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Rafaela, Santa Fe</span>
             </div>
 
-            {/* Main Search Container with Filter */}
-            <div className="flex items-center gap-2">
-              {/* Search Bar */}
-              <div className="flex-1 flex items-center bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+            {/* Main Search Container */}
+            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+              <div className="flex items-center">
                 {/* Search Input for Service/Professional */}
                 <div className="flex-1 relative">
                   <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
@@ -147,16 +146,16 @@ const Header = () => {
                   <span className="hidden sm:inline ml-2">Buscar</span>
                 </Button>
               </div>
+            </div>
 
-              {/* Filter Dropdown - Next to search bar */}
-              <div className="hidden lg:block">
-                <FilterDropdown
-                  options={filterOptions}
-                  selected={selectedFilter}
-                  onSelect={setSelectedFilter}
-                  placeholder="Ordenar por..."
-                />
-              </div>
+            {/* Filter Dropdown - Same width as search container */}
+            <div className="hidden lg:block ml-2 flex-1">
+              <FilterDropdown
+                options={filterOptions}
+                selected={selectedFilter}
+                onSelect={setSelectedFilter}
+                placeholder="Ordenar por..."
+              />
             </div>
           </div>
 
