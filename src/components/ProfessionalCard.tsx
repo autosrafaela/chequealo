@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Heart, MessageCircle, Clock, User, Shield } from "lucide-react";
+import { Star, MapPin, Heart, MessageCircle, Clock, User, Shield, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ProfessionalCardProps {
@@ -33,6 +34,7 @@ const ProfessionalCard = ({
   onToggleFavorite,
   isFavorite: propIsFavorite = false
 }: ProfessionalCardProps) => {
+  const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(propIsFavorite);
   const [isVerified, setIsVerified] = useState(verifiedProp || false);
 
@@ -61,6 +63,10 @@ const ProfessionalCard = ({
     const newFavoriteState = !isFavorite;
     setIsFavorite(newFavoriteState);
     onToggleFavorite?.(id);
+  };
+
+  const handleViewProfile = () => {
+    navigate(`/professional/${id}`);
   };
 
   // Function to get initials from name
@@ -146,9 +152,13 @@ const ProfessionalCard = ({
       {/* Card Actions */}
       <div className="border-t border-gray-100 p-4 bg-gray-50/50">
         <div className="flex space-x-2">
-          <Button variant="outline" className="flex-1 text-sm">
-            <MessageCircle className="h-4 w-4 mr-1" />
-            Contactar
+          <Button 
+            variant="outline" 
+            className="flex-1 text-sm"
+            onClick={handleViewProfile}
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            Ver Perfil
           </Button>
           <Button className="flex-1 bg-primary hover:bg-primary/90 text-sm">
             Pedir Presupuesto
