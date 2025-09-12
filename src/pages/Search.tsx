@@ -5,11 +5,14 @@ import Header from "@/components/Header";
 import ProfessionalCard from "@/components/ProfessionalCard";
 import FilterDropdown from "@/components/FilterDropdown";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearchParams } from "react-router-dom";
 
 const Search = () => {
+  const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('latest');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const searchQuery = searchParams.get('q') || '';
 
   const handleToggleFavorite = (id: string) => {
     setFavorites(prev => 
@@ -84,8 +87,21 @@ const Search = () => {
   }, []);
 
 
-  const sortedProfessionals = useMemo(() => {
-    const list = [...professionals];
+  const filteredAndSortedProfessionals = useMemo(() => {
+    // Filter by search query first
+    let filtered = professionals;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = professionals.filter(prof => 
+        prof.name.toLowerCase().includes(query) ||
+        prof.profession.toLowerCase().includes(query) ||
+        prof.description.toLowerCase().includes(query) ||
+        prof.location.toLowerCase().includes(query)
+      );
+    }
+
+    // Then sort
+    const list = [...filtered];
     switch (sortBy) {
       case 'rating':
         return list.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
@@ -111,9 +127,9 @@ const Search = () => {
         return list.sort((a, b) => a.name.localeCompare(b.name));
       case 'latest':
       default:
-        return professionals; // orden original como "Últimas publicaciones"
+        return filtered; // orden original como "Últimas publicaciones"
     }
-  }, [sortBy]);
+  }, [sortBy, professionals, searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -123,8 +139,10 @@ const Search = () => {
         {/* Search Header */}
         <div className="mb-8">
           <div className="bg-navy text-navy-foreground px-4 py-2 rounded-lg inline-block mb-4">
-            <span className="text-sm">Búsqueda:</span>
-            <span className="font-semibold ml-2">{sortedProfessionals.length} resultado(s)</span>
+            <span className="text-sm">
+              {searchQuery ? `Búsqueda: "${searchQuery}"` : 'Todas las publicaciones'}
+            </span>
+            <span className="font-semibold ml-2">{filteredAndSortedProfessionals.length} resultado(s)</span>
           </div>
 
           {/* Filters and Controls */}
@@ -172,8 +190,8 @@ const Search = () => {
               ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
               : 'grid-cols-1'
           }`}>
-            {sortedProfessionals.length > 0 ? (
-              sortedProfessionals.map((professional) => (
+            {filteredAndSortedProfessionals.length > 0 ? (
+              filteredAndSortedProfessionals.map((professional) => (
                 <ProfessionalCard
                   key={professional.id}
                   {...professional}
@@ -183,7 +201,10 @@ const Search = () => {
               ))
             ) : (
               <div className="text-center text-muted-foreground py-12 col-span-full">
-                No se encontraron profesionales.
+                {searchQuery ? 
+                  `No se encontraron profesionales para "${searchQuery}".` :
+                  'No se encontraron profesionales.'
+                }
               </div>
             )}
           </div>
