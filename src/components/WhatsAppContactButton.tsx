@@ -47,7 +47,8 @@ export const WhatsAppContactButton = ({
 
   return (
     <Button 
-      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+      variant="whatsapp"
+      className="flex-1"
       onClick={handleWhatsAppContact}
     >
       <MessageCircle className="h-4 w-4 mr-2" />
