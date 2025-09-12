@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, MapPin, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -316,9 +318,247 @@ const Register = () => {
                 <input type="checkbox" className="mr-2" />
                 <span className="text-gray-600">
                   Acepto los{" "}
-                  <button type="button" className="text-primary hover:text-primary/80 font-medium">
-                    términos y condiciones
-                  </button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button type="button" className="text-primary hover:text-primary/80 font-medium underline">
+                        términos y condiciones
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh]">
+                      <DialogHeader>
+                        <DialogTitle>Términos y Condiciones de Uso</DialogTitle>
+                      </DialogHeader>
+                      <ScrollArea className="h-[60vh] pr-4">
+                        <div className="space-y-4 text-sm">
+                          <p><strong>Última actualización:</strong> 12 de septiembre de 2025</p>
+                          
+                          <p>
+                            Bienvenido/a a TIKO.AR (el "Sitio" y/o la "Plataforma"), operado por [Razón Social], CUIT [CUIT], con domicilio en [Domicilio legal] ("TIKO.AR", "nosotros" o "nuestro").
+                            Estos Términos y Condiciones (los "Términos") regulan el acceso y uso del Sitio, de nuestras aplicaciones asociadas y de los servicios que ofrecemos (los "Servicios"). Al registrarte, acceder o utilizar la Plataforma aceptás estos Términos y nuestra Política de Privacidad.
+                          </p>
+                          
+                          <p>Si no estás de acuerdo, no utilices la Plataforma.</p>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">1) Objeto del servicio</h3>
+                            <p>
+                              TIKO.AR es un directorio y canal de contacto que conecta usuarios que buscan servicios ("Usuarios") con profesionales y comercios que los ofrecen ("Profesionales").
+                              TIKO.AR no presta servicios profesionales, no participa en la relación contractual entre Usuarios y Profesionales, ni garantiza resultados, precios, plazos, títulos, habilitaciones o calidad.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">2) Cuentas y veracidad de la información</h3>
+                            <p>
+                              Para usar funciones específicas (publicar, chatear, reseñar, etc.) debés crear una Cuenta con datos verdaderos, exactos y actualizados.
+                            </p>
+                            <p>
+                              Sos responsable de la confidencialidad de tus credenciales y de toda actividad realizada desde tu Cuenta.
+                            </p>
+                            <p>
+                              Podemos suspender o cancelar Cuentas por: uso indebido, fraude, incumplimientos, indicios de manipulación de reseñas, suplantación de identidad o disposiciones legales.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">3) Rol y responsabilidades de cada parte</h3>
+                            <h4 className="font-medium mb-1">3.1. Usuarios</h4>
+                            <p>
+                              Deben verificar de manera independiente la idoneidad del Profesional (matrículas, habilitaciones, seguros, antecedentes, etc.).
+                            </p>
+                            <p>
+                              Son responsables de acordar con el Profesional precio, alcance, plazos, forma de pago y garantías.
+                            </p>
+                            <p>
+                              Aceptan que cualquier trabajo, asesoramiento o producto es provisto exclusivamente por el Profesional contratado.
+                            </p>
+                            
+                            <h4 className="font-medium mb-1 mt-3">3.2. Profesionales</h4>
+                            <p>
+                              Deben publicar información veraz y comprobable (títulos, matrículas, precios, promociones, disponibilidad).
+                            </p>
+                            <p>
+                              Se comprometen a cumplir todas las leyes y normas aplicables, incluidas habilitaciones, facturación e impuestos.
+                            </p>
+                            <p>
+                              Aceptan que son exclusivos responsables por la relación con Usuarios, por la ejecución de sus servicios y por cualquier reclamo, daño o perjuicio que pudiese derivarse.
+                            </p>
+                            
+                            <h4 className="font-medium mb-1 mt-3">3.3. TIKO.AR</h4>
+                            <p>
+                              Ofrece herramientas de exhibición, búsqueda, mensajería y reseñas.
+                            </p>
+                            <p>
+                              Puede moderar, priorizar, destacar o despublicar contenidos (p. ej., por infracciones, baja calidad, spam o reportes), sin obligación de comunicar motivos en todos los casos.
+                            </p>
+                            <p>
+                              No interviene en pagos entre partes, salvo que se indique expresamente un procesador de pagos externo; en tal caso, regirán también los términos del tercero.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">4) Publicaciones, contenidos y licencias</h3>
+                            <p>
+                              Al publicar textos, imágenes, logos, precios, descripciones, reseñas u otros ("Contenido"), garantizás que tenés derechos para usarlos y que no infringen derechos de terceros.
+                            </p>
+                            <p>
+                              Nos concedés una licencia no exclusiva, gratuita, transferible y sublicenciable para alojar, reproducir, adaptar, comunicar y exhibir ese Contenido dentro de la Plataforma y con fines de promoción de TIKO.AR.
+                            </p>
+                            <p>
+                              Está prohibido subir Contenido ilegal, difamatorio, engañoso, discriminatorio, violento, sexualmente explícito, con datos personales de terceros sin autorización, o que contenga virus o scripts maliciosos.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">5) Reseñas y calificaciones</h3>
+                            <p>
+                              Las reseñas deben ser honestas y pertinentes a una experiencia real.
+                            </p>
+                            <p>
+                              Se prohíbe la manipulación (autorreseñas, reseñas pagadas, presión o intercambio de beneficios).
+                            </p>
+                            <p>
+                              TIKO.AR puede eliminar o editar reseñas que incumplan estos Términos o que contengan lenguaje ofensivo, datos sensibles o información personal de terceros.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">6) Planes, precios y facturación (si aplica)</h3>
+                            <p>
+                              Algunos Servicios pueden ser pagos (p. ej., publicaciones destacadas, suscripciones, anuncios). Los precios se informarán antes de la contratación y pueden cambiar con notificación previa razonable.
+                            </p>
+                            <p>
+                              Las suscripciones se renuevan automáticamente hasta que las canceles. La cancelación rige para períodos futuros y no otorga reembolsos del período en curso, salvo disposición legal o política expresa en contrario.
+                            </p>
+                            <p>
+                              Los impuestos aplicables podrán agregarse al precio.
+                            </p>
+                            <p>
+                              Los pagos procesados por terceros (p. ej., pasarelas de pago) se rigen por sus propios términos.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">7) Privacidad y datos</h3>
+                            <p>
+                              El tratamiento de datos personales se describe en nuestra Política de Privacidad (parte integrante de estos Términos).
+                            </p>
+                            <p>
+                              La Plataforma puede emplear geolocalización, cookies y tecnologías similares para mejorar resultados de búsqueda, mostrar listados relevantes y métricas de uso.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">8) Prohibiciones de uso</h3>
+                            <p>No podés:</p>
+                            <ul className="list-disc pl-5 space-y-1">
+                              <li>usar el Sitio para fines ilícitos;</li>
+                              <li>extraer datos de manera masiva (scraping) sin autorización escrita;</li>
+                              <li>intentar vulnerar medidas de seguridad;</li>
+                              <li>revender, sublicenciar o explotar comercialmente el acceso a la Plataforma sin permiso;</li>
+                              <li>publicar información falsa, desactualizada o engañosa;</li>
+                              <li>infringir derechos de Propiedad Intelectual o de imagen.</li>
+                            </ul>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">9) Propiedad Intelectual</h3>
+                            <p>
+                              El Sitio, su código, diseño, marcas, logos, bases de datos y contenidos propios son propiedad de TIKO.AR o de sus licenciantes y están protegidos por las leyes de Propiedad Intelectual.
+                            </p>
+                            <p>
+                              No se otorga licencia alguna sobre dichos derechos salvo lo expresamente previsto.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">10) Disponibilidad, cambios y mantenimiento</h3>
+                            <p>
+                              Podemos modificar, actualizar, interrumpir o discontinuar la Plataforma o cualquier funcionalidad, en forma total o parcial, en cualquier momento.
+                            </p>
+                            <p>
+                              No garantizamos disponibilidad ininterrumpida ni ausencia de errores. Implementamos buenas prácticas para minimizar interrupciones.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">11) Limitación de responsabilidad</h3>
+                            <p>En la máxima medida permitida por la ley aplicable:</p>
+                            <p>
+                              TIKO.AR no es responsable por daños directos o indirectos, lucro cesante, pérdida de chance, datos o reputación derivados del uso o imposibilidad de uso de la Plataforma o de relaciones entre Usuarios y Profesionales.
+                            </p>
+                            <p>
+                              TIKO.AR no garantiza la veracidad, integridad o actualización de contenidos provistos por terceros (Profesionales o Usuarios).
+                            </p>
+                            <p>
+                              Los riesgos derivados de la contratación y ejecución de servicios corren por cuenta y riesgo de Usuarios y Profesionales.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">12) Indemnidad</h3>
+                            <p>
+                              Te comprometés a mantener indemne a TIKO.AR, sus directivos y colaboradores frente a reclamos, daños, sanciones, costos y gastos (incluidos honorarios razonables) originados por:
+                              a) tu Contenido; b) tu uso de la Plataforma; c) incumplimientos a estos Términos o a la ley; d) reclamos de terceros vinculados a tus publicaciones o servicios.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">13) Enlaces a terceros</h3>
+                            <p>
+                              La Plataforma puede contener enlaces a sitios o servicios de terceros. TIKO.AR no controla ni respalda esos contenidos y no asume responsabilidad por daños que pudieran derivarse de su uso.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">14) Comunicaciones y notificaciones</h3>
+                            <p>
+                              Aceptás recibir notificaciones electrónicas (email, avisos en la cuenta o en la Plataforma). Se considerarán válidas cuando sean enviadas a los datos de contacto provistos por vos.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">15) Cesión</h3>
+                            <p>
+                              Podemos ceder total o parcialmente nuestros derechos y obligaciones bajo estos Términos, notificándote por medios razonables. No podés ceder tu Cuenta sin autorización expresa.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">16) Vigencia, suspensión y terminación</h3>
+                            <p>
+                              Estos Términos rigen mientras uses la Plataforma. Podemos suspender o terminar tu acceso si incumplís estos Términos o la ley, o si detectamos riesgos de fraude, abuso o seguridad.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">17) Modificaciones a los Términos</h3>
+                            <p>
+                              Podemos actualizar estos Términos. Publicaremos la versión vigente con su fecha de actualización. El uso posterior a la publicación implica aceptación de los cambios.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">18) Ley aplicable y jurisdicción</h3>
+                            <p>
+                              Estos Términos se rigen por las leyes de la República Argentina. Para cualquier controversia, las partes se someten a los tribunales competentes de [Ciudad/Provincia], con renuncia a cualquier otro fuero o jurisdicción.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">19) Contacto</h3>
+                            <p>Para consultas, quejas o derechos de usuarios, podés comunicarte a:</p>
+                            <p>
+                              [Razón Social] — [CUIT]<br />
+                              [Domicilio] — [Ciudad, Provincia, CP]<br />
+                              Email: [correo@tiko.ar] — Tel.: [número]<br />
+                              Horario de atención: [días y horarios]
+                            </p>
+                          </div>
+                        </div>
+                      </ScrollArea>
+                    </DialogContent>
+                  </Dialog>
                 </span>
               </label>
             </div>
