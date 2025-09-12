@@ -10,6 +10,8 @@ import { ProfessionalProfileEdit } from "@/components/ProfessionalProfileEdit";
 import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
 import { ContactRequestDialog } from "@/components/ContactRequestDialog";
 import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
+import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
+import { TransactionManager } from "@/components/TransactionManager";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
@@ -289,10 +291,9 @@ const ProfessionalProfile = () => {
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <ContactRequestDialog 
-                      professionalId={professional.id}
+                    <WhatsAppContactButton 
+                      phone={professional.phone}
                       professionalName={professional.full_name}
-                      type="contact"
                     />
                     <ContactRequestDialog 
                       professionalId={professional.id}
@@ -338,6 +339,7 @@ const ProfessionalProfile = () => {
             <TabsTrigger value="services">Servicios</TabsTrigger>
             <TabsTrigger value="reviews">Opiniones</TabsTrigger>
             <TabsTrigger value="portfolio">Trabajos</TabsTrigger>
+            {isOwner && <TabsTrigger value="transactions">Mis Trabajos</TabsTrigger>}
             {isOwner && <TabsTrigger value="requests">Solicitudes</TabsTrigger>}
           </TabsList>
 
@@ -511,6 +513,13 @@ const ProfessionalProfile = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Transactions Tab - Only for owners */}
+          {isOwner && (
+            <TabsContent value="transactions">
+              <TransactionManager />
+            </TabsContent>
+          )}
 
           {/* Requests Tab - Only for owners */}
           {isOwner && (

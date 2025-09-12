@@ -308,34 +308,43 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          is_transaction_verified: boolean
           is_verified: boolean
           professional_id: string
           rating: number
           service_provided: string | null
+          transaction_id: string | null
           updated_at: string
           user_id: string
+          verification_token: string | null
         }
         Insert: {
           comment?: string | null
           created_at?: string
           id?: string
+          is_transaction_verified?: boolean
           is_verified?: boolean
           professional_id: string
           rating: number
           service_provided?: string | null
+          transaction_id?: string | null
           updated_at?: string
           user_id: string
+          verification_token?: string | null
         }
         Update: {
           comment?: string | null
           created_at?: string
           id?: string
+          is_transaction_verified?: boolean
           is_verified?: boolean
           professional_id?: string
           rating?: number
           service_provided?: string | null
+          transaction_id?: string | null
           updated_at?: string
           user_id?: string
+          verification_token?: string | null
         }
         Relationships: [
           {
@@ -346,6 +355,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      transactions: {
+        Row: {
+          amount: number | null
+          completed_at: string | null
+          contact_request_id: string | null
+          created_at: string
+          id: string
+          professional_id: string
+          service_type: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          completed_at?: string | null
+          contact_request_id?: string | null
+          created_at?: string
+          id?: string
+          professional_id: string
+          service_type?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          completed_at?: string | null
+          contact_request_id?: string | null
+          created_at?: string
+          id?: string
+          professional_id?: string
+          service_type?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_ratings: {
+        Row: {
+          comment: string | null
+          communication_rating: number
+          created_at: string
+          id: string
+          overall_rating: number
+          payment_rating: number
+          professional_id: string
+          punctuality_rating: number
+          transaction_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          communication_rating: number
+          created_at?: string
+          id?: string
+          overall_rating: number
+          payment_rating: number
+          professional_id: string
+          punctuality_rating: number
+          transaction_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          communication_rating?: number
+          created_at?: string
+          id?: string
+          overall_rating?: number
+          payment_rating?: number
+          professional_id?: string
+          punctuality_rating?: number
+          transaction_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

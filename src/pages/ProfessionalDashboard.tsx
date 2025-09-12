@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
 import { ProfessionalProfileEdit } from '@/components/ProfessionalProfileEdit';
+import { TransactionManager } from '@/components/TransactionManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -284,9 +285,12 @@ const ProfessionalDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
+            </TabsTrigger>
+            <TabsTrigger value="transactions">
+              Trabajos
             </TabsTrigger>
             <TabsTrigger value="profile">
               Mi Perfil
@@ -298,6 +302,10 @@ const ProfessionalDashboard = () => {
 
           <TabsContent value="requests">
             <ContactRequestsPanel />
+          </TabsContent>
+
+          <TabsContent value="transactions">
+            <TransactionManager />
           </TabsContent>
 
           <TabsContent value="profile">
