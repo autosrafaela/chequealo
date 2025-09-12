@@ -92,10 +92,10 @@ const Header = () => {
               <span className="text-sm font-medium">Rafaela, Santa Fe</span>
             </div>
 
-            {/* Main Search Container */}
+            {/* Main Search Container - Increased width */}
             <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
               <div className="flex items-center">
-                {/* Search Input for Service/Professional */}
+                {/* Search Input for Service/Professional - Increased space */}
                 <div className="flex-1 relative">
                   <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
                   <input
@@ -108,7 +108,7 @@ const Header = () => {
                   />
                 </div>
 
-                {/* Province Select */}
+                {/* Province Select - Reduced space */}
                 <select 
                   className="hidden md:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
                   value={selectedProvince}
@@ -122,7 +122,7 @@ const Header = () => {
                   ))}
                 </select>
 
-                {/* City Select */}
+                {/* City Select - Reduced space */}
                 <select 
                   className="hidden lg:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
                   value={selectedCity}
@@ -148,8 +148,8 @@ const Header = () => {
               </div>
             </div>
 
-            {/* Filter Dropdown - Same width as search container */}
-            <div className="hidden lg:block ml-2 flex-1">
+            {/* Filter Dropdown - Reduced space */}
+            <div className="hidden lg:block ml-2">
               <FilterDropdown
                 options={filterOptions}
                 selected={selectedFilter}
