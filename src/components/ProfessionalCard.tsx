@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Heart, MessageCircle, Clock } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Star, MapPin, Heart, MessageCircle, Clock, User } from "lucide-react";
 import { useState } from "react";
 
 interface ProfessionalCardProps {
@@ -27,6 +28,7 @@ const ProfessionalCard = ({
   description,
   verified,
   availability,
+  image,
   onToggleFavorite,
   isFavorite: propIsFavorite = false
 }: ProfessionalCardProps) => {
@@ -38,6 +40,16 @@ const ProfessionalCard = ({
     onToggleFavorite?.(id);
   };
 
+  // Function to get initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-primary/20 overflow-hidden">
       {/* Card Header */}
@@ -45,9 +57,12 @@ const ProfessionalCard = ({
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-4">
             {/* Avatar */}
-            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-gray-300"></div>
-            </div>
+            <Avatar className="w-16 h-16">
+              <AvatarImage src={image} alt={`Foto de ${name}`} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                {getInitials(name) || <User className="h-8 w-8" />}
+              </AvatarFallback>
+            </Avatar>
             
             <div className="flex-1">
               <div className="flex items-center space-x-2">
