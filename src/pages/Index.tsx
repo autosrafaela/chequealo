@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import ServiceCategories from "@/components/ServiceCategories";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
@@ -69,9 +70,11 @@ const Index = () => {
             Uníte a nuestra plataforma y conectá con miles de clientes que buscan tus servicios
           </p>
           <div className="space-y-4 sm:space-y-0 sm:flex sm:justify-center">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-3">
-              Registrarme como Profesional
-            </Button>
+            <Link to="/register">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-3">
+                Registrarme como Profesional
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -99,7 +102,7 @@ const Index = () => {
             <div>
               <h4 className="text-white font-semibold mb-4">Para Profesionales</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white">Registrarme</a></li>
+                <li><Link to="/register" className="hover:text-white">Registrarme</Link></li>
                 <li><a href="#" className="hover:text-white">Planes y precios</a></li>
                 <li><a href="#" className="hover:text-white">Centro de ayuda</a></li>
               </ul>
