@@ -29,7 +29,7 @@ const FilterDropdown = ({ options, selected, onSelect, placeholder }: FilterDrop
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
-          className="text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-900 min-w-[180px] justify-between font-medium"
+          className="text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-900 w-full justify-between font-medium h-12"
         >
           {selectedOption?.label || placeholder}
           <ChevronDown className="h-4 w-4 ml-2" />
