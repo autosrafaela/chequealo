@@ -2,9 +2,54 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bell, User, MapPin, Search, Heart, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import FilterDropdown from "./FilterDropdown";
+import NotificationPanel from "./NotificationPanel";
+import FavoritesPanel from "./FavoritesPanel";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('latest');
+
+  const filterOptions = [
+    { 
+      value: 'latest', 
+      label: 'Últimas publicaciones',
+      description: 'Los profesionales agregados más recientemente'
+    },
+    { 
+      value: 'rating', 
+      label: 'Mejor puntuadas',
+      description: 'Profesionales con mejores calificaciones'
+    },
+    { 
+      value: 'price', 
+      label: 'Precio',
+      description: 'Ordenar por precio más conveniente'
+    },
+    { 
+      value: 'speed', 
+      label: 'Rapidez',
+      description: 'Profesionales con respuesta más rápida'
+    },
+    { 
+      value: 'quality', 
+      label: 'Calidad',
+      description: 'Profesionales destacados por calidad'
+    }
+  ];
+
+  // Mock notification handlers
+  const handleMarkAsRead = (id: string) => {
+    console.log('Marking notification as read:', id);
+  };
+
+  const handleMarkAllAsRead = () => {
+    console.log('Marking all notifications as read');
+  };
+
+  const handleRemoveFavorite = (id: string) => {
+    console.log('Removing favorite:', id);
+  };
 
   return (
     <header className="bg-navy shadow-lg border-b border-navy-light sticky top-0 z-50">
@@ -62,23 +107,30 @@ const Header = () => {
               </div>
             </div>
 
-            {/* Filter Button */}
-            <Button variant="outline" className="ml-4 text-navy-foreground border-gray-300 hover:bg-white hover:text-gray-700">
-              Últimas publicaciones
-            </Button>
+            {/* Filter Dropdown */}
+            <div className="ml-4">
+              <FilterDropdown
+                options={filterOptions}
+                selected={selectedFilter}
+                onSelect={setSelectedFilter}
+                placeholder="Ordenar por..."
+              />
+            </div>
           </div>
 
           {/* Desktop User Actions */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="text-navy-foreground hover:text-primary">
-              <Heart className="h-4 w-4 mr-1" />
-              Favoritos
-            </Button>
+            <FavoritesPanel 
+              favorites={[]}
+              onRemoveFavorite={handleRemoveFavorite}
+            />
             
-            <Button variant="ghost" size="sm" className="text-navy-foreground hover:text-primary">
-              <Bell className="h-4 w-4 mr-1" />
-              Notificaciones
-            </Button>
+            <NotificationPanel
+              notifications={[]}
+              unreadCount={0}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+            />
 
             <Link to="/login">
               <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
@@ -135,14 +187,20 @@ const Header = () => {
 
               {/* Mobile Actions */}
               <div className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start text-navy-foreground">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Favoritos
-                </Button>
-                <Button variant="ghost" className="w-full justify-start text-navy-foreground">
-                  <Bell className="h-4 w-4 mr-2" />
-                  Notificaciones
-                </Button>
+                <div className="w-full">
+                  <FavoritesPanel 
+                    favorites={[]}
+                    onRemoveFavorite={handleRemoveFavorite}
+                  />
+                </div>
+                <div className="w-full">
+                  <NotificationPanel
+                    notifications={[]}
+                    unreadCount={0}
+                    onMarkAsRead={handleMarkAsRead}
+                    onMarkAllAsRead={handleMarkAllAsRead}
+                  />
+                </div>
                 <Link to="/login" className="block">
                   <Button variant="outline" className="w-full border-primary text-primary">
                     <User className="h-4 w-4 mr-2" />

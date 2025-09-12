@@ -13,9 +13,12 @@ interface ProfessionalCardProps {
   verified: boolean;
   availability: string;
   image?: string;
+  onToggleFavorite?: (id: number) => void;
+  isFavorite?: boolean;
 }
 
 const ProfessionalCard = ({
+  id,
   name,
   profession,
   location,
@@ -23,9 +26,17 @@ const ProfessionalCard = ({
   reviewCount,
   description,
   verified,
-  availability
+  availability,
+  onToggleFavorite,
+  isFavorite: propIsFavorite = false
 }: ProfessionalCardProps) => {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(propIsFavorite);
+
+  const handleToggleFavorite = () => {
+    const newFavoriteState = !isFavorite;
+    setIsFavorite(newFavoriteState);
+    onToggleFavorite?.(id);
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-primary/20 overflow-hidden">
@@ -59,8 +70,9 @@ const ProfessionalCard = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsFavorite(!isFavorite)}
+            onClick={handleToggleFavorite}
             className={`p-2 ${isFavorite ? 'text-red-500' : 'text-gray-400'} hover:text-red-500`}
+            title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
           >
             <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
           </Button>

@@ -3,10 +3,48 @@ import { Button } from "@/components/ui/button";
 import { Filter, Grid, List, SlidersHorizontal } from "lucide-react";
 import Header from "@/components/Header";
 import ProfessionalCard from "@/components/ProfessionalCard";
+import FilterDropdown from "@/components/FilterDropdown";
 
 const Search = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('latest');
+  const [favorites, setFavorites] = useState<number[]>([]);
+
+  const handleToggleFavorite = (id: number) => {
+    setFavorites(prev => 
+      prev.includes(id) 
+        ? prev.filter(fav => fav !== id)
+        : [...prev, id]
+    );
+  };
+
+  const sortOptions = [
+    { 
+      value: 'latest', 
+      label: 'Últimas publicaciones',
+      description: 'Los profesionales agregados más recientemente'
+    },
+    { 
+      value: 'rating', 
+      label: 'Mejor puntuadas',
+      description: 'Profesionales con mejores calificaciones'
+    },
+    { 
+      value: 'price', 
+      label: 'Precio',
+      description: 'Ordenar por precio más conveniente'
+    },
+    { 
+      value: 'speed', 
+      label: 'Rapidez',
+      description: 'Profesionales con respuesta más rápida'
+    },
+    { 
+      value: 'quality', 
+      label: 'Calidad',
+      description: 'Profesionales destacados por calidad'
+    }
+  ];
 
   // Mock data
   const professionals = [
@@ -78,13 +116,14 @@ const Search = () => {
     }
   ];
 
-  const sortOptions = [
-    { value: 'latest', label: 'Últimas publicaciones' },
-    { value: 'rating', label: 'Mejor calificados' },
-    { value: 'speed', label: 'Más rápidos' },
-    { value: 'price', label: 'Mejor precio' },
-    { value: 'quality', label: 'Mayor calidad' }
-  ];
+  // Remove the old sortOptions array since we have it above now
+  // const sortOptions = [
+  //   { value: 'latest', label: 'Últimas publicaciones' },
+  //   { value: 'rating', label: 'Mejor calificados' },
+  //   { value: 'speed', label: 'Más rápidos' },
+  //   { value: 'price', label: 'Mejor precio' },
+  //   { value: 'quality', label: 'Mayor calidad' }
+  // ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,17 +140,12 @@ const Search = () => {
           {/* Filters and Controls */}
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-white p-4 rounded-xl shadow-sm">
             <div className="flex flex-wrap gap-2">
-              {sortOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  variant={sortBy === option.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSortBy(option.value)}
-                  className={sortBy === option.value ? "bg-primary" : ""}
-                >
-                  {option.label}
-                </Button>
-              ))}
+              <FilterDropdown
+                options={sortOptions}
+                selected={sortBy}
+                onSelect={setSortBy}
+                placeholder="Ordenar por..."
+              />
             </div>
 
             <div className="flex items-center gap-2">
@@ -152,6 +186,8 @@ const Search = () => {
             <ProfessionalCard
               key={professional.id}
               {...professional}
+              onToggleFavorite={handleToggleFavorite}
+              isFavorite={favorites.includes(professional.id)}
             />
           ))}
         </div>
