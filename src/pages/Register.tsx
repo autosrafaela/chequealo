@@ -17,26 +17,59 @@ const Register = () => {
   const [userType, setUserType] = useState<'professional' | 'client'>('client');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
-  // Servicios disponibles para profesionales
+  // Servicios disponibles para profesionales - Lista completa
   const serviceCategories = [
-    { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600" },
-    { name: "Mecánico", icon: Car, color: "bg-orange-100 text-orange-600" },
-    { name: "Técnico de Aire Acondicionado", icon: Wrench, color: "bg-blue-100 text-blue-600" },
-    { name: "Kinesiólogo / Fisioterapeuta", icon: Heart, color: "bg-pink-100 text-pink-600" },
-    { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600" },
-    { name: "Gestor del Automotor", icon: Car, color: "bg-red-100 text-red-600" },
-    { name: "Profesor de Apoyo Escolar", icon: Laptop, color: "bg-indigo-100 text-indigo-600" },
-    { name: "Servicio Técnico (Línea Blanca)", icon: Wrench, color: "bg-gray-100 text-gray-600" },
-    { name: "Limpieza de Tapizados", icon: Sparkles, color: "bg-cyan-100 text-cyan-600" },
-    { name: "Instalador de Durlock / Yesero", icon: Hammer, color: "bg-amber-100 text-amber-600" },
-    { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600" },
-    { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600" },
-    { name: "Plomero", icon: Wrench, color: "bg-blue-200 text-blue-700" },
-    { name: "Gasista", icon: Flame, color: "bg-red-200 text-red-700" },
-    { name: "Electricista", icon: Zap, color: "bg-yellow-200 text-yellow-700" },
-    { name: "Pintor", icon: Paintbrush, color: "bg-green-200 text-green-700" },
-    { name: "Jardinero", icon: TreePine, color: "bg-green-300 text-green-800" },
+    { name: "Abogado", icon: Laptop, color: "bg-slate-100 text-slate-600" },
     { name: "Albañil", icon: Building, color: "bg-gray-200 text-gray-700" },
+    { name: "Arquitecto / Maestro Mayor de Obras", icon: Building, color: "bg-blue-100 text-blue-600" },
+    { name: "Carpintero", icon: Hammer, color: "bg-amber-100 text-amber-600" },
+    { name: "Catering / Cocinero", icon: Sparkles, color: "bg-orange-100 text-orange-600" },
+    { name: "Community Manager", icon: Laptop, color: "bg-purple-100 text-purple-600" },
+    { name: "Contador Público", icon: Laptop, color: "bg-green-100 text-green-600" },
+    { name: "Cuidador de Adultos", icon: Heart, color: "bg-pink-100 text-pink-600" },
+    { name: "Decorador de Eventos", icon: Sparkles, color: "bg-violet-100 text-violet-600" },
+    { name: "Detailing Automotor", icon: Car, color: "bg-blue-200 text-blue-700" },
+    { name: "Diseñador Gráfico", icon: Paintbrush, color: "bg-indigo-100 text-indigo-600" },
+    { name: "DJ / Sonido", icon: Laptop, color: "bg-red-100 text-red-600" },
+    { name: "Electricista", icon: Zap, color: "bg-yellow-200 text-yellow-700" },
+    { name: "Electricista del Automotor", icon: Zap, color: "bg-yellow-100 text-yellow-600" },
+    { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600" },
+    { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600" },
+    { name: "Escribano", icon: Laptop, color: "bg-gray-100 text-gray-600" },
+    { name: "Esteticista / Cosmetóloga", icon: Heart, color: "bg-pink-200 text-pink-700" },
+    { name: "Fiestas y Mudanzas", icon: Building, color: "bg-orange-200 text-orange-700" },
+    { name: "Fotógrafo / Videógrafo", icon: Laptop, color: "bg-cyan-100 text-cyan-600" },
+    { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600" },
+    { name: "Gasista / Plomero", icon: Flame, color: "bg-red-200 text-red-700" },
+    { name: "Gestor de Trámites", icon: Laptop, color: "bg-blue-100 text-blue-600" },
+    { name: "Gestor del Automotor", icon: Car, color: "bg-red-100 text-red-600" },
+    { name: "Gomero", icon: Car, color: "bg-gray-100 text-gray-600" },
+    { name: "Herrero", icon: Hammer, color: "bg-gray-200 text-gray-700" },
+    { name: "Instalador de Cámaras", icon: Wrench, color: "bg-slate-100 text-slate-600" },
+    { name: "Instalador de Durlock / Yesero", icon: Hammer, color: "bg-amber-100 text-amber-600" },
+    { name: "Jardinero / Paisajista", icon: TreePine, color: "bg-green-300 text-green-800" },
+    { name: "Kinesiólogo / Fisioterapeuta", icon: Heart, color: "bg-pink-100 text-pink-600" },
+    { name: "Lavadero de Autos", icon: Car, color: "bg-cyan-200 text-cyan-700" },
+    { name: "Limpieza de Tapizados", icon: Sparkles, color: "bg-cyan-100 text-cyan-600" },
+    { name: "Manicura / Pedicura", icon: Heart, color: "bg-rose-100 text-rose-600" },
+    { name: "Maquillador/a", icon: Heart, color: "bg-pink-200 text-pink-700" },
+    { name: "Musicista Terapéutico", icon: Laptop, color: "bg-purple-200 text-purple-700" },
+    { name: "Mecánico", icon: Car, color: "bg-orange-100 text-orange-600" },
+    { name: "Médico (Clínica, Pediatría, etc.)", icon: Heart, color: "bg-blue-100 text-blue-600" },
+    { name: "Nutricionista", icon: Heart, color: "bg-green-200 text-green-700" },
+    { name: "Peluquero / Barbero", icon: Heart, color: "bg-violet-200 text-violet-700" },
+    { name: "Pintor", icon: Paintbrush, color: "bg-green-200 text-green-700" },
+    { name: "Pintor de Autos / Chapista", icon: Paintbrush, color: "bg-orange-200 text-orange-700" },
+    { name: "Profesor de Apoyo Escolar", icon: Laptop, color: "bg-indigo-100 text-indigo-600" },
+    { name: "Profesor de Idiomas", icon: Laptop, color: "bg-blue-200 text-blue-700" },
+    { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600" },
+    { name: "Psicólogo", icon: Heart, color: "bg-teal-200 text-teal-700" },
+    { name: "Servicio de Grúa / Remolque", icon: Car, color: "bg-red-200 text-red-700" },
+    { name: "Servicio Técnico (Línea Blanca)", icon: Wrench, color: "bg-gray-100 text-gray-600" },
+    { name: "Serigrafía / Impermeabilización", icon: Paintbrush, color: "bg-indigo-200 text-indigo-700" },
+    { name: "Técnico de Aire Acondicionado", icon: Wrench, color: "bg-blue-100 text-blue-600" },
+    { name: "Técnico de Celulares", icon: Wrench, color: "bg-slate-200 text-slate-700" },
+    { name: "Técnico de PC", icon: Laptop, color: "bg-gray-200 text-gray-700" },
   ];
 
   const handleServiceToggle = (serviceName: string) => {
@@ -177,6 +210,22 @@ const Register = () => {
               </div>
             </div>
 
+            {/* Descripción para profesionales */}
+            {userType === 'professional' && (
+              <div>
+                <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                  Descripción (Sobre Mí)
+                </Label>
+                <div className="relative mt-1">
+                  <textarea
+                    id="description"
+                    placeholder="Contános sobre tu experiencia, especialidades y qué te hace único..."
+                    className="w-full h-20 px-3 py-2 border border-gray-200 rounded-md focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none text-sm"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Ubicación para profesionales */}
             {userType === 'professional' && (
               <div>
@@ -201,7 +250,7 @@ const Register = () => {
                 <Label className="text-sm font-medium text-gray-700 mb-3 block">
                   Elegí hasta 3 servicios que ofrecés ({selectedServices.length}/3)
                 </Label>
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+                <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
                   {serviceCategories.map((category, index) => {
                     const Icon = category.icon;
                     const isSelected = selectedServices.includes(category.name);
@@ -213,16 +262,18 @@ const Register = () => {
                         type="button"
                         onClick={() => handleServiceToggle(category.name)}
                         disabled={isDisabled}
-                        className={`p-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-2 ${
+                        className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 text-left ${
                           isSelected
-                            ? 'bg-primary text-primary-foreground border border-primary'
+                            ? 'bg-primary text-primary-foreground border border-primary shadow-md'
                             : isDisabled
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-white border border-gray-200 hover:border-primary hover:bg-primary/5 text-gray-700'
+                            ? 'bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-100'
+                            : 'bg-white border border-gray-200 hover:border-primary hover:bg-primary/5 text-gray-700 hover:shadow-sm'
                         }`}
                       >
-                        <Icon className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate text-left">{category.name}</span>
+                        <div className={`p-1.5 rounded-md ${isSelected ? 'bg-white/20' : category.color}`}>
+                          <Icon className="h-4 w-4 flex-shrink-0" />
+                        </div>
+                        <span className="flex-1">{category.name}</span>
                       </button>
                     );
                   })}
