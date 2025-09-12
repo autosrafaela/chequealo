@@ -61,9 +61,25 @@ const AdminDashboard = () => {
     }
   }, [user, isAdmin]);
 
-  // Redirect if not admin
+  // Guard: not admin
   if (!roleLoading && !isAdmin) {
-    return <Navigate to="/" replace />;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-xl mx-auto text-center space-y-3">
+            <Shield className="h-10 w-10 text-primary mx-auto" />
+            <h1 className="text-2xl font-bold text-foreground">Acceso restringido</h1>
+            <p className="text-muted-foreground">No tenés permisos para ver este panel.</p>
+            <div className="flex items-center justify-center gap-3">
+              <Button asChild variant="outline">
+                <a href="/">Ir al inicio</a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (roleLoading || loading) {
