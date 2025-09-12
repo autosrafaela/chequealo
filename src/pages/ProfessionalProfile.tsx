@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import { ProfessionalProfileEdit } from "@/components/ProfessionalProfileEdit";
 import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
+import { ContactRequestDialog } from "@/components/ContactRequestDialog";
+import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
@@ -287,14 +289,16 @@ const ProfessionalProfile = () => {
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <Button className="flex-1 bg-primary hover:bg-primary/90">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Contactar Ahora
-                    </Button>
-                    <Button variant="outline" className="flex-1">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Pedir Presupuesto
-                    </Button>
+                    <ContactRequestDialog 
+                      professionalId={professional.id}
+                      professionalName={professional.full_name}
+                      type="contact"
+                    />
+                    <ContactRequestDialog 
+                      professionalId={professional.id}
+                      professionalName={professional.full_name}
+                      type="quote"
+                    />
                     <Button 
                       variant="outline" 
                       size="icon"
@@ -329,11 +333,12 @@ const ProfessionalProfile = () => {
 
         {/* Tabs Section */}
         <Tabs defaultValue="about" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${isOwner ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="about">Sobre mí</TabsTrigger>
             <TabsTrigger value="services">Servicios</TabsTrigger>
             <TabsTrigger value="reviews">Opiniones</TabsTrigger>
             <TabsTrigger value="portfolio">Trabajos</TabsTrigger>
+            {isOwner && <TabsTrigger value="requests">Solicitudes</TabsTrigger>}
           </TabsList>
 
           {/* About Tab */}
@@ -506,6 +511,13 @@ const ProfessionalProfile = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Requests Tab - Only for owners */}
+          {isOwner && (
+            <TabsContent value="requests">
+              <ContactRequestsPanel />
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Back Button */}
