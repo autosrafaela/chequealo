@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import Header from "@/components/Header";
 import heroProfessionals from "@/assets/hero-professionals.jpg";
 
 const Login = () => {
@@ -11,10 +12,12 @@ const Login = () => {
   const [userType, setUserType] = useState<'professional' | 'client'>('client');
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
-      style={{ backgroundImage: `url(${heroProfessionals})` }}
-    >
+    <>
+      <Header />
+      <div 
+        className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
+        style={{ backgroundImage: `url(${heroProfessionals})` }}
+      >
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-navy/80 via-navy/70 to-navy/60"></div>
       
@@ -127,7 +130,8 @@ const Login = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
