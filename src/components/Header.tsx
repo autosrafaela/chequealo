@@ -9,6 +9,45 @@ import FavoritesPanel from "./FavoritesPanel";
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('latest');
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+
+  // Mapeo de provincias y sus ciudades
+  const provinceCityMap = {
+    'buenos-aires': ['La Plata', 'Mar del Plata', 'Bahía Blanca', 'Tandil', 'Olavarría', 'Pergamino', 'Junín', 'Azul'],
+    'gba': ['Vicente López', 'San Isidro', 'Tigre', 'San Martín', 'Tres de Febrero', 'Morón', 'Ituzaingó', 'Merlo', 'Moreno', 'José C. Paz', 'Malvinas Argentinas', 'San Miguel', 'Hurlingham', 'San Fernando', 'Escobar'],
+    'catamarca': ['San Fernando del Valle de Catamarca', 'Belén', 'Tinogasta', 'Andalgalá', 'Santa María'],
+    'chaco': ['Resistencia', 'Barranqueras', 'Fontana', 'Puerto Vilelas', 'Presidencia Roque Sáenz Peña'],
+    'chubut': ['Rawson', 'Comodoro Rivadavia', 'Puerto Madryn', 'Trelew', 'Esquel'],
+    'cordoba': ['Córdoba', 'Villa Carlos Paz', 'Río Cuarto', 'San Francisco', 'Villa María', 'Alta Gracia'],
+    'corrientes': ['Corrientes', 'Goya', 'Mercedes', 'Curuzú Cuatiá', 'Paso de los Libres'],
+    'entre-rios': ['Paraná', 'Concordia', 'Gualeguaychú', 'Concepción del Uruguay', 'Victoria'],
+    'formosa': ['Formosa', 'Clorinda', 'Pirané', 'El Colorado', 'Ingeniero Juárez'],
+    'jujuy': ['San Salvador de Jujuy', 'San Pedro', 'Libertador General San Martín', 'Palpalá', 'Perico'],
+    'la-pampa': ['Santa Rosa', 'General Pico', 'Toay', 'Realicó', 'Eduardo Castex'],
+    'la-rioja': ['La Rioja', 'Chilecito', 'Aimogasta', 'Chamical', 'Chepes'],
+    'mendoza': ['Mendoza', 'San Rafael', 'Godoy Cruz', 'Guaymallén', 'Las Heras', 'Maipú'],
+    'misiones': ['Posadas', 'Oberá', 'Eldorado', 'Puerto Iguazú', 'Apóstoles'],
+    'neuquen': ['Neuquén', 'Plottier', 'Cipolletti', 'San Martín de los Andes', 'Villa La Angostura'],
+    'rio-negro': ['Viedma', 'San Carlos de Bariloche', 'General Roca', 'Cipolletti', 'Allen'],
+    'salta': ['Salta', 'San Ramón de la Nueva Orán', 'Tartagal', 'Cafayate', 'Metán'],
+    'san-juan': ['San Juan', 'Rivadavia', 'Chimbas', 'Rawson', 'Pocito'],
+    'san-luis': ['San Luis', 'Villa Mercedes', 'Merlo', 'La Punta', 'Juana Koslay'],
+    'santa-cruz': ['Río Gallegos', 'Caleta Olivia', 'Pico Truncado', 'Puerto Deseado', 'El Calafate'],
+    'santa-fe': ['Santa Fe', 'Rosario', 'Rafaela', 'Venado Tuerto', 'Reconquista', 'Villa Constitución', 'Casilda', 'Esperanza'],
+    'santiago-del-estero': ['Santiago del Estero', 'La Banda', 'Termas de Río Hondo', 'Añatuya', 'Fernández'],
+    'tierra-del-fuego': ['Ushuaia', 'Río Grande', 'Tolhuin', 'Puerto Williams'],
+    'tucuman': ['San Miguel de Tucumán', 'Yerba Buena', 'Tafí Viejo', 'Concepción', 'Aguilares']
+  };
+
+  const handleProvinceChange = (provinceValue: string) => {
+    setSelectedProvince(provinceValue);
+    setSelectedCity(''); // Reset city when province changes
+  };
+
+  const getCitiesForProvince = (provinceValue: string) => {
+    return provinceCityMap[provinceValue as keyof typeof provinceCityMap] || [];
+  };
 
   const filterOptions = [
     { 
@@ -83,7 +122,11 @@ const Header = () => {
                 </div>
 
                 {/* Province Select */}
-                <select className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer">
+                <select 
+                  className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer"
+                  value={selectedProvince}
+                  onChange={(e) => handleProvinceChange(e.target.value)}
+                >
                   <option value="">Provincia</option>
                   <option value="buenos-aires">Buenos Aires</option>
                   <option value="gba">GBA</option>
@@ -112,16 +155,18 @@ const Header = () => {
                 </select>
 
                 {/* City Select */}
-                <select className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer">
+                <select 
+                  className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer"
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  disabled={!selectedProvince}
+                >
                   <option value="">Ciudad</option>
-                  <option value="rafaela">Rafaela</option>
-                  <option value="santa-fe">Santa Fe</option>
-                  <option value="rosario">Rosario</option>
-                  <option value="venado-tuerto">Venado Tuerto</option>
-                  <option value="reconquista">Reconquista</option>
-                  <option value="villa-constitucion">Villa Constitución</option>
-                  <option value="casilda">Casilda</option>
-                  <option value="esperanza">Esperanza</option>
+                  {getCitiesForProvince(selectedProvince).map((city) => (
+                    <option key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>
+                      {city}
+                    </option>
+                  ))}
                 </select>
 
                 {/* Search Button */}
@@ -197,40 +242,49 @@ const Header = () => {
 
               {/* Mobile Location */}
               <div className="flex space-x-2">
-                <select className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm">
-                  <option>Provincia</option>
-                  <option>Buenos Aires</option>
-                  <option>GBA</option>
-                  <option>Catamarca</option>
-                  <option>Chaco</option>
-                  <option>Chubut</option>
-                  <option>Córdoba</option>
-                  <option>Corrientes</option>
-                  <option>Entre Ríos</option>
-                  <option>Formosa</option>
-                  <option>Jujuy</option>
-                  <option>La Pampa</option>
-                  <option>La Rioja</option>
-                  <option>Mendoza</option>
-                  <option>Misiones</option>
-                  <option>Neuquén</option>
-                  <option>Río Negro</option>
-                  <option>Salta</option>
-                  <option>San Juan</option>
-                  <option>San Luis</option>
-                  <option>Santa Cruz</option>
-                  <option>Santa Fe</option>
-                  <option>Santiago del Estero</option>
-                  <option>Tierra del Fuego</option>
-                  <option>Tucumán</option>
+                <select 
+                  className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm"
+                  value={selectedProvince}
+                  onChange={(e) => handleProvinceChange(e.target.value)}
+                >
+                  <option value="">Provincia</option>
+                  <option value="buenos-aires">Buenos Aires</option>
+                  <option value="gba">GBA</option>
+                  <option value="catamarca">Catamarca</option>
+                  <option value="chaco">Chaco</option>
+                  <option value="chubut">Chubut</option>
+                  <option value="cordoba">Córdoba</option>
+                  <option value="corrientes">Corrientes</option>
+                  <option value="entre-rios">Entre Ríos</option>
+                  <option value="formosa">Formosa</option>
+                  <option value="jujuy">Jujuy</option>
+                  <option value="la-pampa">La Pampa</option>
+                  <option value="la-rioja">La Rioja</option>
+                  <option value="mendoza">Mendoza</option>
+                  <option value="misiones">Misiones</option>
+                  <option value="neuquen">Neuquén</option>
+                  <option value="rio-negro">Río Negro</option>
+                  <option value="salta">Salta</option>
+                  <option value="san-juan">San Juan</option>
+                  <option value="san-luis">San Luis</option>
+                  <option value="santa-cruz">Santa Cruz</option>
+                  <option value="santa-fe">Santa Fe</option>
+                  <option value="santiago-del-estero">Santiago del Estero</option>
+                  <option value="tierra-del-fuego">Tierra del Fuego</option>
+                  <option value="tucuman">Tucumán</option>
                 </select>
-                <select className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm">
-                  <option>Ciudad</option>
-                  <option>Rafaela</option>
-                  <option>Santa Fe</option>
-                  <option>Rosario</option>
-                  <option>Venado Tuerto</option>
-                  <option>Reconquista</option>
+                <select 
+                  className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm"
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  disabled={!selectedProvince}
+                >
+                  <option value="">Ciudad</option>
+                  {getCitiesForProvince(selectedProvince).map((city) => (
+                    <option key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>
+                      {city}
+                    </option>
+                  ))}
                 </select>
               </div>
 
