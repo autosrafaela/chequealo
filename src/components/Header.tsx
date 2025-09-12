@@ -104,7 +104,7 @@ const Header = () => {
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
                     disabled={false}
-                    className="w-full pl-16 pr-4 py-2 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
+                    className="w-full pl-16 pr-4 py-4 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
                   />
                 </div>
 
@@ -140,7 +140,7 @@ const Header = () => {
                 {/* Search Button */}
                 <Button 
                   onClick={handleSearch}
-                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-4 h-auto rounded-md"
+                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-4 h-[52px] rounded-md"
                 >
                   <Search className="h-6 w-6" />
                   <span className="hidden sm:inline ml-2">Buscar</span>
