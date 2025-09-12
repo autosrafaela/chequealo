@@ -85,32 +85,32 @@ const Header = () => {
           </Link>
 
           {/* Main Search Section */}
-          <div className="flex items-center flex-1 max-w-4xl mx-8">
+          <div className="flex items-center flex-1 max-w-5xl mx-4">
             {/* Location Display - Hidden on small screens */}
-            <div className="hidden xl:flex items-center space-x-1 text-navy-foreground mr-6">
+            <div className="hidden xl:flex items-center space-x-1 text-navy-foreground mr-4">
               <MapPin className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Rafaela, Santa Fe</span>
             </div>
 
-            {/* Main Search Container */}
+            {/* Main Search Container - Increased width */}
             <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
               <div className="flex items-center">
-                {/* Search Input for Service/Professional */}
-                <div className="flex-1 relative">
-                  <Search className="absolute left-10 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                {/* Search Input for Service/Professional - Increased space */}
+                <div className="flex-[2] relative">
+                  <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
                   <input
                     type="text"
-                    placeholder="Ej: plomero, grúa, veterinario..."
+                    placeholder="¿Qué servicio buscás?"
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
                     disabled={false}
-                    className="w-full pl-20 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-xs font-medium"
+                    className="w-full pl-16 pr-4 py-4 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
                   />
                 </div>
 
-                {/* Province Select - Hidden on small screens */}
+                {/* Province Select - Reduced space */}
                 <select 
-                  className="hidden md:block px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer"
+                  className="hidden md:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
                   value={selectedProvince}
                   onChange={(e) => handleProvinceChange(e.target.value)}
                 >
@@ -122,9 +122,9 @@ const Header = () => {
                   ))}
                 </select>
 
-                {/* City Select - Hidden on small screens */}
+                {/* City Select - Reduced space */}
                 <select 
-                  className="hidden lg:block px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer"
+                  className="hidden lg:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                   disabled={!selectedProvince}
@@ -140,7 +140,7 @@ const Header = () => {
                 {/* Search Button */}
                 <Button 
                   onClick={handleSearch}
-                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-3 h-auto rounded-md"
+                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-4 h-auto rounded-md"
                 >
                   <Search className="h-6 w-6" />
                   <span className="hidden sm:inline ml-2">Buscar</span>
@@ -148,8 +148,8 @@ const Header = () => {
               </div>
             </div>
 
-            {/* Filter Dropdown - Hidden on small screens */}
-            <div className="hidden lg:block ml-4">
+            {/* Filter Dropdown - Reduced space */}
+            <div className="hidden lg:block ml-2">
               <FilterDropdown
                 options={filterOptions}
                 selected={selectedFilter}
