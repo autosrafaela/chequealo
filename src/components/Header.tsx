@@ -104,13 +104,13 @@ const Header = () => {
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
                     disabled={false}
-                    className="w-full pl-16 pr-4 py-4 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
+                    className="w-full pl-16 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
                   />
                 </div>
 
                 {/* Province Select - Reduced space */}
                 <select 
-                  className="hidden md:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
+                  className="hidden md:block px-2 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
                   value={selectedProvince}
                   onChange={(e) => handleProvinceChange(e.target.value)}
                 >
@@ -124,7 +124,7 @@ const Header = () => {
 
                 {/* City Select - Reduced space */}
                 <select 
-                  className="hidden lg:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
+                  className="hidden lg:block px-2 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                   disabled={!selectedProvince}
@@ -140,7 +140,7 @@ const Header = () => {
                 {/* Search Button */}
                 <Button 
                   onClick={handleSearch}
-                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-4 h-[52px] rounded-md"
+                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-3 h-auto rounded-md"
                 >
                   <Search className="h-6 w-6" />
                   <span className="hidden sm:inline ml-2">Buscar</span>
