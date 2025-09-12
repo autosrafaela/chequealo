@@ -5,40 +5,13 @@ import { Link } from "react-router-dom";
 import FilterDropdown from "./FilterDropdown";
 import NotificationPanel from "./NotificationPanel";
 import FavoritesPanel from "./FavoritesPanel";
+import { provinceCityMap } from "../data/provinceCityData";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('latest');
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
-
-  // Mapeo de provincias y sus ciudades
-  const provinceCityMap = {
-    'buenos-aires': ['La Plata', 'Mar del Plata', 'Bahía Blanca', 'Tandil', 'Olavarría', 'Pergamino', 'Junín', 'Azul'],
-    'gba': ['Vicente López', 'San Isidro', 'Tigre', 'San Martín', 'Tres de Febrero', 'Morón', 'Ituzaingó', 'Merlo', 'Moreno', 'José C. Paz', 'Malvinas Argentinas', 'San Miguel', 'Hurlingham', 'San Fernando', 'Escobar'],
-    'catamarca': ['San Fernando del Valle de Catamarca', 'Belén', 'Tinogasta', 'Andalgalá', 'Santa María'],
-    'chaco': ['Resistencia', 'Barranqueras', 'Fontana', 'Puerto Vilelas', 'Presidencia Roque Sáenz Peña'],
-    'chubut': ['Rawson', 'Comodoro Rivadavia', 'Puerto Madryn', 'Trelew', 'Esquel'],
-    'cordoba': ['Córdoba', 'Villa Carlos Paz', 'Río Cuarto', 'San Francisco', 'Villa María', 'Alta Gracia'],
-    'corrientes': ['Corrientes', 'Goya', 'Mercedes', 'Curuzú Cuatiá', 'Paso de los Libres'],
-    'entre-rios': ['Paraná', 'Concordia', 'Gualeguaychú', 'Concepción del Uruguay', 'Victoria'],
-    'formosa': ['Formosa', 'Clorinda', 'Pirané', 'El Colorado', 'Ingeniero Juárez'],
-    'jujuy': ['San Salvador de Jujuy', 'San Pedro', 'Libertador General San Martín', 'Palpalá', 'Perico'],
-    'la-pampa': ['Santa Rosa', 'General Pico', 'Toay', 'Realicó', 'Eduardo Castex'],
-    'la-rioja': ['La Rioja', 'Chilecito', 'Aimogasta', 'Chamical', 'Chepes'],
-    'mendoza': ['Mendoza', 'San Rafael', 'Godoy Cruz', 'Guaymallén', 'Las Heras', 'Maipú'],
-    'misiones': ['Posadas', 'Oberá', 'Eldorado', 'Puerto Iguazú', 'Apóstoles'],
-    'neuquen': ['Neuquén', 'Plottier', 'Cipolletti', 'San Martín de los Andes', 'Villa La Angostura'],
-    'rio-negro': ['Viedma', 'San Carlos de Bariloche', 'General Roca', 'Cipolletti', 'Allen'],
-    'salta': ['Salta', 'San Ramón de la Nueva Orán', 'Tartagal', 'Cafayate', 'Metán'],
-    'san-juan': ['San Juan', 'Rivadavia', 'Chimbas', 'Rawson', 'Pocito'],
-    'san-luis': ['San Luis', 'Villa Mercedes', 'Merlo', 'La Punta', 'Juana Koslay'],
-    'santa-cruz': ['Río Gallegos', 'Caleta Olivia', 'Pico Truncado', 'Puerto Deseado', 'El Calafate'],
-    'santa-fe': ['Santa Fe', 'Rosario', 'Rafaela', 'Venado Tuerto', 'Reconquista', 'Villa Constitución', 'Casilda', 'Esperanza'],
-    'santiago-del-estero': ['Santiago del Estero', 'La Banda', 'Termas de Río Hondo', 'Añatuya', 'Fernández'],
-    'tierra-del-fuego': ['Ushuaia', 'Río Grande', 'Tolhuin', 'Puerto Williams'],
-    'tucuman': ['San Miguel de Tucumán', 'Yerba Buena', 'Tafí Viejo', 'Concepción', 'Aguilares']
-  };
 
   const handleProvinceChange = (provinceValue: string) => {
     setSelectedProvince(provinceValue);
