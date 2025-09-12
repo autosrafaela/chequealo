@@ -38,15 +38,29 @@ export const WhatsAppContactButton = ({
     const defaultMessage = message || 
       `Hola ${professionalName}! Te contacto desde TodoAca.ar. Me interesa conocer más sobre tus servicios.`;
 
-    // Build WhatsApp URL based on device to avoid api.whatsapp.com block
+    // Robust WhatsApp URL with fallbacks (prefer wa.me)
     const encodedText = encodeURIComponent(defaultMessage);
     const isMobile = /Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry/i.test(navigator.userAgent);
-    const whatsappUrl = isMobile
-      ? `whatsapp://send?phone=${whatsappNumber}&text=${encodedText}`
-      : `https://web.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedText}`;
-    
-    // Open WhatsApp
-    window.open(whatsappUrl, '_blank');
+
+    const candidates = isMobile
+      ? [
+          `whatsapp://send?phone=${whatsappNumber}&text=${encodedText}`,
+          `https://wa.me/${whatsappNumber}?text=${encodedText}`,
+          `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedText}`,
+        ]
+      : [
+          `https://wa.me/${whatsappNumber}?text=${encodedText}`,
+          `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedText}`,
+          `https://web.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedText}`,
+        ];
+
+    // Try to open in a new tab; if the browser blocks popups, navigate in the same tab
+    let opened = false;
+    for (const url of candidates) {
+      const w = window.open(url, '_blank');
+      if (w) { opened = true; break; }
+    }
+    if (!opened) window.location.href = candidates[0];
   };
 
   return (
