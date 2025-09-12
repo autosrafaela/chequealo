@@ -96,11 +96,11 @@ const Header = () => {
             <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
               <div className="flex items-center">
                 {/* Search Input for Service/Professional - Increased space */}
-                <div className="flex-[2] relative">
+                <div className="flex-1 relative">
                   <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
                   <input
                     type="text"
-                    placeholder="¿Qué servicio buscás?"
+                    placeholder="Ej: plomero, gasista, grúa"
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
                     disabled={false}
