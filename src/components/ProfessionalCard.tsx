@@ -1,20 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Heart, MessageCircle, Clock, User } from "lucide-react";
-import { useState } from "react";
+import { Star, MapPin, Heart, MessageCircle, Clock, User, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfessionalCardProps {
-  id: number;
+  id: string;
   name: string;
   profession: string;
   location: string;
   rating: number;
   reviewCount: number;
   description: string;
-  verified: boolean;
+  verified?: boolean;
   availability: string;
   image?: string;
-  onToggleFavorite?: (id: number) => void;
+  onToggleFavorite?: (id: string) => void;
   isFavorite?: boolean;
 }
 
@@ -26,13 +27,35 @@ const ProfessionalCard = ({
   rating,
   reviewCount,
   description,
-  verified,
+  verified: verifiedProp,
   availability,
   image,
   onToggleFavorite,
   isFavorite: propIsFavorite = false
 }: ProfessionalCardProps) => {
   const [isFavorite, setIsFavorite] = useState(propIsFavorite);
+  const [isVerified, setIsVerified] = useState(verifiedProp || false);
+
+  useEffect(() => {
+    // Check if professional is verified in database
+    const checkVerification = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('professionals')
+          .select('is_verified')
+          .eq('user_id', id)
+          .maybeSingle();
+
+        if (!error && data) {
+          setIsVerified(data.is_verified);
+        }
+      } catch (error) {
+        console.error('Error checking verification:', error);
+      }
+    };
+
+    checkVerification();
+  }, [id]);
 
   const handleToggleFavorite = () => {
     const newFavoriteState = !isFavorite;
@@ -67,8 +90,9 @@ const ProfessionalCard = ({
             <div className="flex-1">
               <div className="flex items-center space-x-2">
                 <h3 className="text-lg font-semibold text-foreground">{name}</h3>
-                {verified && (
-                  <div className="bg-success text-success-foreground text-xs px-2 py-1 rounded-full">
+                {isVerified && (
+                  <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
                     Verificado
                   </div>
                 )}

@@ -14,7 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      professionals: {
+        Row: {
+          availability: string | null
+          created_at: string
+          description: string | null
+          email: string
+          full_name: string
+          id: string
+          image_url: string | null
+          is_verified: boolean
+          location: string | null
+          phone: string | null
+          profession: string
+          rating: number | null
+          review_count: number | null
+          updated_at: string
+          user_id: string
+          verification_date: string | null
+        }
+        Insert: {
+          availability?: string | null
+          created_at?: string
+          description?: string | null
+          email: string
+          full_name: string
+          id?: string
+          image_url?: string | null
+          is_verified?: boolean
+          location?: string | null
+          phone?: string | null
+          profession: string
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string
+          user_id: string
+          verification_date?: string | null
+        }
+        Update: {
+          availability?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          image_url?: string | null
+          is_verified?: boolean
+          location?: string | null
+          phone?: string | null
+          profession?: string
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string
+          user_id?: string
+          verification_date?: string | null
+        }
+        Relationships: []
+      }
+      verification_requests: {
+        Row: {
+          admin_notes: string | null
+          certifications: string[] | null
+          created_at: string
+          document_urls: string[] | null
+          education: string | null
+          email: string
+          full_name: string
+          id: string
+          license_number: string | null
+          phone: string | null
+          profession: string
+          professional_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          years_experience: number | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          certifications?: string[] | null
+          created_at?: string
+          document_urls?: string[] | null
+          education?: string | null
+          email: string
+          full_name: string
+          id?: string
+          license_number?: string | null
+          phone?: string | null
+          profession: string
+          professional_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Update: {
+          admin_notes?: string | null
+          certifications?: string[] | null
+          created_at?: string
+          document_urls?: string[] | null
+          education?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          license_number?: string | null
+          phone?: string | null
+          profession?: string
+          professional_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

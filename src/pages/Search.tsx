@@ -8,9 +8,9 @@ import FilterDropdown from "@/components/FilterDropdown";
 const Search = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('latest');
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
-  const handleToggleFavorite = (id: number) => {
+  const handleToggleFavorite = (id: string) => {
     setFavorites(prev => 
       prev.includes(id) 
         ? prev.filter(fav => fav !== id)
@@ -49,7 +49,7 @@ const Search = () => {
   // Mock data
   const professionals = [
     {
-      id: 1,
+      id: "1",
       name: "Ana Rodríguez",
       profession: "Contadora Pública",
       location: "Rafaela, Santa Fe",
@@ -60,7 +60,7 @@ const Search = () => {
       availability: "Disponible hoy"
     },
     {
-      id: 2,
+      id: "2",
       name: "José Martínez",
       profession: "Plomero / Gasista",
       location: "Rafaela, Santa Fe",
@@ -71,7 +71,7 @@ const Search = () => {
       availability: "Disponible mañana"
     },
     {
-      id: 3,
+      id: "3",
       name: "Laura Gómez",
       profession: "Electricista Domiciliaria",
       location: "Rafaela, Santa Fe",
@@ -82,7 +82,7 @@ const Search = () => {
       availability: "Disponible ahora"
     },
     {
-      id: 4,
+      id: "4",
       name: "Carlos Fernández",
       profession: "Mecánico Automotriz",
       location: "Rafaela, Santa Fe",
@@ -93,7 +93,7 @@ const Search = () => {
       availability: "Disponible esta semana"
     },
     {
-      id: 5,
+      id: "5",
       name: "María López",
       profession: "Abogada",
       location: "Rafaela, Santa Fe",
@@ -104,7 +104,7 @@ const Search = () => {
       availability: "Disponible próxima semana"
     },
     {
-      id: 6,
+      id: "6",
       name: "Maximiliano Bustamante",
       profession: "Gestor del Automotor / Mandatario",
       location: "Rafaela, Santa Fe",
@@ -116,15 +116,6 @@ const Search = () => {
     }
   ];
 
-  // Remove the old sortOptions array since we have it above now
-  // const sortOptions = [
-  //   { value: 'latest', label: 'Últimas publicaciones' },
-  //   { value: 'rating', label: 'Mejor calificados' },
-  //   { value: 'speed', label: 'Más rápidos' },
-  //   { value: 'price', label: 'Mejor precio' },
-  //   { value: 'quality', label: 'Mayor calidad' }
-  // ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -134,7 +125,7 @@ const Search = () => {
         <div className="mb-8">
           <div className="bg-navy text-navy-foreground px-4 py-2 rounded-lg inline-block mb-4">
             <span className="text-sm">Búsqueda:</span>
-            <span className="font-semibold ml-2">7 resultado(s)</span>
+            <span className="font-semibold ml-2">6 resultado(s)</span>
           </div>
           
           {/* Filters and Controls */}
