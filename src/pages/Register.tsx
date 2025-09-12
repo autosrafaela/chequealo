@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, MapPin } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, MapPin, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import heroProfessionals from "@/assets/hero-professionals.jpg";
@@ -16,6 +16,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState<'professional' | 'client'>('client');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Servicios disponibles para profesionales - Lista completa
   const serviceCategories = [
@@ -82,6 +83,11 @@ const Register = () => {
       return prev;
     });
   };
+
+  // Filtrar servicios basándose en el término de búsqueda
+  const filteredServices = serviceCategories.filter(service =>
+    service.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
@@ -250,33 +256,52 @@ const Register = () => {
                 <Label className="text-sm font-medium text-gray-700 mb-3 block">
                   Elegí hasta 3 servicios que ofrecés ({selectedServices.length}/3)
                 </Label>
+                
+                {/* Campo de búsqueda */}
+                <div className="relative mb-3">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar servicios..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-10 border-gray-200 focus:border-primary text-sm"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
-                  {serviceCategories.map((category, index) => {
-                    const Icon = category.icon;
-                    const isSelected = selectedServices.includes(category.name);
-                    const isDisabled = selectedServices.length >= 3 && !isSelected;
-                    
-                    return (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => handleServiceToggle(category.name)}
-                        disabled={isDisabled}
-                        className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 text-left ${
-                          isSelected
-                            ? 'bg-primary text-primary-foreground border border-primary shadow-md'
-                            : isDisabled
-                            ? 'bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-100'
-                            : 'bg-white border border-gray-200 hover:border-primary hover:bg-primary/5 text-gray-700 hover:shadow-sm'
-                        }`}
-                      >
-                        <div className={`p-1.5 rounded-md ${isSelected ? 'bg-white/20' : category.color}`}>
-                          <Icon className="h-4 w-4 flex-shrink-0" />
-                        </div>
-                        <span className="flex-1">{category.name}</span>
-                      </button>
-                    );
-                  })}
+                  {filteredServices.length > 0 ? (
+                    filteredServices.map((category, index) => {
+                      const Icon = category.icon;
+                      const isSelected = selectedServices.includes(category.name);
+                      const isDisabled = selectedServices.length >= 3 && !isSelected;
+                      
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleServiceToggle(category.name)}
+                          disabled={isDisabled}
+                          className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-3 text-left ${
+                            isSelected
+                              ? 'bg-primary text-primary-foreground border border-primary shadow-md'
+                              : isDisabled
+                              ? 'bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-100'
+                              : 'bg-white border border-gray-200 hover:border-primary hover:bg-primary/5 text-gray-700 hover:shadow-sm'
+                          }`}
+                        >
+                          <div className={`p-1.5 rounded-md ${isSelected ? 'bg-white/20' : category.color}`}>
+                            <Icon className="h-4 w-4 flex-shrink-0" />
+                          </div>
+                          <span className="flex-1">{category.name}</span>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="p-4 text-center text-gray-500 text-sm">
+                      No se encontraron servicios que coincidan con "{searchTerm}"
+                    </div>
+                  )}
                 </div>
                 {selectedServices.length > 0 && (
                   <div className="mt-2 text-xs text-gray-600">
