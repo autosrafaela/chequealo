@@ -129,40 +129,38 @@ const Search = () => {
           </div>
           
           {/* Filters and Controls */}
-          <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-white p-4 rounded-xl shadow-sm">
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-sm">
+            <div className="flex flex-wrap gap-2 items-center">
               <FilterDropdown
                 options={sortOptions}
                 selected={sortBy}
                 onSelect={setSortBy}
                 placeholder="Ordenar por..."
               />
-            </div>
-
-            <div className="flex items-center gap-2">
+              
               <Button variant="outline" size="sm">
                 <SlidersHorizontal className="h-4 w-4 mr-1" />
-                Filtros
+                Más Filtros
               </Button>
-              
-              <div className="flex rounded-lg overflow-hidden border">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="rounded-none"
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="rounded-none"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
+            </div>
+
+            <div className="flex rounded-lg overflow-hidden border">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="rounded-none"
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-none"
+              >
+                <List className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
