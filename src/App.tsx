@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Register from "./pages/Register";
 import Verification from "./pages/Verification";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
+import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -22,6 +23,7 @@ const App = () => (
         <Route path="/register" element={<Register />} />
         <Route path="/verification" element={<Verification />} />
         <Route path="/professional/:id" element={<ProfessionalProfile />} />
+        <Route path="/dashboard" element={<ProfessionalDashboard />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

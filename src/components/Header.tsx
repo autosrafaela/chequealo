@@ -1,18 +1,61 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Bell, User, MapPin, Search, Heart, Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Bell, User, MapPin, Search, Heart, Menu, X, BarChart3, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import FilterDropdown from "./FilterDropdown";
 import NotificationPanel from "./NotificationPanel";
 import FavoritesPanel from "./FavoritesPanel";
 import { provinceCityMap } from "../data/provinceCityData";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('latest');
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isProfessional, setIsProfessional] = useState(false);
+
+  useEffect(() => {
+    checkIfProfessional();
+  }, [user]);
+
+  const checkIfProfessional = async () => {
+    if (!user) {
+      setIsProfessional(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking professional status:', error);
+        return;
+      }
+
+      setIsProfessional(!!data);
+    } catch (error) {
+      console.error('Error checking professional status:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+      setIsUserMenuOpen(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const handleProvinceChange = (provinceValue: string) => {
     console.log('Province changed to:', provinceValue);
@@ -177,19 +220,48 @@ const Header = () => {
                   <h3 className="font-medium text-gray-900">Menú de Usuario</h3>
                 </div>
                 
-                {/* Auth Buttons - Moved to top */}
+                {/* Auth and Professional Navigation */}
                 <div className="px-4 py-2 space-y-2 border-b border-gray-100">
-                  <Link to="/login" onClick={() => setIsUserMenuOpen(false)}>
-                    <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                      <User className="h-4 w-4 mr-2" />
-                      Iniciar Sesión
-                    </Button>
-                  </Link>
-                  <Link to="/register" onClick={() => setIsUserMenuOpen(false)}>
-                    <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
-                      Registrarse
-                    </Button>
-                  </Link>
+                  {user ? (
+                    <>
+                      <div className="text-sm text-gray-600 mb-2">
+                        Hola, {user.email}
+                      </div>
+                      
+                      {isProfessional && (
+                        <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)}>
+                          <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                            <BarChart3 className="h-4 w-4 mr-2" />
+                            Mi Dashboard
+                          </Button>
+                        </Link>
+                      )}
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full" 
+                        onClick={handleSignOut}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Cerrar Sesión
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/auth" onClick={() => setIsUserMenuOpen(false)}>
+                        <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                          <User className="h-4 w-4 mr-2" />
+                          Iniciar Sesión
+                        </Button>
+                      </Link>
+                      <Link to="/register" onClick={() => setIsUserMenuOpen(false)}>
+                        <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
+                          Registrarse
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
                 
                 {/* Mobile Location Selectors */}
