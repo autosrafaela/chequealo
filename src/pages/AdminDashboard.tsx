@@ -51,7 +51,11 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [newAdminEmail, setNewAdminEmail] = useState('');
 
+  // Debug logs to diagnose blank page
+  console.log('[AdminDashboard] render', { userId: user?.id, isAdmin, roleLoading, loading });
+
   useEffect(() => {
+    console.log('[AdminDashboard] useEffect', { hasUser: !!user, isAdmin });
     if (user && isAdmin) {
       fetchAdminData();
     }
