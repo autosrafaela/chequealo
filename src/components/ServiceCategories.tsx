@@ -1,10 +1,17 @@
 import { 
   Wrench, Zap, Car, Sparkles, Dumbbell, Paintbrush, 
-  Hammer, Flame, TreePine, Building, Heart, Laptop 
+  Hammer, Flame, TreePine, Building, Heart, Laptop, ChevronDown, ChevronUp 
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 const ServiceCategories = () => {
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [allProfessions, setAllProfessions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
   // Servicios ordenados por ranking de búsquedas (los más buscados primero)
   const categories = [
     { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600", rank: 1, searchTerm: "limpieza" },
@@ -20,6 +27,33 @@ const ServiceCategories = () => {
     { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600", rank: 11, searchTerm: "fumigador" },
     { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600", rank: 12, searchTerm: "profesor música" },
   ];
+
+  const loadAllProfessions = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('professionals')
+        .select('profession')
+        .order('profession');
+
+      if (error) throw error;
+      
+      // Get unique professions
+      const uniqueProfessions = Array.from(new Set(data?.map(p => p.profession) || []));
+      setAllProfessions(uniqueProfessions);
+    } catch (error) {
+      console.error('Error loading professions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleAllCategories = async () => {
+    if (!showAllCategories && allProfessions.length === 0) {
+      await loadAllProfessions();
+    }
+    setShowAllCategories(!showAllCategories);
+  };
 
   return (
     <section className="py-16 bg-gray-50">
@@ -55,10 +89,52 @@ const ServiceCategories = () => {
           })}
         </div>
 
-        <div className="text-center mt-12">
-          <Link to="/search" className="text-primary hover:text-primary/80 font-medium text-lg underline underline-offset-4">
-            Ver todas las categorías
-          </Link>
+        <div className="text-center mt-12 relative">
+          <Button
+            onClick={handleToggleAllCategories}
+            variant="ghost"
+            className="text-primary hover:text-primary/80 font-medium text-lg underline underline-offset-4 hover:no-underline"
+            disabled={loading}
+          >
+            {loading ? 'Cargando...' : 
+             showAllCategories ? 'Ocultar categorías' : 'Ver todas las categorías'}
+            {!loading && (
+              showAllCategories ? 
+                <ChevronUp className="ml-2 h-5 w-5" /> : 
+                <ChevronDown className="ml-2 h-5 w-5" />
+            )}
+          </Button>
+
+          {/* Dropdown with all professions */}
+          {showAllCategories && (
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-4 w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-4 text-center text-foreground">
+                  Todas las Profesiones Disponibles
+                </h3>
+                {allProfessions.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {allProfessions.map((profession, index) => (
+                      <Link
+                        key={index}
+                        to={`/search?q=${encodeURIComponent(profession)}`}
+                        className="block p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary/20"
+                        onClick={() => setShowAllCategories(false)}
+                      >
+                        <div className="text-sm font-medium text-foreground text-center">
+                          {profession}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    No hay profesiones disponibles
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
