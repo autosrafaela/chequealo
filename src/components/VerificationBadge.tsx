@@ -13,7 +13,7 @@ const VerificationBadge: React.FC<VerificationBadgeProps> = ({ verified, classNa
   return (
     <Badge 
       variant="secondary" 
-      className={`bg-green-100 text-green-800 hover:bg-green-200 ${className}`}
+      className={`bg-emerald-500 text-white hover:bg-emerald-600 ${className}`}
     >
       <Shield className="h-3 w-3 mr-1" />
       Verificado

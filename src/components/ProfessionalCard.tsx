@@ -91,7 +91,7 @@ const ProfessionalCard = ({
               <div className="flex items-center space-x-2">
                 <h3 className="text-lg font-semibold text-foreground">{name}</h3>
                 {isVerified && (
-                  <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                  <div className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
                     <Shield className="h-3 w-3" />
                     Verificado
                   </div>
