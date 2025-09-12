@@ -91,13 +91,13 @@ const Header = () => {
               <div className="flex items-center">
                 {/* Search Input for Service/Professional */}
                 <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-7 w-7" />
                   <input
                     type="text"
                     placeholder="Ej: plomero, grúa, veterinario..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
+                    className="w-full pl-16 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
                   />
                 </div>
 
@@ -133,9 +133,9 @@ const Header = () => {
                 {/* Search Button */}
                 <Button 
                   onClick={handleSearch}
-                  className="ml-2 bg-primary hover:bg-primary/90 px-6 py-3 h-auto rounded-md"
+                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-3 h-auto rounded-md"
                 >
-                  <Search className="h-5 w-5" />
+                  <Search className="h-6 w-6" />
                   <span className="hidden sm:inline ml-2">Buscar</span>
                 </Button>
               </div>
