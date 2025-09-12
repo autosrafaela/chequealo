@@ -133,10 +133,10 @@ const Header = () => {
                 {/* Search Button */}
                 <Button 
                   onClick={handleSearch}
-                  className="ml-2 bg-primary hover:bg-primary/90 px-4 lg:px-6 py-3 h-auto rounded-md"
+                  className="ml-2 bg-primary hover:bg-primary/90 px-6 py-3 h-auto rounded-md"
                 >
-                  <Search className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-1">Buscar</span>
+                  <Search className="h-5 w-5" />
+                  <span className="hidden sm:inline ml-2">Buscar</span>
                 </Button>
               </div>
             </div>
@@ -165,15 +165,30 @@ const Header = () => {
 
             {/* User Menu Dropdown */}
             {isUserMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[60]">
                 <div className="px-4 py-2 border-b border-gray-100">
                   <h3 className="font-medium text-gray-900">Menú de Usuario</h3>
+                </div>
+                
+                {/* Auth Buttons - Moved to top */}
+                <div className="px-4 py-2 space-y-2 border-b border-gray-100">
+                  <Link to="/login" onClick={() => setIsUserMenuOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                      <User className="h-4 w-4 mr-2" />
+                      Iniciar Sesión
+                    </Button>
+                  </Link>
+                  <Link to="/register" onClick={() => setIsUserMenuOpen(false)}>
+                    <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
+                      Registrarse
+                    </Button>
+                  </Link>
                 </div>
                 
                 {/* Mobile Location Selectors */}
                 <div className="md:hidden px-4 py-2 space-y-2 border-b border-gray-100">
                   <select 
-                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-sm"
                     value={selectedProvince}
                     onChange={(e) => handleProvinceChange(e.target.value)}
                   >
@@ -185,7 +200,7 @@ const Header = () => {
                     ))}
                   </select>
                   <select 
-                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-sm"
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
                     disabled={!selectedProvince}
@@ -199,16 +214,16 @@ const Header = () => {
                   </select>
                 </div>
 
-                {/* Favorites */}
-                <div className="px-4 py-2">
+                {/* Favorites - Moved down */}
+                <div className="px-4 py-2 bg-white">
                   <FavoritesPanel 
                     favorites={[]}
                     onRemoveFavorite={handleRemoveFavorite}
                   />
                 </div>
                 
-                {/* Notifications */}
-                <div className="px-4 py-2">
+                {/* Notifications - Moved down */}
+                <div className="px-4 py-2 bg-white">
                   <NotificationPanel
                     notifications={[]}
                     unreadCount={0}
@@ -217,23 +232,8 @@ const Header = () => {
                   />
                 </div>
 
-                {/* Auth Buttons */}
-                <div className="px-4 py-2 space-y-2 border-t border-gray-100">
-                  <Link to="/login" onClick={() => setIsUserMenuOpen(false)}>
-                    <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                      <User className="h-4 w-4 mr-2" />
-                      Iniciar Sesión
-                    </Button>
-                  </Link>
-                  <Link to="/register" onClick={() => setIsUserMenuOpen(false)}>
-                    <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
-                      Registrarse
-                    </Button>
-                  </Link>
-                </div>
-
                 {/* Mobile Filter */}
-                <div className="lg:hidden px-4 py-2 border-t border-gray-100">
+                <div className="lg:hidden px-4 py-2 border-t border-gray-100 bg-white">
                   <FilterDropdown
                     options={filterOptions}
                     selected={selectedFilter}
