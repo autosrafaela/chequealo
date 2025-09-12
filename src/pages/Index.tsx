@@ -68,12 +68,9 @@ const Index = () => {
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
             Uníte a nuestra plataforma y conectá con miles de clientes que buscan tus servicios
           </p>
-          <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
+          <div className="space-y-4 sm:space-y-0 sm:flex sm:justify-center">
             <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-3">
               Registrarme como Profesional
-            </Button>
-            <Button variant="outline" size="lg" className="border-navy-foreground text-navy-foreground hover:bg-navy-foreground hover:text-navy px-8 py-3">
-              Ver cómo funciona
             </Button>
           </div>
         </div>
@@ -112,7 +109,7 @@ const Index = () => {
               <h4 className="text-white font-semibold mb-4">Contacto</h4>
               <ul className="space-y-2 text-sm">
                 <li>📧 info@todoaca.ar</li>
-                <li>📱 +54 9 11 1234-5678</li>
+                <li>📱 +54 9 3492 60-7224</li>
                 <li>📍 Argentina</li>
               </ul>
             </div>
