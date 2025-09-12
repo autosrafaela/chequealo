@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Bell, User, MapPin, Search, Heart, Menu, X, BarChart3, LogOut } from "lucide-react";
+import { Bell, User, MapPin, Search, Heart, Menu, X, BarChart3, LogOut, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import FilterDropdown from "./FilterDropdown";
 import NotificationPanel from "./NotificationPanel";
 import FavoritesPanel from "./FavoritesPanel";
 import { provinceCityMap } from "../data/provinceCityData";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const navigate = useNavigate();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('latest');
@@ -233,6 +235,15 @@ const Header = () => {
                           <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
                             <BarChart3 className="h-4 w-4 mr-2" />
                             Mi Dashboard
+                          </Button>
+                        </Link>
+                      )}
+                      
+                      {isAdmin && (
+                        <Link to="/admin" onClick={() => setIsUserMenuOpen(false)}>
+                          <Button variant="outline" size="sm" className="w-full border-red-500 text-red-600 hover:bg-red-500 hover:text-white">
+                            <Shield className="h-4 w-4 mr-2" />
+                            Panel Admin
                           </Button>
                         </Link>
                       )}
