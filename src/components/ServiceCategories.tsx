@@ -2,22 +2,23 @@ import {
   Wrench, Zap, Car, Sparkles, Dumbbell, Paintbrush, 
   Hammer, Flame, TreePine, Building, Heart, Laptop 
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ServiceCategories = () => {
   // Servicios ordenados por ranking de búsquedas (los más buscados primero)
   const categories = [
-    { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600", rank: 1 },
-    { name: "Mecánico", icon: Car, color: "bg-orange-100 text-orange-600", rank: 2 },
-    { name: "Técnico de Aire Acondicionado", icon: Wrench, color: "bg-blue-100 text-blue-600", rank: 3 },
-    { name: "Kinesiólogo / Fisioterapeuta", icon: Heart, color: "bg-pink-100 text-pink-600", rank: 4 },
-    { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600", rank: 5 },
-    { name: "Gestor del Automotor", icon: Car, color: "bg-red-100 text-red-600", rank: 6 },
-    { name: "Profesor de Apoyo Escolar", icon: Laptop, color: "bg-indigo-100 text-indigo-600", rank: 7 },
-    { name: "Servicio Técnico (Línea Blanca)", icon: Wrench, color: "bg-gray-100 text-gray-600", rank: 8 },
-    { name: "Limpieza de Tapizados", icon: Sparkles, color: "bg-cyan-100 text-cyan-600", rank: 9 },
-    { name: "Instalador de Durlock / Yesero", icon: Hammer, color: "bg-amber-100 text-amber-600", rank: 10 },
-    { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600", rank: 11 },
-    { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600", rank: 12 },
+    { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600", rank: 1, searchTerm: "limpieza" },
+    { name: "Mecánico", icon: Car, color: "bg-orange-100 text-orange-600", rank: 2, searchTerm: "mecánico" },
+    { name: "Técnico de Aire Acondicionado", icon: Wrench, color: "bg-blue-100 text-blue-600", rank: 3, searchTerm: "aire acondicionado" },
+    { name: "Kinesiólogo / Fisioterapeuta", icon: Heart, color: "bg-pink-100 text-pink-600", rank: 4, searchTerm: "kinesiólogo" },
+    { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600", rank: 5, searchTerm: "entrenador personal" },
+    { name: "Gestor del Automotor", icon: Car, color: "bg-red-100 text-red-600", rank: 6, searchTerm: "gestor automotor" },
+    { name: "Profesor de Apoyo Escolar", icon: Laptop, color: "bg-indigo-100 text-indigo-600", rank: 7, searchTerm: "profesor apoyo escolar" },
+    { name: "Servicio Técnico (Línea Blanca)", icon: Wrench, color: "bg-gray-100 text-gray-600", rank: 8, searchTerm: "técnico línea blanca" },
+    { name: "Limpieza de Tapizados", icon: Sparkles, color: "bg-cyan-100 text-cyan-600", rank: 9, searchTerm: "limpieza tapizados" },
+    { name: "Instalador de Durlock / Yesero", icon: Hammer, color: "bg-amber-100 text-amber-600", rank: 10, searchTerm: "durlock" },
+    { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600", rank: 11, searchTerm: "fumigador" },
+    { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600", rank: 12, searchTerm: "profesor música" },
   ];
 
   return (
@@ -36,9 +37,10 @@ const ServiceCategories = () => {
           {categories.map((category, index) => {
             const Icon = category.icon;
             return (
-              <button
+              <Link
                 key={index}
-                className="group p-4 lg:p-6 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100 hover:border-primary/20 text-left"
+                to={`/search?q=${encodeURIComponent(category.searchTerm)}`}
+                className="group p-4 lg:p-6 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100 hover:border-primary/20 text-left block"
               >
                 <div className="flex flex-col items-center text-center space-y-3">
                   <div className={`p-3 rounded-xl ${category.color} group-hover:scale-110 transition-transform duration-300`}>
@@ -48,15 +50,15 @@ const ServiceCategories = () => {
                     {category.name}
                   </h3>
                 </div>
-              </button>
+              </Link>
             );
           })}
         </div>
 
         <div className="text-center mt-12">
-          <button className="text-primary hover:text-primary/80 font-medium text-lg underline underline-offset-4">
+          <Link to="/search" className="text-primary hover:text-primary/80 font-medium text-lg underline underline-offset-4">
             Ver todas las categorías
-          </button>
+          </Link>
         </div>
       </div>
     </section>
