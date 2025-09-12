@@ -29,10 +29,10 @@ const FilterDropdown = ({ options, selected, onSelect, placeholder }: FilterDrop
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
-          className="text-navy-foreground border-gray-300 hover:bg-white hover:text-gray-700 min-w-[180px] justify-between"
+          className="text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-900 min-w-[180px] justify-between font-medium"
         >
           {selectedOption?.label || placeholder}
-          <ChevronDown className="h-4 w-4 ml-1" />
+          <ChevronDown className="h-4 w-4 ml-2" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
