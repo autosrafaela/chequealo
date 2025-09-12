@@ -507,6 +507,18 @@ const ProfessionalProfile = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Back Button */}
+        <div className="mt-12 text-center">
+          <Button 
+            variant="outline" 
+            size="lg"
+            onClick={() => window.history.back()}
+            className="px-8 py-3"
+          >
+            ← Volver
+          </Button>
+        </div>
       </div>
     </div>
   );
