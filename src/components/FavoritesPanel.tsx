@@ -74,9 +74,9 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-navy-foreground hover:text-primary">
-          <Heart className="h-4 w-4 mr-1" />
-          Favoritos ({favoritesToShow.length})
+        <Button variant="ghost" size="sm" className="text-gray-700 hover:text-red-600 hover:bg-red-50 w-full justify-start bg-white">
+          <Heart className="h-4 w-4 mr-2 text-red-500" />
+          <span className="font-medium">Favoritos ({favoritesToShow.length})</span>
         </Button>
       </SheetTrigger>
       
