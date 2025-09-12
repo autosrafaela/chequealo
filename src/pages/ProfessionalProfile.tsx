@@ -52,14 +52,33 @@ const ProfessionalProfile = () => {
     try {
       setLoading(true);
 
+      // Validate route param is a UUID to avoid 400 errors
+      const isUUID = (value: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+      if (!id || typeof id !== 'string' || !isUUID(id)) {
+        setProfessional(null);
+        setServices([]);
+        setReviews([]);
+        setWorkPhotos([]);
+        setIsOwner(false);
+        toast.error('URL inválida: ID de profesional no válido');
+        return;
+      }
+
       // Fetch professional data
       const { data: professionalData, error: profError } = await supabase
         .from('professionals')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (profError) throw profError;
+
+      if (!professionalData) {
+        setProfessional(null);
+        return;
+      }
 
       setProfessional(professionalData);
 
@@ -67,6 +86,8 @@ const ProfessionalProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user && professionalData.user_id === user.id) {
         setIsOwner(true);
+      } else {
+        setIsOwner(false);
       }
 
       // Fetch services

@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Filter, Grid, List, SlidersHorizontal } from "lucide-react";
 import Header from "@/components/Header";
 import ProfessionalCard from "@/components/ProfessionalCard";
 import FilterDropdown from "@/components/FilterDropdown";
+import { supabase } from "@/integrations/supabase/client";
 
 const Search = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -46,75 +47,42 @@ const Search = () => {
     }
   ];
 
-  // Mock data
-  const professionals = [
-    {
-      id: "1",
-      name: "Ana Rodríguez",
-      profession: "Contadora Pública",
-      location: "Rafaela, Santa Fe",
-      rating: 4.8,
-      reviewCount: 15,
-      description: "Balances, liquidación de impuestos y asesoría contable. Más de 10 años de experiencia.",
-      verified: true,
-      availability: "Disponible hoy"
-    },
-    {
-      id: "2",
-      name: "José Martínez",
-      profession: "Plomero / Gasista",
-      location: "Rafaela, Santa Fe",
-      rating: 4.2,
-      reviewCount: 8,
-      description: "Reparaciones de plomería, instalaciones sanitarias y gas domiciliario. Servicio las 24hs.",
-      verified: true,
-      availability: "Disponible mañana"
-    },
-    {
-      id: "3",
-      name: "Laura Gómez",
-      profession: "Electricista Domiciliaria",
-      location: "Rafaela, Santa Fe",
-      rating: 5.0,
-      reviewCount: 12,
-      description: "Instalaciones eléctricas seguras y certificadas. Urgencias 24hs. Presupuestos sin cargo.",
-      verified: true,
-      availability: "Disponible ahora"
-    },
-    {
-      id: "4",
-      name: "Carlos Fernández",
-      profession: "Mecánico Automotriz",
-      location: "Rafaela, Santa Fe",
-      rating: 4.5,
-      reviewCount: 23,
-      description: "Reparación integral, inyección electrónica y servicios rápidos. Taller equipado.",
-      verified: false,
-      availability: "Disponible esta semana"
-    },
-    {
-      id: "5",
-      name: "María López",
-      profession: "Abogada",
-      location: "Rafaela, Santa Fe",
-      rating: 4.7,
-      reviewCount: 18,
-      description: "Asesoramiento legal en derecho civil y comercial. Consultas presenciales y virtuales.",
-      verified: true,
-      availability: "Disponible próxima semana"
-    },
-    {
-      id: "6",
-      name: "Maximiliano Bustamante",
-      profession: "Gestor del Automotor / Mandatario",
-      location: "Rafaela, Santa Fe",
-      rating: 4.3,
-      reviewCount: 7,
-      description: "Trámites registrales: transferencias, informes de dominio, inscripciones.",
-      verified: true,
-      availability: "Disponible hoy"
-    }
-  ];
+  const [professionals, setProfessionals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadProfessionals = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('professionals')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        const mapped = (data || []).map((p) => ({
+          id: p.id,
+          name: p.full_name,
+          profession: p.profession,
+          location: p.location || '',
+          rating: Number(p.rating || 0),
+          reviewCount: p.review_count || 0,
+          description: p.description || '',
+          verified: !!p.is_verified,
+          availability: p.availability || 'Disponible',
+          image: p.image_url || undefined,
+        }));
+        setProfessionals(mapped);
+      } catch (e: any) {
+        console.error('Error loading professionals:', e);
+        setLoadError('No se pudieron cargar los profesionales');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfessionals();
+  }, []);
+
 
   const sortedProfessionals = useMemo(() => {
     const list = [...professionals];
@@ -156,9 +124,9 @@ const Search = () => {
         <div className="mb-8">
           <div className="bg-navy text-navy-foreground px-4 py-2 rounded-lg inline-block mb-4">
             <span className="text-sm">Búsqueda:</span>
-            <span className="font-semibold ml-2">6 resultado(s)</span>
+            <span className="font-semibold ml-2">{sortedProfessionals.length} resultado(s)</span>
           </div>
-          
+
           {/* Filters and Controls */}
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-white p-4 rounded-xl shadow-sm">
             <div></div>
@@ -194,20 +162,32 @@ const Search = () => {
         </div>
 
         {/* Results Grid */}
-        <div className={`grid gap-6 ${
-          viewMode === 'grid' 
-            ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
-            : 'grid-cols-1'
-        }`}>
-          {sortedProfessionals.map((professional) => (
-            <ProfessionalCard
-              key={professional.id}
-              {...professional}
-              onToggleFavorite={handleToggleFavorite}
-              isFavorite={favorites.includes(professional.id)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center text-muted-foreground py-12">
+            Cargando profesionales...
+          </div>
+        ) : (
+          <div className={`grid gap-6 ${
+            viewMode === 'grid' 
+              ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
+              : 'grid-cols-1'
+          }`}>
+            {sortedProfessionals.length > 0 ? (
+              sortedProfessionals.map((professional) => (
+                <ProfessionalCard
+                  key={professional.id}
+                  {...professional}
+                  onToggleFavorite={handleToggleFavorite}
+                  isFavorite={favorites.includes(professional.id)}
+                />
+              ))
+            ) : (
+              <div className="text-center text-muted-foreground py-12 col-span-full">
+                No se encontraron profesionales.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Pagination */}
         <div className="flex justify-center mt-12">

@@ -39,17 +39,25 @@ const ProfessionalCard = ({
   const [isVerified, setIsVerified] = useState(verifiedProp || false);
 
   useEffect(() => {
-    // Check if professional is verified in database
+    // Check if professional is verified in database (when id is a UUID)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!isUUID.test(id)) {
+      setIsVerified(verifiedProp || false);
+      return;
+    }
+
     const checkVerification = async () => {
       try {
         const { data, error } = await supabase
           .from('professionals')
           .select('is_verified')
-          .eq('user_id', id)
+          .eq('id', id)
           .maybeSingle();
 
         if (!error && data) {
           setIsVerified(data.is_verified);
+        } else {
+          setIsVerified(verifiedProp || false);
         }
       } catch (error) {
         console.error('Error checking verification:', error);
@@ -57,7 +65,7 @@ const ProfessionalCard = ({
     };
 
     checkVerification();
-  }, [id]);
+  }, [id, verifiedProp]);
 
   const handleToggleFavorite = () => {
     const newFavoriteState = !isFavorite;
