@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -280,13 +280,20 @@ const ProfessionalProfile = () => {
               {/* Right Column - Actions and Contact */}
               <div className="flex-1">
                 <div className="space-y-4">
-                  {/* Edit Controls for Owner */}
+                  {/* Owner Controls */}
                   {isOwner && (
-                    <ProfessionalProfileEdit
-                      professionalData={professional}
-                      onUpdate={fetchProfessionalData}
-                      isOwner={isOwner}
-                    />
+                    <div className="space-y-3">
+                      <Button asChild className="w-full">
+                        <Link to="/dashboard">
+                          Ir al Dashboard Profesional
+                        </Link>
+                      </Button>
+                      <ProfessionalProfileEdit
+                        professionalData={professional}
+                        onUpdate={fetchProfessionalData}
+                        isOwner={isOwner}
+                      />
+                    </div>
                   )}
 
                   {/* Action Buttons */}
