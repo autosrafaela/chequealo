@@ -38,8 +38,12 @@ export const WhatsAppContactButton = ({
     const defaultMessage = message || 
       `Hola ${professionalName}! Te contacto desde TodoAca.ar. Me interesa conocer más sobre tus servicios.`;
 
-    // Create WhatsApp URL
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(defaultMessage)}`;
+    // Build WhatsApp URL based on device to avoid api.whatsapp.com block
+    const encodedText = encodeURIComponent(defaultMessage);
+    const isMobile = /Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry/i.test(navigator.userAgent);
+    const whatsappUrl = isMobile
+      ? `whatsapp://send?phone=${whatsappNumber}&text=${encodedText}`
+      : `https://web.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedText}`;
     
     // Open WhatsApp
     window.open(whatsappUrl, '_blank');
