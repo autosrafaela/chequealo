@@ -2,15 +2,53 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import heroProfessionals from "@/assets/hero-professionals.jpg";
+import { 
+  Wrench, Zap, Car, Sparkles, Dumbbell, Paintbrush, 
+  Hammer, Flame, TreePine, Building, Heart, Laptop 
+} from "lucide-react";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState<'professional' | 'client'>('client');
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+
+  // Servicios disponibles para profesionales
+  const serviceCategories = [
+    { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600" },
+    { name: "Mecánico", icon: Car, color: "bg-orange-100 text-orange-600" },
+    { name: "Técnico de Aire Acondicionado", icon: Wrench, color: "bg-blue-100 text-blue-600" },
+    { name: "Kinesiólogo / Fisioterapeuta", icon: Heart, color: "bg-pink-100 text-pink-600" },
+    { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600" },
+    { name: "Gestor del Automotor", icon: Car, color: "bg-red-100 text-red-600" },
+    { name: "Profesor de Apoyo Escolar", icon: Laptop, color: "bg-indigo-100 text-indigo-600" },
+    { name: "Servicio Técnico (Línea Blanca)", icon: Wrench, color: "bg-gray-100 text-gray-600" },
+    { name: "Limpieza de Tapizados", icon: Sparkles, color: "bg-cyan-100 text-cyan-600" },
+    { name: "Instalador de Durlock / Yesero", icon: Hammer, color: "bg-amber-100 text-amber-600" },
+    { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600" },
+    { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600" },
+    { name: "Plomero", icon: Wrench, color: "bg-blue-200 text-blue-700" },
+    { name: "Gasista", icon: Flame, color: "bg-red-200 text-red-700" },
+    { name: "Electricista", icon: Zap, color: "bg-yellow-200 text-yellow-700" },
+    { name: "Pintor", icon: Paintbrush, color: "bg-green-200 text-green-700" },
+    { name: "Jardinero", icon: TreePine, color: "bg-green-300 text-green-800" },
+    { name: "Albañil", icon: Building, color: "bg-gray-200 text-gray-700" },
+  ];
+
+  const handleServiceToggle = (serviceName: string) => {
+    setSelectedServices(prev => {
+      if (prev.includes(serviceName)) {
+        return prev.filter(s => s !== serviceName);
+      } else if (prev.length < 3) {
+        return [...prev, serviceName];
+      }
+      return prev;
+    });
+  };
 
   return (
     <>
@@ -138,6 +176,64 @@ const Register = () => {
                 </button>
               </div>
             </div>
+
+            {/* Ubicación para profesionales */}
+            {userType === 'professional' && (
+              <div>
+                <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                  Ciudad
+                </Label>
+                <div className="relative mt-1">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input
+                    id="location"
+                    type="text"
+                    placeholder="Ej: Santa Fe, Argentina"
+                    className="pl-10 h-12 border-gray-200 focus:border-primary"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Selección de servicios para profesionales */}
+            {userType === 'professional' && (
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                  Elegí hasta 3 servicios que ofrecés ({selectedServices.length}/3)
+                </Label>
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+                  {serviceCategories.map((category, index) => {
+                    const Icon = category.icon;
+                    const isSelected = selectedServices.includes(category.name);
+                    const isDisabled = selectedServices.length >= 3 && !isSelected;
+                    
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleServiceToggle(category.name)}
+                        disabled={isDisabled}
+                        className={`p-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-2 ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border border-primary'
+                            : isDisabled
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-white border border-gray-200 hover:border-primary hover:bg-primary/5 text-gray-700'
+                        }`}
+                      >
+                        <Icon className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate text-left">{category.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedServices.length > 0 && (
+                  <div className="mt-2 text-xs text-gray-600">
+                    Seleccionados: {selectedServices.join(', ')}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center text-sm">
               <label className="flex items-center">
