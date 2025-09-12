@@ -104,7 +104,7 @@ const Header = () => {
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
                     disabled={false}
-                    className="w-full pl-16 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
+                    className="w-full pl-16 pr-4 py-2 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
                   />
                 </div>
 
