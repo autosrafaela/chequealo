@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import heroProfessionals from "@/assets/hero-professionals.jpg";
 
 const Hero = () => {
@@ -21,6 +22,14 @@ const Hero = () => {
             Conectamos clientes con profesionales de confianza en tu zona
           </p>
 
+          {/* CTA Button */}
+          <div className="mb-8">
+            <Link to="/search">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8 py-4">
+                Buscar Profesionales
+              </Button>
+            </Link>
+          </div>
 
           {/* Popular Searches */}
           <div className="mt-8 text-white/80">
