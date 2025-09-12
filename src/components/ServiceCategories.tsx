@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 const ServiceCategories = () => {
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [allProfessions, setAllProfessions] = useState<string[]>([]);
+  const [allServices, setAllServices] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Servicios ordenados por ranking de búsquedas (los más buscados primero)
@@ -31,18 +32,26 @@ const ServiceCategories = () => {
   const loadAllProfessions = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Load professions
+      const { data: profs, error: profsError } = await supabase
         .from('professionals')
         .select('profession')
         .order('profession');
-
-      if (error) throw error;
-      
-      // Get unique professions
-      const uniqueProfessions = Array.from(new Set(data?.map(p => p.profession) || []));
+      if (profsError) throw profsError;
+      const uniqueProfessions = Array.from(new Set(profs?.map(p => p.profession).filter(Boolean) || []));
       setAllProfessions(uniqueProfessions);
+
+      // Load services
+      const { data: services, error: servicesError } = await supabase
+        .from('professional_services')
+        .select('service_name, is_active')
+        .eq('is_active', true)
+        .order('service_name');
+      if (servicesError) throw servicesError;
+      const uniqueServices = Array.from(new Set(services?.map(s => s.service_name).filter(Boolean) || []));
+      setAllServices(uniqueServices);
     } catch (error) {
-      console.error('Error loading professions:', error);
+      console.error('Error loading categories:', error);
     } finally {
       setLoading(false);
     }
@@ -110,26 +119,67 @@ const ServiceCategories = () => {
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-4 w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-xl font-semibold mb-4 text-center text-foreground">
-                  Todas las Profesiones Disponibles
+                  Categorías disponibles
                 </h3>
-                {allProfessions.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {allProfessions.map((profession, index) => (
-                      <Link
-                        key={index}
-                        to={`/search?q=${encodeURIComponent(profession)}`}
-                        className="block p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary/20"
-                        onClick={() => setShowAllCategories(false)}
-                      >
-                        <div className="text-sm font-medium text-foreground text-center">
-                          {profession}
+                {(allProfessions.length > 0 || allServices.length > 0) ? (
+                  <div className="space-y-6">
+                    {allProfessions.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground mb-2">Profesiones</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {allProfessions.map((profession, index) => (
+                            <Link
+                              key={`prof-${index}`}
+                              to={`/search?q=${encodeURIComponent(profession)}`}
+                              className="block p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary/20"
+                              onClick={() => setShowAllCategories(false)}
+                            >
+                              <div className="text-sm font-medium text-foreground text-center">
+                                {profession}
+                              </div>
+                            </Link>
+                          ))}
                         </div>
-                      </Link>
-                    ))}
+                      </div>
+                    )}
+
+                    {allServices.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground mb-2">Servicios</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {allServices.map((service, index) => (
+                            <Link
+                              key={`svc-${index}`}
+                              to={`/search?q=${encodeURIComponent(service)}`}
+                              className="block p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary/20"
+                              onClick={() => setShowAllCategories(false)}
+                            >
+                              <div className="text-sm font-medium text-foreground text-center">
+                                {service}
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
-                    No hay profesiones disponibles
+                    No hay categorías cargadas aún. Te mostramos las más populares:
+                    <div className="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {categories.map((c, i) => (
+                        <Link
+                          key={`fallback-${i}`}
+                          to={`/search?q=${encodeURIComponent(c.searchTerm)}`}
+                          className="block p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary/20"
+                          onClick={() => setShowAllCategories(false)}
+                        >
+                          <div className="text-sm font-medium text-foreground text-center">
+                            {c.name}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
