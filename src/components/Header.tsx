@@ -85,71 +85,69 @@ const Header = () => {
           </Link>
 
           {/* Main Search Section */}
-          <div className="flex items-center flex-1 max-w-5xl mx-4">
+          <div className="flex-1 max-w-5xl mx-4">
             {/* Location Display - Hidden on small screens */}
-            <div className="hidden xl:flex items-center space-x-1 text-navy-foreground mr-4">
+            <div className="hidden xl:flex items-center space-x-1 text-navy-foreground mr-4 mb-2">
               <MapPin className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Rafaela, Santa Fe</span>
             </div>
 
             {/* Main Search Container */}
-            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
-              <div className="flex items-center">
-                {/* Search Input for Service/Professional */}
-                <div className="flex-1 relative">
-                  <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
-                  <input
-                    type="text"
-                    placeholder="Ej: plomero, gasista, grúa"
-                    value={searchTerm}
-                    onChange={(e) => handleSearchTermChange(e.target.value)}
-                    disabled={false}
-                    className="w-full pl-16 pr-4 py-2 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
-                  />
-                </div>
-
-                {/* Province Select */}
-                <select 
-                  className="hidden md:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
-                  value={selectedProvince}
-                  onChange={(e) => handleProvinceChange(e.target.value)}
-                >
-                  <option value="">Provincia</option>
-                  {Object.keys(provinceCityMap).map((province) => (
-                    <option key={province} value={province}>
-                      {province.charAt(0).toUpperCase() + province.slice(1).replace('-', ' ')}
-                    </option>
-                  ))}
-                </select>
-
-                {/* City Select */}
-                <select 
-                  className="hidden lg:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  disabled={!selectedProvince}
-                >
-                  <option value="">Ciudad</option>
-                  {getCitiesForProvince(selectedProvince).map((city) => (
-                    <option key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-
-                {/* Search Button */}
-                <Button 
-                  onClick={handleSearch}
-                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-4 h-auto rounded-md"
-                >
-                  <Search className="h-6 w-6" />
-                  <span className="hidden sm:inline ml-2">Buscar</span>
-                </Button>
+            <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200 p-1 mb-2">
+              {/* Search Input for Service/Professional */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
+                <input
+                  type="text"
+                  placeholder="Ej: plomero, gasista, grúa"
+                  value={searchTerm}
+                  onChange={(e) => handleSearchTermChange(e.target.value)}
+                  disabled={false}
+                  className="w-full pl-16 pr-4 py-2 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
+                />
               </div>
+
+              {/* Province Select */}
+              <select 
+                className="hidden md:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
+                value={selectedProvince}
+                onChange={(e) => handleProvinceChange(e.target.value)}
+              >
+                <option value="">Provincia</option>
+                {Object.keys(provinceCityMap).map((province) => (
+                  <option key={province} value={province}>
+                    {province.charAt(0).toUpperCase() + province.slice(1).replace('-', ' ')}
+                  </option>
+                ))}
+              </select>
+
+              {/* City Select */}
+              <select 
+                className="hidden lg:block px-2 py-4 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                disabled={!selectedProvince}
+              >
+                <option value="">Ciudad</option>
+                {getCitiesForProvince(selectedProvince).map((city) => (
+                  <option key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+
+              {/* Search Button */}
+              <Button 
+                onClick={handleSearch}
+                className="ml-2 bg-primary hover:bg-primary/90 px-8 py-4 h-auto rounded-md"
+              >
+                <Search className="h-6 w-6" />
+                <span className="hidden sm:inline ml-2">Buscar</span>
+              </Button>
             </div>
 
-            {/* Filter Dropdown - Same width as search container */}
-            <div className="hidden lg:block ml-2 flex-1">
+            {/* Filter Dropdown - Same width as search bar */}
+            <div className="hidden lg:block">
               <FilterDropdown
                 options={filterOptions}
                 selected={selectedFilter}
