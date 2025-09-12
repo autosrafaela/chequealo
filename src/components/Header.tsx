@@ -8,10 +8,11 @@ import FavoritesPanel from "./FavoritesPanel";
 import { provinceCityMap } from "../data/provinceCityData";
 
 const Header = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('latest');
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleProvinceChange = (provinceValue: string) => {
     setSelectedProvince(provinceValue);
@@ -63,6 +64,10 @@ const Header = () => {
     console.log('Removing favorite:', id);
   };
 
+  const handleSearch = () => {
+    console.log('Searching for:', searchTerm, 'in', selectedProvince, selectedCity);
+  };
+
   return (
     <header className="bg-navy shadow-lg border-b border-navy-light sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -73,10 +78,10 @@ const Header = () => {
             <MapPin className="h-6 w-6 text-primary" />
           </Link>
 
-          {/* Desktop Navigation - Main Search Section */}
-          <div className="hidden lg:flex items-center flex-1 max-w-4xl mx-8">
-            {/* Location Display */}
-            <div className="flex items-center space-x-1 text-navy-foreground mr-6">
+          {/* Main Search Section */}
+          <div className="flex items-center flex-1 max-w-4xl mx-8">
+            {/* Location Display - Hidden on small screens */}
+            <div className="hidden xl:flex items-center space-x-1 text-navy-foreground mr-6">
               <MapPin className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Rafaela, Santa Fe</span>
             </div>
@@ -84,52 +89,35 @@ const Header = () => {
             {/* Main Search Container */}
             <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
               <div className="flex items-center">
-                {/* Search Input */}
+                {/* Search Input for Service/Professional */}
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
                     type="text"
-                    placeholder="¿Qué servicio buscás?"
+                    placeholder="Ej: plomero, grúa, contador..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
                   />
                 </div>
 
-                {/* Province Select */}
+                {/* Province Select - Hidden on small screens */}
                 <select 
-                  className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer"
+                  className="hidden md:block px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer"
                   value={selectedProvince}
                   onChange={(e) => handleProvinceChange(e.target.value)}
                 >
                   <option value="">Provincia</option>
-                  <option value="buenos-aires">Buenos Aires</option>
-                  <option value="gba">GBA</option>
-                  <option value="catamarca">Catamarca</option>
-                  <option value="chaco">Chaco</option>
-                  <option value="chubut">Chubut</option>
-                  <option value="cordoba">Córdoba</option>
-                  <option value="corrientes">Corrientes</option>
-                  <option value="entre-rios">Entre Ríos</option>
-                  <option value="formosa">Formosa</option>
-                  <option value="jujuy">Jujuy</option>
-                  <option value="la-pampa">La Pampa</option>
-                  <option value="la-rioja">La Rioja</option>
-                  <option value="mendoza">Mendoza</option>
-                  <option value="misiones">Misiones</option>
-                  <option value="neuquen">Neuquén</option>
-                  <option value="rio-negro">Río Negro</option>
-                  <option value="salta">Salta</option>
-                  <option value="san-juan">San Juan</option>
-                  <option value="san-luis">San Luis</option>
-                  <option value="santa-cruz">Santa Cruz</option>
-                  <option value="santa-fe">Santa Fe</option>
-                  <option value="santiago-del-estero">Santiago del Estero</option>
-                  <option value="tierra-del-fuego">Tierra del Fuego</option>
-                  <option value="tucuman">Tucumán</option>
+                  {Object.keys(provinceCityMap).map((province) => (
+                    <option key={province} value={province}>
+                      {province.charAt(0).toUpperCase() + province.slice(1).replace('-', ' ')}
+                    </option>
+                  ))}
                 </select>
 
-                {/* City Select */}
+                {/* City Select - Hidden on small screens */}
                 <select 
-                  className="px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer"
+                  className="hidden lg:block px-3 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer"
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                   disabled={!selectedProvince}
@@ -143,14 +131,18 @@ const Header = () => {
                 </select>
 
                 {/* Search Button */}
-                <Button className="ml-2 bg-primary hover:bg-primary/90 px-6 py-3 h-auto rounded-md">
+                <Button 
+                  onClick={handleSearch}
+                  className="ml-2 bg-primary hover:bg-primary/90 px-4 lg:px-6 py-3 h-auto rounded-md"
+                >
                   <Search className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1">Buscar</span>
                 </Button>
               </div>
             </div>
 
-            {/* Filter Dropdown */}
-            <div className="ml-4">
+            {/* Filter Dropdown - Hidden on small screens */}
+            <div className="hidden lg:block ml-4">
               <FilterDropdown
                 options={filterOptions}
                 selected={selectedFilter}
@@ -160,116 +152,63 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Desktop User Actions */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <FavoritesPanel 
-              favorites={[]}
-              onRemoveFavorite={handleRemoveFavorite}
-            />
-            
-            <NotificationPanel
-              notifications={[]}
-              unreadCount={0}
-              onMarkAsRead={handleMarkAsRead}
-              onMarkAllAsRead={handleMarkAllAsRead}
-            />
+          {/* User Menu Button (Hamburger) */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-navy-foreground"
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            >
+              {isUserMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
 
-            <Link to="/login">
-              <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                <User className="h-4 w-4 mr-1" />
-                Iniciar Sesión
-              </Button>
-            </Link>
+            {/* User Menu Dropdown */}
+            {isUserMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <h3 className="font-medium text-gray-900">Menú de Usuario</h3>
+                </div>
+                
+                {/* Mobile Location Selectors */}
+                <div className="md:hidden px-4 py-2 space-y-2 border-b border-gray-100">
+                  <select 
+                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                    value={selectedProvince}
+                    onChange={(e) => handleProvinceChange(e.target.value)}
+                  >
+                    <option value="">Seleccionar Provincia</option>
+                    {Object.keys(provinceCityMap).map((province) => (
+                      <option key={province} value={province}>
+                        {province.charAt(0).toUpperCase() + province.slice(1).replace('-', ' ')}
+                      </option>
+                    ))}
+                  </select>
+                  <select 
+                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    disabled={!selectedProvince}
+                  >
+                    <option value="">Seleccionar Ciudad</option>
+                    {getCitiesForProvince(selectedProvince).map((city) => (
+                      <option key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <Link to="/register">
-              <Button size="sm" className="bg-primary hover:bg-primary/90">
-                Registrarse
-              </Button>
-            </Link>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden text-navy-foreground"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-navy-light">
-            <div className="space-y-4">
-              {/* Mobile Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="¿Qué servicio buscás?"
-                  className="w-full pl-10 pr-4 py-2 rounded-md border border-input bg-background text-sm"
-                />
-              </div>
-
-              {/* Mobile Location */}
-              <div className="flex space-x-2">
-                <select 
-                  className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm"
-                  value={selectedProvince}
-                  onChange={(e) => handleProvinceChange(e.target.value)}
-                >
-                  <option value="">Provincia</option>
-                  <option value="buenos-aires">Buenos Aires</option>
-                  <option value="gba">GBA</option>
-                  <option value="catamarca">Catamarca</option>
-                  <option value="chaco">Chaco</option>
-                  <option value="chubut">Chubut</option>
-                  <option value="cordoba">Córdoba</option>
-                  <option value="corrientes">Corrientes</option>
-                  <option value="entre-rios">Entre Ríos</option>
-                  <option value="formosa">Formosa</option>
-                  <option value="jujuy">Jujuy</option>
-                  <option value="la-pampa">La Pampa</option>
-                  <option value="la-rioja">La Rioja</option>
-                  <option value="mendoza">Mendoza</option>
-                  <option value="misiones">Misiones</option>
-                  <option value="neuquen">Neuquén</option>
-                  <option value="rio-negro">Río Negro</option>
-                  <option value="salta">Salta</option>
-                  <option value="san-juan">San Juan</option>
-                  <option value="san-luis">San Luis</option>
-                  <option value="santa-cruz">Santa Cruz</option>
-                  <option value="santa-fe">Santa Fe</option>
-                  <option value="santiago-del-estero">Santiago del Estero</option>
-                  <option value="tierra-del-fuego">Tierra del Fuego</option>
-                  <option value="tucuman">Tucumán</option>
-                </select>
-                <select 
-                  className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm"
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  disabled={!selectedProvince}
-                >
-                  <option value="">Ciudad</option>
-                  {getCitiesForProvince(selectedProvince).map((city) => (
-                    <option key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Mobile Actions */}
-              <div className="space-y-2">
-                <div className="w-full">
+                {/* Favorites */}
+                <div className="px-4 py-2">
                   <FavoritesPanel 
                     favorites={[]}
                     onRemoveFavorite={handleRemoveFavorite}
                   />
                 </div>
-                <div className="w-full">
+                
+                {/* Notifications */}
+                <div className="px-4 py-2">
                   <NotificationPanel
                     notifications={[]}
                     unreadCount={0}
@@ -277,21 +216,35 @@ const Header = () => {
                     onMarkAllAsRead={handleMarkAllAsRead}
                   />
                 </div>
-                <Link to="/login" className="block">
-                  <Button variant="outline" className="w-full border-primary text-primary">
-                    <User className="h-4 w-4 mr-2" />
-                    Iniciar Sesión
-                  </Button>
-                </Link>
-                <Link to="/register" className="block">
-                  <Button className="w-full bg-primary hover:bg-primary/90">
-                    Registrarse
-                  </Button>
-                </Link>
+
+                {/* Auth Buttons */}
+                <div className="px-4 py-2 space-y-2 border-t border-gray-100">
+                  <Link to="/login" onClick={() => setIsUserMenuOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                      <User className="h-4 w-4 mr-2" />
+                      Iniciar Sesión
+                    </Button>
+                  </Link>
+                  <Link to="/register" onClick={() => setIsUserMenuOpen(false)}>
+                    <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
+                      Registrarse
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* Mobile Filter */}
+                <div className="lg:hidden px-4 py-2 border-t border-gray-100">
+                  <FilterDropdown
+                    options={filterOptions}
+                    selected={selectedFilter}
+                    onSelect={setSelectedFilter}
+                    placeholder="Ordenar por..."
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </header>
   );
