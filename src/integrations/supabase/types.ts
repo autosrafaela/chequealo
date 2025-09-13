@@ -846,6 +846,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_user_admin_role: {
+        Args: { _email: string }
+        Returns: undefined
+      }
       check_subscription_status: {
         Args: { professional_user_id: string }
         Returns: string

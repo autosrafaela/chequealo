@@ -13,6 +13,7 @@ import { SystemConfiguration } from '@/components/SystemConfiguration';
 import { BusinessIntelligenceDashboard } from '@/components/analytics/BusinessIntelligenceDashboard';
 import { PerformanceMonitor } from '@/components/analytics/PerformanceMonitor';
 import { CategoriesManager } from '@/components/admin/CategoriesManager';
+import UserManagementPanel from '@/components/admin/UserManagementPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -714,16 +715,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestión de Usuarios</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Funcionalidad de gestión de usuarios en desarrollo...
-                </p>
-              </CardContent>
-            </Card>
+            <UserManagementPanel />
           </TabsContent>
 
           <TabsContent value="settings">
