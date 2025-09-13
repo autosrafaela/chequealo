@@ -12,6 +12,7 @@ import ModerationQueue from '@/components/moderation/ModerationQueue';
 import { SystemConfiguration } from '@/components/SystemConfiguration';
 import { BusinessIntelligenceDashboard } from '@/components/analytics/BusinessIntelligenceDashboard';
 import { PerformanceMonitor } from '@/components/analytics/PerformanceMonitor';
+import { CategoriesManager } from '@/components/admin/CategoriesManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -473,8 +474,9 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10">
+          <TabsList className="grid w-full grid-cols-11">
             <TabsTrigger value="professionals">Profesionales</TabsTrigger>
+            <TabsTrigger value="categories">Categorías</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="moderation">Moderación</TabsTrigger>
             <TabsTrigger value="subscriptions">Suscripciones</TabsTrigger>
@@ -539,6 +541,10 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="categories">
+            <CategoriesManager />
           </TabsContent>
 
           <TabsContent value="analytics">
