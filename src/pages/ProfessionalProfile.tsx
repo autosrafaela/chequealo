@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Header from "@/components/Header";
 import { ProfessionalProfileEdit } from "@/components/ProfessionalProfileEdit";
 import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
@@ -29,7 +30,10 @@ import {
   Award,
   ThumbsUp,
   Trash2,
-  Share2
+  Share2,
+  Facebook,
+  Twitter,
+  Instagram
 } from "lucide-react";
 
 const ProfessionalProfile = () => {
@@ -234,6 +238,29 @@ const ProfessionalProfile = () => {
     }
   };
 
+  const shareToWhatsApp = () => {
+    const message = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location} - ${window.location.href}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const shareToFacebook = () => {
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+    window.open(facebookUrl, '_blank', 'width=600,height=400');
+  };
+
+  const shareToTwitter = () => {
+    const text = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
+    window.open(twitterUrl, '_blank', 'width=600,height=400');
+  };
+
+  const shareToInstagram = () => {
+    // Instagram doesn't have direct URL sharing, so we copy to clipboard with a message
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Enlace copiado. Puedes pegarlo en tu historia de Instagram');
+  };
+
   const formatPrice = (priceFrom: number | null, priceTo: number | null) => {
     if (!priceFrom && !priceTo) return 'Consultar precio';
     if (priceFrom && priceTo) return `$${priceFrom.toLocaleString()} - $${priceTo.toLocaleString()}`;
@@ -340,14 +367,41 @@ const ProfessionalProfile = () => {
                     >
                       <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={handleShare}
-                      title="Compartir perfil"
-                    >
-                      <Share2 className="h-5 w-5" />
-                    </Button>
+                    
+                    {/* Share Dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          title="Compartir perfil"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={shareToWhatsApp} className="cursor-pointer">
+                          <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                          WhatsApp
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={shareToFacebook} className="cursor-pointer">
+                          <Facebook className="h-4 w-4 mr-2 text-blue-600" />
+                          Facebook
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={shareToTwitter} className="cursor-pointer">
+                          <Twitter className="h-4 w-4 mr-2 text-blue-400" />
+                          X (Twitter)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={shareToInstagram} className="cursor-pointer">
+                          <Instagram className="h-4 w-4 mr-2 text-pink-600" />
+                          Instagram
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleShare} className="cursor-pointer">
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Compartir...
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   {/* Contact Info */}
