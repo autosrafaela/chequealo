@@ -47,7 +47,7 @@ export class SitemapGenerator {
       const { data: professionals, error } = await supabase
         .from('professionals')
         .select('id, updated_at')
-        .eq('is_active', true);
+        .eq('is_verified', true);
 
       if (!error && professionals) {
         professionals.forEach(professional => {
@@ -100,7 +100,7 @@ ${urls.map(url => `  <url>
       const { data: professionals, error } = await supabase
         .from('professionals')
         .select('id, full_name, profession, location')
-        .eq('is_active', true);
+        .eq('is_verified', true);
 
       if (error || !professionals) return [];
 

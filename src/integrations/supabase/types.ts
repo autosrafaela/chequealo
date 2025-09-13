@@ -299,6 +299,7 @@ export type Database = {
           full_name: string
           id: string
           image_url: string | null
+          is_blocked: boolean
           is_verified: boolean
           location: string | null
           phone: string | null
@@ -317,6 +318,7 @@ export type Database = {
           full_name: string
           id?: string
           image_url?: string | null
+          is_blocked?: boolean
           is_verified?: boolean
           location?: string | null
           phone?: string | null
@@ -335,6 +337,7 @@ export type Database = {
           full_name?: string
           id?: string
           image_url?: string | null
+          is_blocked?: boolean
           is_verified?: boolean
           location?: string | null
           phone?: string | null
@@ -354,6 +357,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_blocked: boolean
           location: string | null
           updated_at: string
           user_id: string
@@ -365,6 +369,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_blocked?: boolean
           location?: string | null
           updated_at?: string
           user_id: string
@@ -376,6 +381,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_blocked?: boolean
           location?: string | null
           updated_at?: string
           user_id?: string

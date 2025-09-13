@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Search, UserPlus, Shield, ShieldCheck, Trash2, Edit, Mail, Calendar, MapPin } from 'lucide-react';
+import { Search, UserPlus, Shield, ShieldCheck, Trash2, Edit, Mail, Calendar, MapPin, Ban, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -26,6 +26,7 @@ interface UserProfile {
   professional_id?: string;
   phone?: string;
   location?: string;
+  is_blocked?: boolean;
 }
 
 const UserManagementPanel = () => {
@@ -35,7 +36,36 @@ const UserManagementPanel = () => {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [newRole, setNewRole] = useState<'admin' | 'moderator' | 'user'>('user');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Eliminar directamente a Silvia
+  const handleDeleteSilvia = async () => {
+    try {
+      setDeleteLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: {
+          userId: '74042bca-1ed0-4501-a7de-833d3f1a690b', // ID de Silvia
+          adminEmail: user?.email
+        }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      toast.success('Usuario Silvia eliminado correctamente');
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting Silvia:', error);
+      toast.error('Error al eliminar a Silvia: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -60,7 +90,7 @@ const UserManagementPanel = () => {
       // Obtener profesionales (para email/phone/location si existe)
       const { data: professionals, error: profError } = await supabase
         .from('professionals')
-        .select('id, user_id, phone, location, email, created_at');
+        .select('id, user_id, phone, location, email, created_at, is_blocked');
       if (profError) throw profError;
 
       const combinedUsers: UserProfile[] = (profiles || []).map((p: any) => {
@@ -80,7 +110,8 @@ const UserManagementPanel = () => {
           is_professional: !!professional,
           professional_id: professional?.id,
           phone: professional?.phone,
-          location: professional?.location
+          location: professional?.location,
+          is_blocked: p.is_blocked || professional?.is_blocked || false
         } as UserProfile;
       });
 
@@ -162,6 +193,67 @@ const UserManagementPanel = () => {
     }
   };
 
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      setDeleteLoading(true);
+      
+      // Get current user for admin verification
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: {
+          userId: selectedUser.user_id,
+          adminEmail: user?.email
+        }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      toast.success('Usuario eliminado correctamente');
+      setDeleteDialogOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('Error al eliminar usuario: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleToggleBlock = async (user: UserProfile) => {
+    try {
+      const newBlockedState = !user.is_blocked;
+      
+      // Update profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ is_blocked: newBlockedState })
+        .eq('user_id', user.user_id);
+
+      if (profileError) throw profileError;
+
+      // If user is professional, also update professional table
+      if (user.is_professional && user.professional_id) {
+        const { error: profError } = await supabase
+          .from('professionals')
+          .update({ is_blocked: newBlockedState })
+          .eq('id', user.professional_id);
+
+        if (profError) throw profError;
+      }
+
+      toast.success(`Usuario ${newBlockedState ? 'bloqueado' : 'desbloqueado'} correctamente`);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error toggling user block:', error);
+      toast.error('Error al cambiar estado del usuario');
+    }
+  };
+
   const getRoleBadge = (role: string) => {
     const roleConfigs: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string, icon: any }> = {
       admin: { variant: 'destructive', label: 'Admin', icon: Shield },
@@ -212,6 +304,15 @@ const UserManagementPanel = () => {
                 className="pl-8"
               />
             </div>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteSilvia}
+              disabled={deleteLoading}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              {deleteLoading ? 'Eliminando...' : 'Eliminar Silvia'}
+            </Button>
           </div>
 
           {/* Users Stats */}
@@ -298,16 +399,23 @@ const UserManagementPanel = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={user.is_professional ? "default" : "secondary"}>
-                        {user.is_professional ? 'Profesional' : 'Cliente'}
-                      </Badge>
-                      {user.location && (
-                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          {user.location}
-                        </div>
-                      )}
+                     <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <Badge variant={user.is_professional ? "default" : "secondary"}>
+                          {user.is_professional ? 'Profesional' : 'Cliente'}
+                        </Badge>
+                        {user.is_blocked && (
+                          <Badge variant="destructive" className="text-xs">
+                            Bloqueado
+                          </Badge>
+                        )}
+                        {user.location && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            {user.location}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm">
@@ -336,6 +444,23 @@ const UserManagementPanel = () => {
                           }}
                         >
                           <Shield className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant={user.is_blocked ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleToggleBlock(user)}
+                        >
+                          <Ban className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -419,6 +544,56 @@ const UserManagementPanel = () => {
             </Button>
             <Button onClick={handleAddRole}>
               Agregar Rol
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Eliminar Usuario
+            </DialogTitle>
+            <DialogDescription>
+              Esta acción es <strong>irreversible</strong>. Se eliminarán todos los datos del usuario incluyendo:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Perfil y información personal</li>
+                <li>Todas las reseñas y calificaciones</li>
+                <li>Solicitudes de contacto</li>
+                <li>Transacciones y pagos</li>
+                <li>Favoritos y notificaciones</li>
+                {selectedUser?.is_professional && (
+                  <li>Perfil profesional y servicios</li>
+                )}
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/20">
+              <p className="font-semibold">Usuario a eliminar:</p>
+              <p className="text-sm">{selectedUser.full_name} ({selectedUser.email})</p>
+              {selectedUser.is_professional && (
+                <p className="text-sm text-orange-600">⚠️ Este es un usuario profesional</p>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleteLoading}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteUser}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? 'Eliminando...' : 'Eliminar Usuario'}
             </Button>
           </DialogFooter>
         </DialogContent>
