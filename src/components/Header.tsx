@@ -261,6 +261,15 @@ const Header = () => {
                           Mi Cuenta
                         </Button>
                       </Link>
+
+                      {isAdmin && (
+                        <Link to="/admin" onClick={() => setIsUserMenuOpen(false)}>
+                          <Button variant="outline" size="sm" className="w-full border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white">
+                            <Shield className="h-4 w-4 mr-2" />
+                            Admin
+                          </Button>
+                        </Link>
+                      )}
                       
                       {isProfessional && (
                         <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)}>

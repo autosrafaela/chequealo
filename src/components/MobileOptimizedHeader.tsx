@@ -13,7 +13,8 @@ import {
   Heart,
   Briefcase,
   Home,
-  BarChart3
+  BarChart3,
+  Shield
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -42,12 +43,16 @@ export const MobileOptimizedHeader: React.FC = () => {
     { path: '/favorites', label: 'Favoritos', icon: Heart },
   ];
 
-  if (user) {
-    navigationItems.push(
-      { path: '/user-dashboard', label: 'Mi Cuenta', icon: User },
-      { path: '/professional-dashboard', label: 'Mi Negocio', icon: Briefcase }
-    );
-  }
+if (user) {
+  navigationItems.push(
+    { path: '/user-dashboard', label: 'Mi Cuenta', icon: User },
+    { path: '/professional-dashboard', label: 'Mi Negocio', icon: Briefcase }
+  );
+}
+
+if (isAdmin) {
+  navigationItems.push({ path: '/admin', label: 'Admin', icon: Shield });
+}
 
   const isActivePage = (path: string) => {
     if (path === '/') {
