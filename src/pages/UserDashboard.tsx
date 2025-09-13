@@ -40,6 +40,7 @@ interface UserProfile {
   full_name: string;
   username: string;
   bio: string;
+  location: string;
   avatar_url: string;
   created_at: string;
   updated_at: string;
@@ -77,6 +78,7 @@ const UserDashboard = () => {
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
+  const [location, setLocation] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Professional form states
@@ -129,6 +131,7 @@ const UserDashboard = () => {
         setFullName(profileData.full_name || '');
         setUsername(profileData.username || '');
         setBio(profileData.bio || '');
+        setLocation(profileData.location || '');
       }
 
       // Fetch user's contact requests
@@ -188,6 +191,7 @@ const UserDashboard = () => {
           full_name: fullName,
           username: username,
           bio: bio,
+          location: location,
           updated_at: new Date().toISOString()
         });
 
