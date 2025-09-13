@@ -10,6 +10,9 @@ import { EnhancedTransactionManager } from '@/components/EnhancedTransactionMana
 import { FinancialDashboard } from '@/components/FinancialDashboard';
 import { SubscriptionPanel } from '@/components/SubscriptionPanel';
 import { SubscriptionAlert } from '@/components/SubscriptionAlert';
+import { ServicesManager } from '@/components/ServicesManager';
+import { WorkPhotosManager } from '@/components/WorkPhotosManager';
+import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -22,7 +25,9 @@ import {
   Settings,
   BarChart3,
   Eye,
-  Edit3
+  Edit3,
+  Package,
+  Camera
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -230,7 +235,7 @@ const ProfessionalDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -275,15 +280,42 @@ const ProfessionalDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold mb-2">Estadísticas</h3>
+                  <h3 className="font-semibold mb-2">Mis Servicios</h3>
                   <p className="text-sm text-muted-foreground">
-                    Análisis de rendimiento
+                    Gestiona tus servicios y precios
                   </p>
                 </div>
-                <BarChart3 className="h-8 w-8 text-purple-500" />
+                <Package className="h-8 w-8 text-blue-500" />
               </div>
-              <Button className="w-full mt-4" variant="outline" disabled>
-                Próximamente
+              <Button asChild className="w-full mt-4" variant="outline">
+                <span onClick={() => {
+                  const servicesTab = document.querySelector('[value="services"]') as HTMLElement;
+                  servicesTab?.click();
+                }}>
+                  Gestionar Servicios
+                </span>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold mb-2">Portfolio</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Muestra fotos de tus trabajos
+                  </p>
+                </div>
+                <Camera className="h-8 w-8 text-purple-500" />
+              </div>
+              <Button asChild className="w-full mt-4" variant="outline">
+                <span onClick={() => {
+                  const portfolioTab = document.querySelector('[value="portfolio"]') as HTMLElement;
+                  portfolioTab?.click();
+                }}>
+                  Ver Portfolio
+                </span>
               </Button>
             </CardContent>
           </Card>
@@ -291,9 +323,18 @@ const ProfessionalDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
+            </TabsTrigger>
+            <TabsTrigger value="services">
+              Servicios
+            </TabsTrigger>
+            <TabsTrigger value="portfolio">
+              Portfolio
+            </TabsTrigger>
+            <TabsTrigger value="calendar">
+              Calendario
             </TabsTrigger>
             <TabsTrigger value="financial">
               Finanzas
@@ -314,6 +355,18 @@ const ProfessionalDashboard = () => {
 
           <TabsContent value="requests">
             <ContactRequestsPanel />
+          </TabsContent>
+
+          <TabsContent value="services">
+            <ServicesManager />
+          </TabsContent>
+
+          <TabsContent value="portfolio">
+            <WorkPhotosManager />
+          </TabsContent>
+
+          <TabsContent value="calendar">
+            <AvailabilityCalendar />
           </TabsContent>
 
           <TabsContent value="financial">
