@@ -7,6 +7,8 @@ import Header from '@/components/Header';
 import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
 import { ProfessionalProfileEdit } from '@/components/ProfessionalProfileEdit';
 import { TransactionManager } from '@/components/TransactionManager';
+import { SubscriptionPanel } from '@/components/SubscriptionPanel';
+import { SubscriptionAlert } from '@/components/SubscriptionAlert';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -146,6 +148,9 @@ const ProfessionalDashboard = () => {
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Subscription Alert */}
+        <SubscriptionAlert />
+        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -285,12 +290,15 @@ const ProfessionalDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
             </TabsTrigger>
             <TabsTrigger value="transactions">
               Trabajos
+            </TabsTrigger>
+            <TabsTrigger value="subscription">
+              Suscripción
             </TabsTrigger>
             <TabsTrigger value="profile">
               Mi Perfil
@@ -306,6 +314,10 @@ const ProfessionalDashboard = () => {
 
           <TabsContent value="transactions">
             <TransactionManager />
+          </TabsContent>
+
+          <TabsContent value="subscription">
+            <SubscriptionPanel />
           </TabsContent>
 
           <TabsContent value="profile">

@@ -124,6 +124,92 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          card_brand: string | null
+          card_last_four: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          mercadopago_payment_method_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_brand?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          mercadopago_payment_method_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_brand?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          mercadopago_payment_method_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          mercadopago_payment_id: string | null
+          mercadopago_preference_id: string | null
+          payment_date: string | null
+          status: string
+          subscription_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          payment_date?: string | null
+          status?: string
+          subscription_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          payment_date?: string | null
+          status?: string
+          subscription_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       professional_services: {
         Row: {
           created_at: string
@@ -356,6 +442,98 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          billing_interval: string
+          created_at: string
+          currency: string
+          grace_period_days: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          billing_interval?: string
+          created_at?: string
+          currency?: string
+          grace_period_days?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          billing_interval?: string
+          created_at?: string
+          currency?: string
+          grace_period_days?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          mercadopago_subscription_id: string | null
+          next_billing_date: string | null
+          payment_data_required_date: string
+          payment_reminder_sent: boolean
+          plan_id: string
+          professional_id: string
+          status: string
+          trial_end_date: string
+          trial_start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mercadopago_subscription_id?: string | null
+          next_billing_date?: string | null
+          payment_data_required_date?: string
+          payment_reminder_sent?: boolean
+          plan_id: string
+          professional_id: string
+          status?: string
+          trial_end_date?: string
+          trial_start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mercadopago_subscription_id?: string | null
+          next_billing_date?: string | null
+          payment_data_required_date?: string
+          payment_reminder_sent?: boolean
+          plan_id?: string
+          professional_id?: string
+          status?: string
+          trial_end_date?: string
+          trial_start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number | null
@@ -570,6 +748,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_subscription_status: {
+        Args: { professional_user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
