@@ -9,6 +9,7 @@ import Header from '@/components/Header';
 import NotificationTestPanel from '@/components/NotificationTestPanel';
 import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 import ModerationQueue from '@/components/moderation/ModerationQueue';
+import { SystemConfiguration } from '@/components/SystemConfiguration';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -702,37 +703,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuración del Sistema</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Agregar Administrador</h3>
-                  <form onSubmit={handleAddAdmin} className="flex gap-3">
-                    <div className="flex-1">
-                      <Label htmlFor="admin-email">Email del nuevo admin</Label>
-                      <Input
-                        id="admin-email"
-                        type="email"
-                        placeholder="admin@ejemplo.com"
-                        value={newAdminEmail}
-                        onChange={(e) => setNewAdminEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="mt-6">
-                      Agregar Admin
-                    </Button>
-                  </form>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Pruebas de Notificaciones</h3>
-                  <NotificationTestPanel />
-                </div>
-              </CardContent>
-            </Card>
+            <SystemConfiguration />
           </TabsContent>
         </Tabs>
       </div>

@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
 import { ProfessionalProfileEdit } from '@/components/ProfessionalProfileEdit';
-import { TransactionManager } from '@/components/TransactionManager';
+import { EnhancedTransactionManager } from '@/components/EnhancedTransactionManager';
+import { FinancialDashboard } from '@/components/FinancialDashboard';
 import { SubscriptionPanel } from '@/components/SubscriptionPanel';
 import { SubscriptionAlert } from '@/components/SubscriptionAlert';
 import { supabase } from '@/integrations/supabase/client';
@@ -290,9 +291,12 @@ const ProfessionalDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
+            </TabsTrigger>
+            <TabsTrigger value="financial">
+              Finanzas
             </TabsTrigger>
             <TabsTrigger value="transactions">
               Trabajos
@@ -312,8 +316,12 @@ const ProfessionalDashboard = () => {
             <ContactRequestsPanel />
           </TabsContent>
 
+          <TabsContent value="financial">
+            <FinancialDashboard />
+          </TabsContent>
+
           <TabsContent value="transactions">
-            <TransactionManager />
+            <EnhancedTransactionManager />
           </TabsContent>
 
           <TabsContent value="subscription">
