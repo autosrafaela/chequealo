@@ -11,6 +11,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import { PasswordStrengthIndicator } from '@/components/ui/password-strength-indicator';
+import { validatePassword } from '@/utils/passwordValidation';
 import heroProfessionals from "@/assets/hero-professionals.jpg";
 import { 
   Wrench, Zap, Car, Sparkles, Dumbbell, Paintbrush, 
@@ -123,8 +125,9 @@ const Register = () => {
       return;
     }
     
-    if (formData.password.length < 6) {
-      toast.error('La contraseña debe tener al menos 6 caracteres');
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      toast.error('La contraseña no cumple con los requisitos de seguridad');
       return;
     }
     
@@ -203,7 +206,7 @@ const Register = () => {
       
       {/* Back to Home */}
       <Link to="/" className="absolute top-6 left-6 z-20">
-        <Button variant="ghost" className="text-white hover:bg-white/10">
+        <Button variant="ghost" className="text-white hover:bg-white/10 border-white/20">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver al inicio
         </Button>
@@ -211,20 +214,20 @@ const Register = () => {
 
       {/* Register Form */}
       <div className="relative z-10 w-full max-w-md mx-4">
-        <div className="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl">
+        <div className="bg-card/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-navy mb-2">Chequealo</h1>
             <h2 className="text-xl font-semibold text-foreground mb-4">Crear Cuenta</h2>
             
             {/* User Type Toggle */}
-            <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+            <div className="flex bg-muted rounded-lg p-1 mb-6">
               <button
                 onClick={() => setUserType('professional')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   userType === 'professional'
                     ? 'bg-primary text-primary-foreground'
-                    : 'text-gray-600 hover:text-gray-800'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Soy Profesional
@@ -234,7 +237,7 @@ const Register = () => {
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   userType === 'client'
                     ? 'bg-primary text-primary-foreground'
-                    : 'text-gray-600 hover:text-gray-800'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Soy Cliente
@@ -245,16 +248,16 @@ const Register = () => {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="name" className="text-sm font-medium text-foreground">
                 Nombre completo
               </Label>
               <div className="relative mt-1">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input
                   id="name"
                   type="text"
                   placeholder="Tu nombre completo"
-                  className="pl-10 h-12 border-gray-200 focus:border-primary"
+                  className="pl-10 h-12"
                   value={formData.fullName}
                   onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                   required
@@ -263,16 +266,16 @@ const Register = () => {
             </div>
 
             <div>
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
                 Correo electrónico
               </Label>
               <div className="relative mt-1">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="tu@email.com"
-                  className="pl-10 h-12 border-gray-200 focus:border-primary"
+                  className="pl-10 h-12"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   required
@@ -281,16 +284,16 @@ const Register = () => {
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="password" className="text-sm font-medium text-foreground">
                 Contraseña
               </Label>
               <div className="relative mt-1">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-primary"
+                  className="pl-10 pr-10 h-12"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   required
@@ -298,24 +301,29 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+              
+              <PasswordStrengthIndicator 
+                password={formData.password}
+                className="mt-2" 
+              />
             </div>
 
             <div>
-              <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
                 Confirmar contraseña
               </Label>
               <div className="relative mt-1">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-primary"
+                  className="pl-10 pr-10 h-12"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                   required
@@ -323,7 +331,7 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>

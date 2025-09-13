@@ -22,8 +22,8 @@ export class ErrorBoundary extends React.Component<React.PropsWithChildren, Erro
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md text-center p-6 rounded-lg border bg-white shadow-sm">
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="max-w-md text-center p-6 rounded-lg border bg-card shadow-sm">
             <h1 className="text-2xl font-bold mb-2 text-foreground">Hubo un problema</h1>
             <p className="text-muted-foreground mb-4">
               Ocurrió un error al cargar esta sección. Por favor, intentá recargar la página.

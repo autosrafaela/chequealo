@@ -14,6 +14,8 @@ import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import SeoLanding from "./pages/SeoLanding";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -34,6 +36,8 @@ const App = () => (
         <Route path="/dashboard" element={<ProfessionalDashboard />} />
         <Route path="/user-dashboard" element={<UserDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         {/* SEO-friendly URLs */}
         <Route path="/:profession/:location/:name" element={<SeoLanding />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -10,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
+import { PasswordStrengthIndicator } from '@/components/ui/password-strength-indicator';
+import { validatePassword } from '@/utils/passwordValidation';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -78,8 +80,9 @@ const Auth = () => {
       return;
     }
 
-    if (signupPassword.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    const passwordValidation = validatePassword(signupPassword);
+    if (!passwordValidation.isValid) {
+      setError('La contraseña no cumple con los requisitos de seguridad');
       setIsLoading(false);
       return;
     }
@@ -108,17 +111,17 @@ const Auth = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="container mx-auto px-4 py-8">
@@ -139,8 +142,8 @@ const Auth = () => {
                 </TabsList>
                 
                 {error && (
-                  <Alert className="mt-4 border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-800">
+                  <Alert className="mt-4" variant="destructive">
+                    <AlertDescription>
                       {error}
                     </AlertDescription>
                   </Alert>
@@ -271,6 +274,11 @@ const Auth = () => {
                           )}
                         </Button>
                       </div>
+                      
+                      <PasswordStrengthIndicator 
+                        password={signupPassword}
+                        className="mt-2" 
+                      />
                     </div>
                     
                     <div className="space-y-2">
@@ -321,11 +329,11 @@ const Auth = () => {
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>
               Al registrarte, aceptas nuestros{' '}
-              <a href="#" className="text-primary hover:underline">
+              <a href="/terms" className="text-primary hover:underline">
                 Términos de Servicio
               </a>{' '}
               y{' '}
-              <a href="#" className="text-primary hover:underline">
+              <a href="/privacy" className="text-primary hover:underline">
                 Política de Privacidad
               </a>
             </p>

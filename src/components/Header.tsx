@@ -157,24 +157,24 @@ const Header = () => {
             </div>
 
             {/* Main Search Container - Increased width */}
-            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+            <div className="flex-1 bg-card rounded-lg shadow-sm border p-1">
               <div className="flex items-center">
                 {/* Search Input for Service/Professional - Increased space */}
                 <div className="flex-1 relative">
-                  <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
+                  <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
                   <input
                     type="text"
                     placeholder="Ej: plomero, gasista, grúa"
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="w-full pl-16 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
+                    className="w-full pl-16 pr-4 py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm font-medium"
                   />
                 </div>
 
                 {/* Province Select - Reduced space */}
                 <select 
-                  className="hidden md:block px-2 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
+                  className="hidden md:block px-2 py-3 bg-transparent border-l text-foreground text-sm focus:outline-none cursor-pointer flex-1"
                   value={selectedProvince}
                   onChange={(e) => handleProvinceChange(e.target.value)}
                 >
@@ -301,7 +301,7 @@ const Header = () => {
                 {/* Mobile Location Selectors */}
                 <div className="md:hidden px-4 py-2 space-y-2 border-b border-gray-100">
                   <select 
-                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-sm"
+                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
                     value={selectedProvince}
                     onChange={(e) => handleProvinceChange(e.target.value)}
                   >
@@ -313,7 +313,7 @@ const Header = () => {
                     ))}
                   </select>
                   <select 
-                    className="w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-sm"
+                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
                     disabled={!selectedProvince}
@@ -328,12 +328,12 @@ const Header = () => {
                 </div>
 
                 {/* Favorites - Now uses real data */}
-                <div className="px-4 py-2 bg-white">
+                <div className="px-4 py-2 bg-background">
                   <FavoritesPanel />
                 </div>
 
                 {/* Mobile Filter */}
-                <div className="lg:hidden px-4 py-2 border-t border-gray-100 bg-white">
+                <div className="lg:hidden px-4 py-2 border-t bg-background">
                   <FilterDropdown
                     options={filterOptions}
                     selected={selectedFilter}
