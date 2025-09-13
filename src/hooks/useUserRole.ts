@@ -25,12 +25,14 @@ export const useUserRole = () => {
       setLoading(true);
       
       // Check admin role
-      const { data: adminCheck } = await supabase
+      const { data: adminCheck, error: adminError } = await supabase
         .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+      console.log('[useUserRole] adminCheck', { userId: user.id, adminCheck, adminError });
       
       // Check moderator role
-      const { data: moderatorCheck } = await supabase
+      const { data: moderatorCheck, error: modError } = await supabase
         .rpc('has_role', { _user_id: user.id, _role: 'moderator' });
+      console.log('[useUserRole] moderatorCheck', { userId: user.id, moderatorCheck, modError });
 
       setIsAdmin(!!adminCheck);
       setIsModerator(!!moderatorCheck);
