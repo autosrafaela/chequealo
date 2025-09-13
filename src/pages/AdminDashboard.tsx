@@ -57,8 +57,11 @@ const AdminDashboard = () => {
   const [professionals, setProfessionals] = useState<any[]>([]);
   const [verificationRequests, setVerificationRequests] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [editingPlan, setEditingPlan] = useState<any>(null);
+  const [newPrice, setNewPrice] = useState('');
 
   // Debug logs to diagnose blank page
   console.log('[AdminDashboard] render', { userId: user?.id, isAdmin, roleLoading, loading });
@@ -115,6 +118,12 @@ const AdminDashboard = () => {
         `)
         .order('created_at', { ascending: false });
 
+      // Fetch subscription plans
+      const { data: plansData } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('created_at', { ascending: false });
+
       // Calculate stats
       const totalUsers = profiles?.length || 0;
       const totalProfessionals = professionalsData?.length || 0;
@@ -146,6 +155,7 @@ const AdminDashboard = () => {
       setProfessionals(professionalsData || []);
       setVerificationRequests(verificationsData || []);
       setSubscriptions(subscriptionsData || []);
+      setSubscriptionPlans(plansData || []);
 
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -192,6 +202,25 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error unverifying professional:', error);
       toast.error('Error al remover verificación');
+    }
+  };
+
+  const handleUpdatePlanPrice = async (planId: string, newPrice: number) => {
+    try {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .update({ price: newPrice })
+        .eq('id', planId);
+
+      if (error) throw error;
+
+      toast.success('Precio actualizado exitosamente');
+      fetchAdminData();
+      setEditingPlan(null);
+      setNewPrice('');
+    } catch (error) {
+      console.error('Error updating plan price:', error);
+      toast.error('Error al actualizar precio');
     }
   };
 
@@ -389,12 +418,15 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="professionals" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="professionals">
               Profesionales ({stats.totalProfessionals})
             </TabsTrigger>
             <TabsTrigger value="subscriptions">
               Suscripciones ({stats.totalSubscriptions})
+            </TabsTrigger>
+            <TabsTrigger value="plans">
+              Planes
             </TabsTrigger>
             <TabsTrigger value="verifications">
               Verificaciones ({stats.pendingVerifications})
@@ -508,6 +540,84 @@ const AdminDashboard = () => {
                   {subscriptions.length === 0 && (
                     <p className="text-muted-foreground text-center py-8">
                       No hay suscripciones registradas
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="plans">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestión de Planes de Suscripción</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {subscriptionPlans.map((plan) => (
+                    <div key={plan.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold">{plan.name}</h3>
+                          <Badge className={plan.is_active ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'}>
+                            {plan.is_active ? 'Activo' : 'Inactivo'}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          <p><strong>Precio:</strong> ${plan.price} {plan.currency}</p>
+                          <p><strong>Intervalo:</strong> {plan.billing_interval}</p>
+                          <p><strong>Período de gracia:</strong> {plan.grace_period_days} días</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {editingPlan?.id === plan.id ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              placeholder="Nuevo precio"
+                              value={newPrice}
+                              onChange={(e) => setNewPrice(e.target.value)}
+                              className="w-32"
+                            />
+                            <Button 
+                              size="sm"
+                              onClick={() => handleUpdatePlanPrice(plan.id, parseFloat(newPrice))}
+                              disabled={!newPrice}
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Guardar
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingPlan(null);
+                                setNewPrice('');
+                              }}
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Cancelar
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingPlan(plan);
+                              setNewPrice(plan.price.toString());
+                            }}
+                          >
+                            <Settings className="h-4 w-4 mr-1" />
+                            Editar Precio
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {subscriptionPlans.length === 0 && (
+                    <p className="text-muted-foreground text-center py-8">
+                      No hay planes de suscripción configurados
                     </p>
                   )}
                 </div>
