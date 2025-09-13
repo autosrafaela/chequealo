@@ -40,7 +40,7 @@ interface UserProfile {
   full_name: string;
   username: string;
   bio: string;
-  location: string;
+  location?: string;
   avatar_url: string;
   created_at: string;
   updated_at: string;
@@ -544,6 +544,14 @@ const UserDashboard = () => {
                       El email no se puede cambiar
                     </p>
                   </div>
+                  
+                  <LocationAutocomplete
+                    value={location}
+                    onChange={setLocation}
+                    label="Ubicación"
+                    id="location"
+                    placeholder="Busca tu ciudad o provincia..."
+                  />
                 </div>
 
                 <div className="space-y-2">
