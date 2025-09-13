@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, X, MapPin, Star, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
+import { supabase } from "@/integrations/supabase/client";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FavoriteProfessional {
   id: string;
