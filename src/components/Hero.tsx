@@ -39,22 +39,22 @@ const Hero = () => {
           </p>
 
           {/* Search Bar */}
-          <div className="mb-8 max-w-2xl mx-auto">
-            <form onSubmit={handleSearch} className="flex gap-2">
+          <div className="mb-8 max-w-2xl mx-auto px-4 sm:px-0">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-2">
               <div className="flex-1 relative">
                 <Input
                   type="text"
                   placeholder="¿Qué servicio necesitás? Ej: plomero, electricista..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-14 text-lg px-6 pr-12 bg-white/95 border-0 rounded-full placeholder:text-gray-500"
+                  className="h-12 sm:h-14 text-base sm:text-lg px-4 sm:px-6 pr-12 bg-white/95 border-0 rounded-full placeholder:text-gray-500 w-full"
                 />
-                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
               </div>
               <Button 
                 type="submit"
                 size="lg" 
-                className="bg-primary hover:bg-primary/90 text-lg px-8 py-4 h-14 rounded-full"
+                className="bg-primary hover:bg-primary/90 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 rounded-full w-full sm:w-auto whitespace-nowrap"
               >
                 Buscar
               </Button>
@@ -63,7 +63,7 @@ const Hero = () => {
             {/* Alternative CTA */}
             <div className="mt-4">
               <Link to="/search">
-                <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-sm">
                   Ver todos los profesionales
                 </Button>
               </Link>
@@ -71,9 +71,9 @@ const Hero = () => {
           </div>
 
           {/* Popular Searches */}
-          <div className="mt-8 text-white/80">
+          <div className="mt-8 text-white/80 px-4 sm:px-0">
             <p className="text-sm mb-3">Búsquedas populares:</p>
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
               {(() => {
                 const allSearches = [
                   "Plomero", "Electricista", "Mecánico", "Limpieza", 
@@ -93,7 +93,7 @@ const Hero = () => {
                      params.set('q', service);
                      navigate(`/search?${params.toString()}`);
                    }}
-                   className="px-4 py-1 bg-white/20 hover:bg-white/30 rounded-full text-sm transition-colors"
+                   className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full text-xs sm:text-sm transition-colors whitespace-nowrap"
                  >
                    {service}
                  </button>
