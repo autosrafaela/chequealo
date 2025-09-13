@@ -311,7 +311,7 @@ const UserManagementPanel = () => {
               className="flex items-center gap-2"
             >
               <Trash2 className="h-4 w-4" />
-              {deleteLoading ? 'Eliminando...' : 'Eliminar Silvia'}
+              {deleteLoading ? 'Eliminando...' : 'Eliminar'}
             </Button>
           </div>
 
