@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import NotificationCenter from './NotificationCenter';
+import chequealoLogo from "@/assets/chequealo-logo.png";
 
 export const MobileOptimizedHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -62,10 +63,10 @@ export const MobileOptimizedHeader: React.FC = () => {
         <div className="flex items-center">
           <Button
             variant="ghost"
-            className="text-lg font-bold text-primary hover:bg-transparent"
+            className="hover:bg-transparent flex items-center space-x-2"
             onClick={() => navigate('/')}
           >
-            TodoAca.ar
+            <img src={chequealoLogo} alt="Chequealo" className="h-6 w-auto" />
           </Button>
         </div>
 

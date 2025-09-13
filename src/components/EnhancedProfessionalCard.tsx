@@ -61,7 +61,7 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
           whatsappNumber = `5411${cleanPhone}`;
         }
       }
-      const message = `Hola ${professional.full_name}! Te contacto desde TodoAca.ar. Me interesa conocer más sobre tus servicios.`;
+      const message = `Hola ${professional.full_name}! Te contacto desde Chequealo. Me interesa conocer más sobre tus servicios.`;
       const encodedText = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
       window.open(whatsappUrl, '_blank');

@@ -214,7 +214,7 @@ const Register = () => {
         <div className="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-navy mb-2">TodoAca.ar</h1>
+            <h1 className="text-2xl font-bold text-navy mb-2">Chequealo</h1>
             <h2 className="text-xl font-semibold text-foreground mb-4">Crear Cuenta</h2>
             
             {/* User Type Toggle */}

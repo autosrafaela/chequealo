@@ -17,7 +17,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              ¿Por qué elegir TodoAca.ar?
+              ¿Por qué elegir Chequealo?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               La plataforma más confiable para conectar con profesionales verificados
@@ -84,7 +84,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-white text-lg font-semibold mb-4">TodoAca.ar</h3>
+              <h3 className="text-white text-lg font-semibold mb-4">Chequealo</h3>
               <p className="text-sm mb-4">
                 La plataforma líder para conectar clientes con profesionales de confianza en Argentina.
               </p>
@@ -111,7 +111,7 @@ const Index = () => {
             <div>
               <h4 className="text-white font-semibold mb-4">Contacto</h4>
               <ul className="space-y-2 text-sm">
-                <li>📧 info@todoaca.ar</li>
+                <li>📧 info@chequealo.ar</li>
                 <li>📱 +54 9 3492 60-7224</li>
                 <li>📍 Argentina</li>
               </ul>
@@ -119,7 +119,7 @@ const Index = () => {
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-            <p>&copy; 2024 TodoAca.ar. Todos los derechos reservados.</p>
+            <p>&copy; 2024 Chequealo. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

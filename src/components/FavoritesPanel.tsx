@@ -86,8 +86,8 @@ const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propO
   };
 
   const handleEmailContact = (email: string, name: string) => {
-    const subject = encodeURIComponent(`Contacto desde TodoAca.ar - ${name}`);
-    const body = encodeURIComponent(`Hola ${name}! Te contacto desde TodoAca.ar. Me interesa conocer más sobre tus servicios.`);
+    const subject = encodeURIComponent(`Contacto desde Chequealo - ${name}`);
+    const body = encodeURIComponent(`Hola ${name}! Te contacto desde Chequealo. Me interesa conocer más sobre tus servicios.`);
     window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
   };
 

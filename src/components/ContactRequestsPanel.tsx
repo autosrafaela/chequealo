@@ -114,7 +114,7 @@ export const ContactRequestsPanel = () => {
                     <WhatsAppContactButton 
                       phone={request.phone}
                       professionalName={request.name}
-                      message={`Hola ${request.name}! Recibí tu solicitud desde TodoAca.ar. Te contacto para coordinar el servicio de ${request.service_type || 'tu servicio'}.`}
+                      message={`Hola ${request.name}! Recibí tu solicitud desde Chequealo. Te contacto para coordinar el servicio de ${request.service_type || 'tu servicio'}.`}
                     />
                   </div>
                 )}
@@ -171,7 +171,7 @@ export const ContactRequestsPanel = () => {
                   asChild
                   className="flex-1"
                 >
-                  <a href={`mailto:${request.email}?subject=Re: ${getTypeText(request.type)} - TodoAca.ar`}>
+                  <a href={`mailto:${request.email}?subject=Re: ${getTypeText(request.type)} - Chequealo`}>
                     Responder por Email
                   </a>
                 </Button>

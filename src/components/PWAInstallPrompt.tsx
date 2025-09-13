@@ -105,7 +105,7 @@ export const PWAInstallPrompt: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Smartphone className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Instalar TodoAca.ar</CardTitle>
+              <CardTitle className="text-base">Instalar Chequealo</CardTitle>
             </div>
             <Button
               variant="ghost"
@@ -187,7 +187,7 @@ export const IOSInstallInstructions: React.FC = () => {
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-3 text-sm">
-            <p>Para instalar TodoAca.ar en tu iPhone o iPad:</p>
+            <p>Para instalar Chequealo en tu iPhone o iPad:</p>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">1</div>

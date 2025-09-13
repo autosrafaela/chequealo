@@ -125,7 +125,7 @@ const Auth = () => {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">TodoAca.ar</CardTitle>
+              <CardTitle className="text-2xl">Chequealo</CardTitle>
               <CardDescription>
                 Inicia sesión o crea tu cuenta para acceder a todas las funcionalidades
               </CardDescription>

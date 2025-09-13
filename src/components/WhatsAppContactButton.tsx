@@ -36,7 +36,7 @@ export const WhatsAppContactButton = ({
 
     // Default message
     const defaultMessage = message || 
-      `Hola ${professionalName}! Te contacto desde TodoAca.ar. Me interesa conocer más sobre tus servicios.`;
+      `Hola ${professionalName}! Te contacto desde Chequealo. Me interesa conocer más sobre tus servicios.`;
 
     // Robust WhatsApp URL with fallbacks (prefer wa.me)
     const encodedText = encodeURIComponent(defaultMessage);

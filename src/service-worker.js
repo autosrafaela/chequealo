@@ -1,4 +1,4 @@
-const CACHE_NAME = 'todoaca-v1';
+const CACHE_NAME = 'chequealo-v1';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
