@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, User, MapPin, Search, Heart, Menu, X, BarChart3, LogOut, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import FilterDropdown from "./FilterDropdown";
-import NotificationPanel from "./NotificationPanel";
+import NotificationCenter from "./NotificationCenter";
 import FavoritesPanel from "./FavoritesPanel";
 import { provinceCityMap } from "../data/provinceCityData";
 import { useAuth } from "@/contexts/AuthContext";
@@ -103,14 +103,6 @@ const Header = () => {
   ];
 
   // Mock notification handlers
-  const handleMarkAsRead = (id: string) => {
-    console.log('Marking notification as read:', id);
-  };
-
-  const handleMarkAllAsRead = () => {
-    console.log('Marking all notifications as read');
-  };
-
   const handleRemoveFavorite = (id: string) => {
     console.log('Removing favorite:', id);
   };
@@ -205,22 +197,28 @@ const Header = () => {
           </div>
 
           {/* User Menu Button (Hamburger) */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-navy-foreground"
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            >
-              {isUserMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
+          <div className="flex items-center gap-2">
+            {/* Notification Center */}
+            {user && (
+              <NotificationCenter />
+            )}
+            
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-navy-foreground"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              >
+                {isUserMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
 
-            {/* User Menu Dropdown */}
-            {isUserMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[60]">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="font-medium text-gray-900">Menú de Usuario</h3>
-                </div>
+              {/* User Menu Dropdown */}
+              {isUserMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[60]">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <h3 className="font-medium text-gray-900">Menú de Usuario</h3>
+                  </div>
                 
                 {/* Auth and Professional Navigation */}
                 <div className="px-4 py-2 space-y-2 border-b border-gray-100">
@@ -311,16 +309,6 @@ const Header = () => {
                     onRemoveFavorite={handleRemoveFavorite}
                   />
                 </div>
-                
-                {/* Notifications - Moved down */}
-                <div className="px-4 py-2 bg-white">
-                  <NotificationPanel
-                    notifications={[]}
-                    unreadCount={0}
-                    onMarkAsRead={handleMarkAsRead}
-                    onMarkAllAsRead={handleMarkAllAsRead}
-                  />
-                </div>
 
                 {/* Mobile Filter */}
                 <div className="lg:hidden px-4 py-2 border-t border-gray-100 bg-white">
@@ -330,9 +318,10 @@ const Header = () => {
                     onSelect={setSelectedFilter}
                     placeholder="Ordenar por..."
                   />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

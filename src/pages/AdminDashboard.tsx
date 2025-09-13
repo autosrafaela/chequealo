@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Header from '@/components/Header';
+import NotificationTestPanel from '@/components/NotificationTestPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -708,6 +709,11 @@ const AdminDashboard = () => {
                       Agregar Admin
                     </Button>
                   </form>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Pruebas de Notificaciones</h3>
+                  <NotificationTestPanel />
                 </div>
               </CardContent>
             </Card>
