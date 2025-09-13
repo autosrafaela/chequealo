@@ -31,7 +31,9 @@ import {
   UserCheck,
   MessageSquare,
   Star,
-  TrendingUp
+  TrendingUp,
+  Ban,
+  Trash2
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
@@ -214,6 +216,58 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error unverifying professional:', error);
       toast.error('Error al remover verificación');
+    }
+  };
+
+  const handleToggleBlockProfessional = async (professional: any) => {
+    try {
+      const newBlockedState = !professional.is_blocked;
+      
+      // Update professional
+      const { error: profError } = await supabase
+        .from('professionals')
+        .update({ is_blocked: newBlockedState })
+        .eq('id', professional.id);
+
+      if (profError) throw profError;
+
+      // Also update profile if exists
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ is_blocked: newBlockedState })
+        .eq('user_id', professional.user_id);
+
+      if (profileError) throw profileError;
+
+      toast.success(`Profesional ${newBlockedState ? 'bloqueado' : 'desbloqueado'} correctamente`);
+      fetchAdminData();
+    } catch (error) {
+      console.error('Error toggling professional block:', error);
+      toast.error('Error al cambiar estado del profesional');
+    }
+  };
+
+  const handleDeleteProfessional = async (professional: any) => {
+    if (!confirm(`¿Estás seguro de eliminar al profesional ${professional.full_name}? Esta acción es irreversible.`)) {
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: {
+          userId: professional.user_id,
+          adminEmail: user?.email
+        }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      toast.success('Profesional eliminado correctamente');
+      fetchAdminData();
+    } catch (error) {
+      console.error('Error deleting professional:', error);
+      toast.error('Error al eliminar profesional: ' + (error.message || 'Error desconocido'));
     }
   };
 
@@ -506,6 +560,11 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="font-semibold">{professional.full_name}</h3>
                           {getStatusBadge(professional.is_verified)}
+                          {professional.is_blocked && (
+                            <Badge variant="destructive" className="text-xs">
+                              Bloqueado
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {professional.profession} • {professional.location}
@@ -540,6 +599,22 @@ const AdminDashboard = () => {
                             Verificar
                           </Button>
                         )}
+                        <Button
+                          variant={professional.is_blocked ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleToggleBlockProfessional(professional)}
+                        >
+                          <Ban className="h-4 w-4 mr-1" />
+                          {professional.is_blocked ? 'Desbloquear' : 'Bloquear'}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteProfessional(professional)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Eliminar
+                        </Button>
                       </div>
                     </div>
                   ))}
