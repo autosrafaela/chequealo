@@ -18,7 +18,7 @@ import {
 
 const Register = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState<'professional' | 'client'>('professional');
@@ -137,12 +137,12 @@ const Register = () => {
     try {
       // Crear usuario
       const { error: signUpError } = await signUp(
-        formData.email, 
-        formData.password, 
-        formData.fullName, 
+        formData.email,
+        formData.password,
+        formData.fullName,
         formData.fullName.toLowerCase().replace(/\s+/g, '')
       );
-      
+
       if (signUpError) {
         if (signUpError.message.includes('already registered')) {
           toast.error('Este email ya está registrado');
@@ -152,34 +152,37 @@ const Register = () => {
         return;
       }
 
-      // Si es profesional, crear perfil profesional
-      if (userType === 'professional') {
-        // Esperamos un poco para que se complete el registro
-        setTimeout(async () => {
+      // Intentar iniciar sesión automáticamente
+      const { error: loginError } = await signIn(formData.email, formData.password);
+
+      if (!loginError) {
+        // Ya logueado: crear perfil profesional si corresponde
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && userType === 'professional') {
           try {
-            const { data: { user } } = await supabase.auth.getUser();
-            
-            if (user) {
-              await supabase.from('professionals').insert({
-                user_id: user.id,
-                full_name: formData.fullName,
-                email: formData.email,
-                phone: formData.phone || '',
-                profession: selectedServices[0] || 'Profesional',
-                location: formData.location || '',
-                description: formData.description || '',
-                availability: 'Disponible'
-              });
-            }
-          } catch (error) {
-            console.error('Error creando perfil profesional:', error);
+            await supabase.from('professionals').insert({
+              user_id: user.id,
+              full_name: formData.fullName,
+              email: formData.email,
+              phone: formData.phone || '',
+              profession: selectedServices[0] || 'Profesional',
+              location: formData.location || '',
+              description: formData.description || '',
+              availability: 'Disponible'
+            });
+          } catch (err) {
+            console.error('Error creando perfil profesional:', err);
           }
-        }, 2000);
+        }
+
+        toast.success('Cuenta creada e inicio de sesión exitoso');
+        navigate('/dashboard', { replace: true });
+      } else {
+        // Si el proyecto requiere confirmación de email, el login fallará hasta confirmar
+        toast.success('Cuenta creada. Revisa tu email para confirmar y luego inicia sesión.');
+        navigate('/auth?tab=login', { replace: true });
       }
 
-      toast.success('¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.');
-      navigate('/auth');
-      
     } catch (error) {
       toast.error('Error al crear la cuenta. Inténtalo de nuevo.');
     } finally {
