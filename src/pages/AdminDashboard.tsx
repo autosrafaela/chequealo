@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Header from '@/components/Header';
 import NotificationTestPanel from '@/components/NotificationTestPanel';
+import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
+import ModerationQueue from '@/components/moderation/ModerationQueue';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -438,9 +440,15 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="professionals">
               Profesionales ({stats.totalProfessionals})
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="moderation">
+              Moderación
             </TabsTrigger>
             <TabsTrigger value="subscriptions">
               Suscripciones ({stats.totalSubscriptions})
@@ -512,6 +520,14 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="moderation">
+            <ModerationQueue />
           </TabsContent>
 
           <TabsContent value="subscriptions">
