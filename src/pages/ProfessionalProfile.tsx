@@ -11,6 +11,7 @@ import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
 import { ContactRequestDialog } from "@/components/ContactRequestDialog";
 import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
+import { ShareProfileButton } from "@/components/ShareProfileButton";
 import { TransactionManager } from "@/components/TransactionManager";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -307,14 +308,21 @@ const ProfessionalProfile = () => {
                       professionalName={professional.full_name}
                       type="quote"
                     />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={handleToggleFavorite}
-                      className={isFavorite ? 'text-red-500 border-red-200' : ''}
-                    >
-                      <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={handleToggleFavorite}
+                        className={isFavorite ? 'text-red-500 border-red-200' : ''}
+                      >
+                        <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                      </Button>
+                      <ShareProfileButton
+                        professionalName={professional.full_name}
+                        professionalId={professional.id}
+                        profession={professional.profession}
+                      />
+                    </div>
                   </div>
 
                   {/* Contact Info */}
