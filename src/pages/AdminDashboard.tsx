@@ -33,6 +33,10 @@ interface AdminStats {
   totalReviews: number;
   totalContactRequests: number;
   averageRating: number;
+  totalSubscriptions: number;
+  activeSubscriptions: number;
+  trialSubscriptions: number;
+  expiredSubscriptions: number;
 }
 
 const AdminDashboard = () => {
@@ -44,10 +48,15 @@ const AdminDashboard = () => {
     pendingVerifications: 0,
     totalReviews: 0,
     totalContactRequests: 0,
-    averageRating: 0
+    averageRating: 0,
+    totalSubscriptions: 0,
+    activeSubscriptions: 0,
+    trialSubscriptions: 0,
+    expiredSubscriptions: 0
   });
   const [professionals, setProfessionals] = useState<any[]>([]);
   const [verificationRequests, setVerificationRequests] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newAdminEmail, setNewAdminEmail] = useState('');
 
@@ -96,6 +105,16 @@ const AdminDashboard = () => {
         .from('contact_requests')
         .select('id');
 
+      // Fetch subscriptions
+      const { data: subscriptionsData } = await supabase
+        .from('subscriptions')
+        .select(`
+          *,
+          professionals(full_name, profession),
+          subscription_plans(name, price)
+        `)
+        .order('created_at', { ascending: false });
+
       // Calculate stats
       const totalUsers = profiles?.length || 0;
       const totalProfessionals = professionalsData?.length || 0;
@@ -105,6 +124,11 @@ const AdminDashboard = () => {
       const averageRating = totalReviews > 0 
         ? reviewsData.reduce((acc, r) => acc + r.rating, 0) / totalReviews 
         : 0;
+      
+      const totalSubscriptions = subscriptionsData?.length || 0;
+      const activeSubscriptions = subscriptionsData?.filter(s => s.status === 'active').length || 0;
+      const trialSubscriptions = subscriptionsData?.filter(s => s.status === 'trial').length || 0;
+      const expiredSubscriptions = subscriptionsData?.filter(s => s.status === 'expired').length || 0;
 
       setStats({
         totalUsers,
@@ -112,11 +136,16 @@ const AdminDashboard = () => {
         pendingVerifications,
         totalReviews,
         totalContactRequests,
-        averageRating: Math.round(averageRating * 10) / 10
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalSubscriptions,
+        activeSubscriptions,
+        trialSubscriptions,
+        expiredSubscriptions
       });
 
       setProfessionals(professionalsData || []);
       setVerificationRequests(verificationsData || []);
+      setSubscriptions(subscriptionsData || []);
 
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -230,7 +259,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -314,13 +343,58 @@ const AdminDashboard = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Suscripciones Activas
+                  </p>
+                  <p className="text-2xl font-bold text-green-600">{stats.activeSubscriptions}</p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    En Período de Prueba
+                  </p>
+                  <p className="text-2xl font-bold text-blue-600">{stats.trialSubscriptions}</p>
+                </div>
+                <Eye className="h-8 w-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Suscripciones Expiradas
+                  </p>
+                  <p className="text-2xl font-bold text-red-600">{stats.expiredSubscriptions}</p>
+                </div>
+                <XCircle className="h-8 w-8 text-red-500" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content */}
         <Tabs defaultValue="professionals" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="professionals">
               Profesionales ({stats.totalProfessionals})
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions">
+              Suscripciones ({stats.totalSubscriptions})
             </TabsTrigger>
             <TabsTrigger value="verifications">
               Verificaciones ({stats.pendingVerifications})
@@ -383,6 +457,59 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="subscriptions">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestión de Suscripciones</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {subscriptions.map((subscription) => (
+                    <div key={subscription.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold">
+                            {subscription.professionals?.full_name || 'Profesional no encontrado'}
+                          </h3>
+                          <Badge 
+                            className={`${
+                              subscription.status === 'active' ? 'bg-green-500 text-white' :
+                              subscription.status === 'trial' ? 'bg-blue-500 text-white' :
+                              subscription.status === 'expired' ? 'bg-red-500 text-white' :
+                              'bg-gray-500 text-white'
+                            }`}
+                          >
+                            {subscription.status === 'active' ? 'Activa' :
+                             subscription.status === 'trial' ? 'Prueba' :
+                             subscription.status === 'expired' ? 'Expirada' :
+                             subscription.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {subscription.professionals?.profession}
+                        </p>
+                        <div className="text-sm text-muted-foreground mt-2">
+                          <p><strong>Plan:</strong> {subscription.subscription_plans?.name || 'No disponible'}</p>
+                          <p><strong>Precio:</strong> ${subscription.subscription_plans?.price || 0}</p>
+                          <p><strong>Período de prueba:</strong> {new Date(subscription.trial_start_date).toLocaleDateString()} - {new Date(subscription.trial_end_date).toLocaleDateString()}</p>
+                          {subscription.next_billing_date && (
+                            <p><strong>Próximo cobro:</strong> {new Date(subscription.next_billing_date).toLocaleDateString()}</p>
+                          )}
+                          <p><strong>Creada:</strong> {new Date(subscription.created_at).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {subscriptions.length === 0 && (
+                    <p className="text-muted-foreground text-center py-8">
+                      No hay suscripciones registradas
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
