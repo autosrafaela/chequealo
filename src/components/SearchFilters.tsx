@@ -52,12 +52,12 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
       {/* Profession Filter */}
       <div className="space-y-2">
         <Label className="text-sm font-medium">Profesión</Label>
-        <Select value={filters.profession || 'all'} onValueChange={(value) => onFiltersChange({ profession: value === 'all' ? undefined : value })}>
+        <Select value={filters.profession || ''} onValueChange={(value) => onFiltersChange({ profession: value || undefined })}>
           <SelectTrigger>
             <SelectValue placeholder="Todas las profesiones" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas las profesiones</SelectItem>
+            <SelectItem value="">Todas las profesiones</SelectItem>
             {availableProfessions.map((profession) => (
               <SelectItem key={profession} value={profession}>
                 {profession}
