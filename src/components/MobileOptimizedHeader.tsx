@@ -43,6 +43,7 @@ export const MobileOptimizedHeader: React.FC = () => {
 
   if (user) {
     navigationItems.push(
+      { path: '/user-dashboard', label: 'Mi Cuenta', icon: User },
       { path: '/professional-dashboard', label: 'Mi Negocio', icon: Briefcase }
     );
     
