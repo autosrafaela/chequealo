@@ -295,20 +295,31 @@ export const WorkPhotosManager = () => {
                 <div className="grid gap-4 py-4">
                   {!editingPhoto && (
                     <div className="space-y-2">
-                      <Label htmlFor="image">Imagen *</Label>
-                      <Input
-                        id="image"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                        required={!editingPhoto}
-                      />
-                      {previewUrl && (
-                        <img 
-                          src={previewUrl} 
-                          alt="Preview" 
-                          className="w-full h-32 object-cover rounded-md"
+                      <Label htmlFor="image">Subir desde tu dispositivo *</Label>
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
+                        <Input
+                          id="image"
+                          type="file"
+                          accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                          required={!editingPhoto}
+                          className="sr-only"
                         />
+                        <Label htmlFor="image" className="cursor-pointer flex flex-col items-center gap-2">
+                          <Upload className="h-8 w-8 text-muted-foreground" />
+                          <span className="text-sm font-medium">Click para seleccionar imagen</span>
+                          <span className="text-xs text-muted-foreground">JPG, PNG, WEBP (máx. 10MB)</span>
+                        </Label>
+                      </div>
+                      {previewUrl && (
+                        <div className="mt-3">
+                          <p className="text-sm font-medium mb-2">Vista previa:</p>
+                          <img 
+                            src={previewUrl} 
+                            alt="Preview" 
+                            className="w-full h-32 object-cover rounded-md border"
+                          />
+                        </div>
                       )}
                     </div>
                   )}
@@ -323,18 +334,28 @@ export const WorkPhotosManager = () => {
                       />
                       <div className="space-y-2">
                         <Label htmlFor="new-image">Cambiar Imagen (opcional)</Label>
-                        <Input
-                          id="new-image"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                        />
-                        {previewUrl && (
-                          <img 
-                            src={previewUrl} 
-                            alt="New preview" 
-                            className="w-full h-32 object-cover rounded-md"
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
+                          <Input
+                            id="new-image"
+                            type="file"
+                            accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
+                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                            className="sr-only"
                           />
+                          <Label htmlFor="new-image" className="cursor-pointer flex flex-col items-center gap-2">
+                            <Upload className="h-6 w-6 text-muted-foreground" />
+                            <span className="text-sm">Seleccionar nueva imagen</span>
+                          </Label>
+                        </div>
+                        {previewUrl && (
+                          <div className="mt-3">
+                            <p className="text-sm font-medium mb-2">Nueva imagen:</p>
+                            <img 
+                              src={previewUrl} 
+                              alt="New preview" 
+                              className="w-full h-32 object-cover rounded-md border"
+                            />
+                          </div>
                         )}
                       </div>
                     </div>

@@ -185,10 +185,15 @@ const ProfessionalDashboard = () => {
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
-            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02] border-2 hover:border-primary/20"
             onClick={() => {
-              const requestsTab = document.querySelector('[value="requests"]') as HTMLElement;
-              requestsTab?.click();
+              const requestsTab = document.querySelector('[data-state="inactive"][value="requests"]') as HTMLElement;
+              if (requestsTab) {
+                requestsTab.click();
+              } else {
+                const activeTab = document.querySelector('[value="requests"]') as HTMLElement;
+                activeTab?.click();
+              }
             }}
           >
             <CardContent className="p-6">
@@ -197,7 +202,8 @@ const ProfessionalDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Solicitudes Totales
                   </p>
-                  <p className="text-2xl font-bold">{stats.totalRequests}</p>
+                  <p className="text-2xl font-bold text-primary">{stats.totalRequests}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Click para ver detalles</p>
                 </div>
                 <MessageCircle className="h-8 w-8 text-blue-500" />
               </div>
@@ -205,10 +211,15 @@ const ProfessionalDashboard = () => {
           </Card>
 
           <Card 
-            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02] border-2 hover:border-orange-200"
             onClick={() => {
-              const requestsTab = document.querySelector('[value="requests"]') as HTMLElement;
-              requestsTab?.click();
+              const requestsTab = document.querySelector('[data-state="inactive"][value="requests"]') as HTMLElement;
+              if (requestsTab) {
+                requestsTab.click();
+              } else {
+                const activeTab = document.querySelector('[value="requests"]') as HTMLElement;
+                activeTab?.click();
+              }
             }}
           >
             <CardContent className="p-6">
@@ -218,6 +229,7 @@ const ProfessionalDashboard = () => {
                     Pendientes
                   </p>
                   <p className="text-2xl font-bold text-orange-600">{stats.pendingRequests}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Click para gestionar</p>
                 </div>
                 <Calendar className="h-8 w-8 text-orange-500" />
               </div>
@@ -436,7 +448,7 @@ const ProfessionalDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10">
+          <TabsList className="grid w-full grid-cols-10 sticky top-4 z-10 bg-background">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
             </TabsTrigger>
