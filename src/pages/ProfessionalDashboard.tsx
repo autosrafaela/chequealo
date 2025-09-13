@@ -169,7 +169,13 @@ const ProfessionalDashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => {
+              const requestsTab = document.querySelector('[value="requests"]') as HTMLElement;
+              requestsTab?.click();
+            }}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -183,7 +189,13 @@ const ProfessionalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => {
+              const requestsTab = document.querySelector('[value="requests"]') as HTMLElement;
+              requestsTab?.click();
+            }}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -202,7 +214,12 @@ const ProfessionalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => {
+              window.location.href = `/professional/${professional.id}#reviews`;
+            }}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -216,7 +233,12 @@ const ProfessionalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => {
+              window.location.href = `/professional/${professional.id}#reviews`;
+            }}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -236,7 +258,10 @@ const ProfessionalDashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="hover:shadow-md transition-shadow">
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => window.location.href = `/professional/${professional.id}`}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -255,7 +280,13 @@ const ProfessionalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => {
+              const profileTab = document.querySelector('[value="profile"]') as HTMLElement;
+              profileTab?.click();
+            }}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -276,7 +307,13 @@ const ProfessionalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => {
+              const servicesTab = document.querySelector('[value="services"]') as HTMLElement;
+              servicesTab?.click();
+            }}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -288,7 +325,8 @@ const ProfessionalDashboard = () => {
                 <Package className="h-8 w-8 text-blue-500" />
               </div>
               <Button asChild className="w-full mt-4" variant="outline">
-                <span onClick={() => {
+                <span onClick={(e) => {
+                  e.stopPropagation();
                   const servicesTab = document.querySelector('[value="services"]') as HTMLElement;
                   servicesTab?.click();
                 }}>
@@ -298,7 +336,13 @@ const ProfessionalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => {
+              const portfolioTab = document.querySelector('[value="portfolio"]') as HTMLElement;
+              portfolioTab?.click();
+            }}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -310,7 +354,8 @@ const ProfessionalDashboard = () => {
                 <Camera className="h-8 w-8 text-purple-500" />
               </div>
               <Button asChild className="w-full mt-4" variant="outline">
-                <span onClick={() => {
+                <span onClick={(e) => {
+                  e.stopPropagation();
                   const portfolioTab = document.querySelector('[value="portfolio"]') as HTMLElement;
                   portfolioTab?.click();
                 }}>
@@ -382,49 +427,81 @@ const ProfessionalDashboard = () => {
           </TabsContent>
 
           <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Información del Perfil</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Revisa y edita la información de tu perfil profesional
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold mb-2">Información Básica</h4>
-                    <div className="space-y-2 text-sm">
-                      <p><strong>Nombre:</strong> {professional.full_name}</p>
-                      <p><strong>Profesión:</strong> {professional.profession}</p>
-                      <p><strong>Email:</strong> {professional.email}</p>
-                      <p><strong>Teléfono:</strong> {professional.phone || 'No especificado'}</p>
-                      <p><strong>Ubicación:</strong> {professional.location}</p>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    Información del Perfil
+                    <div className="flex gap-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link to={`/professional/${professional.id}`}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Perfil Público
+                        </Link>
+                      </Button>
                     </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold mb-2">Estado de Verificación</h4>
-                    <div className="space-y-2">
-                      <Badge variant={professional.is_verified ? 'default' : 'secondary'}>
-                        {professional.is_verified ? 'Verificado' : 'Sin verificar'}
-                      </Badge>
-                      {!professional.is_verified && (
-                        <p className="text-sm text-muted-foreground">
-                          Solicita la verificación para generar más confianza en los clientes
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2">Descripción</h4>
-                  <p className="text-sm text-muted-foreground bg-gray-50 p-3 rounded-lg">
-                    {professional.description || 'No hay descripción disponible'}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Revisa y edita la información de tu perfil profesional
                   </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-2">Información Básica</h4>
+                      <div className="space-y-2 text-sm">
+                        <p><strong>Nombre:</strong> {professional.full_name}</p>
+                        <p><strong>Profesión:</strong> {professional.profession}</p>
+                        <p><strong>Email:</strong> {professional.email}</p>
+                        <p><strong>Teléfono:</strong> {professional.phone || 'No especificado'}</p>
+                        <p><strong>Ubicación:</strong> {professional.location}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold mb-2">Estado de Verificación</h4>
+                      <div className="space-y-2">
+                        <Badge variant={professional.is_verified ? 'default' : 'secondary'}>
+                          {professional.is_verified ? 'Verificado' : 'Sin verificar'}
+                        </Badge>
+                        {!professional.is_verified && (
+                          <p className="text-sm text-muted-foreground">
+                            Solicita la verificación para generar más confianza en los clientes
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Descripción</h4>
+                    <p className="text-sm text-muted-foreground bg-gray-50 p-3 rounded-lg">
+                      {professional.description || 'No hay descripción disponible'}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Editor de Perfil directo */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Edit3 className="h-5 w-5" />
+                    Editar Información
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Modifica tu información profesional
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ProfessionalProfileEdit
+                    professionalData={professional}
+                    onUpdate={fetchDashboardData}
+                    isOwner={true}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="settings">
