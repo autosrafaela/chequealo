@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, MapPin, Search, Loader2 } from "lucide-react";
+import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -350,22 +351,13 @@ const Register = () => {
             {/* Ubicación para profesionales */}
             {userType === 'professional' && (
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="location" className="text-sm font-medium text-gray-700">
-                    Ciudad
-                  </Label>
-                  <div className="relative mt-1">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <Input
-                      id="location"
-                      type="text"
-                      placeholder="Ej: Santa Fe, Argentina"
-                      className="pl-10 h-12 border-gray-200 focus:border-primary"
-                      value={formData.location}
-                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    />
-                  </div>
-                </div>
+                <LocationAutocomplete
+                  value={formData.location}
+                  onChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+                  label="Ciudad"
+                  id="location"
+                  placeholder="Busca tu ciudad o provincia..."
+                />
                 
                 <div>
                   <Label htmlFor="phone" className="text-sm font-medium text-gray-700">

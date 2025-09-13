@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 import { toast } from 'sonner';
 import { 
   User, 
@@ -807,18 +808,16 @@ const UserDashboard = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="prof-location">Ubicación</Label>
-                <Input
-                  id="prof-location"
-                  value={professionalData.location}
-                  onChange={(e) => setProfessionalData(prev => ({
-                    ...prev,
-                    location: e.target.value
-                  }))}
-                  placeholder="Ciudad, Provincia"
-                />
-              </div>
+              <LocationAutocomplete
+                value={professionalData.location}
+                onChange={(value) => setProfessionalData(prev => ({
+                  ...prev,
+                  location: value
+                }))}
+                label="Ubicación"
+                id="prof-location"
+                placeholder="Busca tu ciudad o provincia..."
+              />
 
               <div className="space-y-2">
                 <Label htmlFor="prof-description">Descripción de servicios</Label>

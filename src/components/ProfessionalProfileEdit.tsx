@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Edit, Plus, Trash2, Upload, MessageSquare, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 
 interface EditProfileProps {
   professionalData: any;
@@ -26,7 +27,8 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
   const [profileForm, setProfileForm] = useState({
     description: professionalData?.description || '',
     phone: professionalData?.phone || '',
-    email: professionalData?.email || ''
+    email: professionalData?.email || '',
+    location: professionalData?.location || ''
   });
 
   const [serviceForm, setServiceForm] = useState({
@@ -59,6 +61,7 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
           description: profileForm.description,
           phone: profileForm.phone,
           email: profileForm.email,
+          location: profileForm.location,
           updated_at: new Date().toISOString()
         })
         .eq('id', professionalData.id);
@@ -236,6 +239,13 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
                 onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
               />
             </div>
+            <LocationAutocomplete
+              value={profileForm.location}
+              onChange={(value) => setProfileForm({...profileForm, location: value})}
+              label="Ubicación"
+              id="location"
+              placeholder="Busca tu ciudad o provincia..."
+            />
             <div className="flex gap-2">
               <Button onClick={updateProfile} className="flex-1">
                 Guardar Cambios
