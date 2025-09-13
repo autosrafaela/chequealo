@@ -251,7 +251,7 @@ const Header = () => {
                   {user ? (
                     <>
                       <div className="text-sm text-gray-600 mb-2">
-                        Hola, {profile?.full_name || user.email}!
+                        Hola, {user.email}
                       </div>
                       
                       <Link to="/user-dashboard" onClick={() => setIsUserMenuOpen(false)}>
@@ -266,15 +266,6 @@ const Header = () => {
                           <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
                             <BarChart3 className="h-4 w-4 mr-2" />
                             Mi Dashboard
-                          </Button>
-                        </Link>
-                      )}
-                      
-                      {isAdmin && (
-                        <Link to="/admin" onClick={() => setIsUserMenuOpen(false)}>
-                          <Button variant="outline" size="sm" className="w-full border-red-500 text-red-600 hover:bg-red-500 hover:text-white">
-                            <Shield className="h-4 w-4 mr-2" />
-                            Panel Admin
                           </Button>
                         </Link>
                       )}

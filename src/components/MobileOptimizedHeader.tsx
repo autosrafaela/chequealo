@@ -46,12 +46,6 @@ export const MobileOptimizedHeader: React.FC = () => {
       { path: '/user-dashboard', label: 'Mi Cuenta', icon: User },
       { path: '/professional-dashboard', label: 'Mi Negocio', icon: Briefcase }
     );
-    
-    if (isAdmin || isModerator) {
-      navigationItems.push(
-        { path: '/admin', label: 'Administración', icon: BarChart3 }
-      );
-    }
   }
 
   const isActivePage = (path: string) => {
@@ -158,7 +152,7 @@ export const MobileOptimizedHeader: React.FC = () => {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-medium">{profile?.full_name || 'Usuario'}</p>
-                      <p className="text-sm text-muted-foreground">Hola, {profile?.full_name?.split(' ')[0] || user.email}!</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
                 ) : (
