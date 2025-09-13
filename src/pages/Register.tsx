@@ -4,8 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, MapPin, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, MapPin, Search, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import Header from "@/components/Header";
 import heroProfessionals from "@/assets/hero-professionals.jpg";
 import { 
@@ -14,11 +17,26 @@ import {
 } from "lucide-react";
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [userType, setUserType] = useState<'professional' | 'client'>('client');
+  const [userType, setUserType] = useState<'professional' | 'client'>('professional');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Form data
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    description: '',
+    location: '',
+    phone: '',
+    acceptTerms: false
+  });
 
   // Servicios disponibles para profesionales - Lista completa
   const serviceCategories = [
@@ -91,6 +109,84 @@ const Register = () => {
     service.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.acceptTerms) {
+      toast.error('Debes aceptar los términos y condiciones');
+      return;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    
+    if (userType === 'professional' && selectedServices.length === 0) {
+      toast.error('Debes seleccionar al menos un servicio');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Crear usuario
+      const { error: signUpError } = await signUp(
+        formData.email, 
+        formData.password, 
+        formData.fullName, 
+        formData.fullName.toLowerCase().replace(/\s+/g, '')
+      );
+      
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) {
+          toast.error('Este email ya está registrado');
+        } else {
+          toast.error(signUpError.message);
+        }
+        return;
+      }
+
+      // Si es profesional, crear perfil profesional
+      if (userType === 'professional') {
+        // Esperamos un poco para que se complete el registro
+        setTimeout(async () => {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+              await supabase.from('professionals').insert({
+                user_id: user.id,
+                full_name: formData.fullName,
+                email: formData.email,
+                phone: formData.phone || '',
+                profession: selectedServices[0] || 'Profesional',
+                location: formData.location || '',
+                description: formData.description || '',
+                availability: 'Disponible'
+              });
+            }
+          } catch (error) {
+            console.error('Error creando perfil profesional:', error);
+          }
+        }, 2000);
+      }
+
+      toast.success('¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.');
+      navigate('/auth');
+      
+    } catch (error) {
+      toast.error('Error al crear la cuenta. Inténtalo de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -143,7 +239,7 @@ const Register = () => {
           </div>
 
           {/* Form */}
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="name" className="text-sm font-medium text-gray-700">
                 Nombre completo
@@ -155,6 +251,9 @@ const Register = () => {
                   type="text"
                   placeholder="Tu nombre completo"
                   className="pl-10 h-12 border-gray-200 focus:border-primary"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                  required
                 />
               </div>
             </div>
@@ -170,6 +269,9 @@ const Register = () => {
                   type="email"
                   placeholder="tu@email.com"
                   className="pl-10 h-12 border-gray-200 focus:border-primary"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  required
                 />
               </div>
             </div>
@@ -185,6 +287,9 @@ const Register = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="pl-10 pr-10 h-12 border-gray-200 focus:border-primary"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  required
                 />
                 <button
                   type="button"
@@ -207,6 +312,9 @@ const Register = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="pl-10 pr-10 h-12 border-gray-200 focus:border-primary"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  required
                 />
                 <button
                   type="button"
@@ -229,6 +337,8 @@ const Register = () => {
                     id="description"
                     placeholder="Contános sobre tu experiencia, especialidades y qué te hace único..."
                     className="w-full h-20 px-3 py-2 border border-gray-200 rounded-md focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none text-sm"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   />
                 </div>
               </div>
@@ -236,18 +346,38 @@ const Register = () => {
 
             {/* Ubicación para profesionales */}
             {userType === 'professional' && (
-              <div>
-                <Label htmlFor="location" className="text-sm font-medium text-gray-700">
-                  Ciudad
-                </Label>
-                <div className="relative mt-1">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <Input
-                    id="location"
-                    type="text"
-                    placeholder="Ej: Santa Fe, Argentina"
-                    className="pl-10 h-12 border-gray-200 focus:border-primary"
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                    Ciudad
+                  </Label>
+                  <div className="relative mt-1">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <Input
+                      id="location"
+                      type="text"
+                      placeholder="Ej: Santa Fe, Argentina"
+                      className="pl-10 h-12 border-gray-200 focus:border-primary"
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                    Teléfono
+                  </Label>
+                  <div className="relative mt-1">
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+54 3492 123456"
+                      className="h-12 border-gray-200 focus:border-primary"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -315,7 +445,13 @@ const Register = () => {
 
             <div className="flex items-center text-sm">
               <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
+                <input 
+                  type="checkbox" 
+                  className="mr-2" 
+                  checked={formData.acceptTerms}
+                  onChange={(e) => setFormData(prev => ({ ...prev, acceptTerms: e.target.checked }))}
+                  required
+                />
                 <span className="text-gray-600">
                   Acepto los{" "}
                   <Dialog>
@@ -566,8 +702,16 @@ const Register = () => {
             <Button 
               type="submit" 
               className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold"
+              disabled={isLoading}
             >
-              Crear cuenta
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creando cuenta...
+                </>
+              ) : (
+                'Crear cuenta'
+              )}
             </Button>
           </form>
 
