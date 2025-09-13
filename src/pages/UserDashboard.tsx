@@ -21,7 +21,9 @@ import {
   MapPin,
   Calendar,
   Star,
-  ExternalLink
+  ExternalLink,
+  Briefcase,
+  Plus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -65,6 +67,7 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
+  const [isProfessional, setIsProfessional] = useState(false);
 
   // Form states
   const [fullName, setFullName] = useState('');
@@ -96,6 +99,15 @@ const UserDashboard = () => {
       if (profileError && profileError.code !== 'PGRST116') {
         throw profileError;
       }
+
+      // Check if user is a professional
+      const { data: professionalData, error: profError } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      setIsProfessional(!!professionalData);
 
       if (profileData) {
         setUserProfile(profileData);
@@ -279,7 +291,7 @@ const UserDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
             className="cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => setActiveTab('requests')}
@@ -332,6 +344,33 @@ const UserDashboard = () => {
               </div>
             </CardContent>
           </Card>
+
+          {!isProfessional && (
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-shadow border-2 border-dashed border-primary hover:border-primary/80 hover:bg-primary/5"
+              onClick={() => window.open('/register?type=professional', '_self')}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Crear Cuenta
+                    </p>
+                    <p className="text-lg font-semibold text-primary">
+                      Profesional
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Recibe solicitudes de clientes
+                    </p>
+                  </div>
+                  <div className="relative">
+                    <Briefcase className="h-8 w-8 text-primary" />
+                    <Plus className="h-4 w-4 text-primary absolute -top-1 -right-1 bg-background rounded-full" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Main Content */}
