@@ -112,7 +112,6 @@ export const MobileOptimizedHeader: React.FC = () => {
             <div className="hidden md:flex items-center gap-3">
               <div className="flex flex-col items-end">
                 <span className="text-sm font-medium">{profile?.full_name || 'Usuario'}</span>
-                <span className="text-xs text-muted-foreground">{user.email}</span>
               </div>
               <Avatar className="h-8 w-8">
                 <AvatarImage src={profile?.avatar_url} />
@@ -152,7 +151,6 @@ export const MobileOptimizedHeader: React.FC = () => {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-medium">{profile?.full_name || 'Usuario'}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
                 ) : (
