@@ -254,6 +254,13 @@ const Header = () => {
                         Hola, {user.email}
                       </div>
                       
+                      <Link to="/user-dashboard" onClick={() => setIsUserMenuOpen(false)}>
+                        <Button variant="outline" size="sm" className="w-full border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white">
+                          <User className="h-4 w-4 mr-2" />
+                          Mi Cuenta
+                        </Button>
+                      </Link>
+                      
                       {isProfessional && (
                         <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)}>
                           <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
