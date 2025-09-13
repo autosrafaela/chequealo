@@ -84,7 +84,18 @@ export const useAdvancedSearch = () => {
       // Apply sorting
       if (currentFilters.sortBy) {
         const ascending = currentFilters.sortOrder === 'asc';
-        supabaseQuery = supabaseQuery.order(currentFilters.sortBy, { ascending });
+        let orderColumn: string = currentFilters.sortBy;
+        
+        // Map sort options to actual column names
+        if (currentFilters.sortBy === 'reviews') {
+          orderColumn = 'review_count';
+        } else if (currentFilters.sortBy === 'price') {
+          // For now, we'll sort by rating since we don't have price in professionals table
+          // In the future, you might want to join with professional_services for price sorting
+          orderColumn = 'rating';
+        }
+        
+        supabaseQuery = supabaseQuery.order(orderColumn as any, { ascending });
       } else {
         supabaseQuery = supabaseQuery.order('rating', { ascending: false });
       }

@@ -56,13 +56,84 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
           <SelectTrigger>
             <SelectValue placeholder="Todas las profesiones" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background z-50">
             <SelectItem value="all">Todas las profesiones</SelectItem>
             {availableProfessions.map((profession) => (
               <SelectItem key={profession} value={profession}>
                 {profession}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Location Filter */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Ubicación</Label>
+        <Select value={filters.location ?? 'all'} onValueChange={(value) => onFiltersChange({ location: value === 'all' ? undefined : value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Todas las ubicaciones" />
+          </SelectTrigger>
+          <SelectContent className="bg-background z-50">
+            <SelectItem value="all">Todas las ubicaciones</SelectItem>
+            {availableLocations.map((location) => (
+              <SelectItem key={location} value={location}>
+                {location}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Rating Filter */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium flex items-center gap-1">
+          <Star className="h-4 w-4" />
+          Calificación mínima
+        </Label>
+        <Select value={filters.rating?.toString() ?? 'all'} onValueChange={(value) => onFiltersChange({ rating: value === 'all' ? undefined : Number(value) })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Cualquier calificación" />
+          </SelectTrigger>
+          <SelectContent className="bg-background z-50">
+            <SelectItem value="all">Cualquier calificación</SelectItem>
+            <SelectItem value="4">4+ estrellas</SelectItem>
+            <SelectItem value="3">3+ estrellas</SelectItem>
+            <SelectItem value="2">2+ estrellas</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Verified Filter */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium flex items-center gap-1">
+          <Shield className="h-4 w-4" />
+          Verificación
+        </Label>
+        <div className="flex items-center space-x-2">
+          <Switch
+            checked={filters.verified === true}
+            onCheckedChange={(checked) => onFiltersChange({ verified: checked ? true : undefined })}
+          />
+          <span className="text-sm">Solo profesionales verificados</span>
+        </div>
+      </div>
+
+      {/* Availability Filter */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium flex items-center gap-1">
+          <Clock className="h-4 w-4" />
+          Disponibilidad
+        </Label>
+        <Select value={filters.availability ?? 'all'} onValueChange={(value) => onFiltersChange({ availability: value === 'all' ? undefined : value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Cualquier disponibilidad" />
+          </SelectTrigger>
+          <SelectContent className="bg-background z-50">
+            <SelectItem value="all">Cualquier disponibilidad</SelectItem>
+            <SelectItem value="available">Disponible ahora</SelectItem>
+            <SelectItem value="busy">Ocupado</SelectItem>
+            <SelectItem value="unavailable">No disponible</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -104,13 +175,74 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="Todas las profesiones" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background z-50">
                 <SelectItem value="all">Todas las profesiones</SelectItem>
                 {availableProfessions.map((profession) => (
                   <SelectItem key={profession} value={profession}>
                     {profession}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Location Filter */}
+          <div className="w-full md:w-64">
+            <Select value={filters.location ?? 'all'} onValueChange={(value) => onFiltersChange({ location: value === 'all' ? undefined : value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Todas las ubicaciones" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-50">
+                <SelectItem value="all">Todas las ubicaciones</SelectItem>
+                {availableLocations.map((location) => (
+                  <SelectItem key={location} value={location}>
+                    {location}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Rating Filter */}
+          <div className="w-full md:w-48">
+            <Select value={filters.rating?.toString() ?? 'all'} onValueChange={(value) => onFiltersChange({ rating: value === 'all' ? undefined : Number(value) })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Calificación mínima" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-50">
+                <SelectItem value="all">Cualquier calificación</SelectItem>
+                <SelectItem value="4">4+ estrellas</SelectItem>
+                <SelectItem value="3">3+ estrellas</SelectItem>
+                <SelectItem value="2">2+ estrellas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Verified Filter */}
+          <div className="w-full md:w-48">
+            <Select value={filters.verified?.toString() ?? 'all'} onValueChange={(value) => onFiltersChange({ verified: value === 'all' ? undefined : value === 'true' })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Verificación" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-50">
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="true">Solo verificados</SelectItem>
+                <SelectItem value="false">No verificados</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Sort By Filter */}
+          <div className="w-full md:w-48">
+            <Select value={filters.sortBy ?? 'rating'} onValueChange={(value) => onFiltersChange({ sortBy: value as any })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-50">
+                <SelectItem value="rating">Mejor calificados</SelectItem>
+                <SelectItem value="reviews">Más reseñas</SelectItem>
+                <SelectItem value="price">Precio</SelectItem>
+                <SelectItem value="distance">Distancia</SelectItem>
               </SelectContent>
             </Select>
           </div>
