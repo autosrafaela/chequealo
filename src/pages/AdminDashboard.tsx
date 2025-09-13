@@ -10,6 +10,8 @@ import NotificationTestPanel from '@/components/NotificationTestPanel';
 import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 import ModerationQueue from '@/components/moderation/ModerationQueue';
 import { SystemConfiguration } from '@/components/SystemConfiguration';
+import { BusinessIntelligenceDashboard } from '@/components/analytics/BusinessIntelligenceDashboard';
+import { PerformanceMonitor } from '@/components/analytics/PerformanceMonitor';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -274,7 +276,35 @@ const AdminDashboard = () => {
     );
   };
 
-  return (
+  // Guard: not admin or still loading
+  if (roleLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verificando permisos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (loading && !stats.totalUsers) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Cargando datos del dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
     <div className="min-h-screen bg-gray-50">
       <Header />
       
@@ -690,6 +720,14 @@ const AdminDashboard = () => {
 
           <TabsContent value="settings">
             <SystemConfiguration />
+          </TabsContent>
+
+          <TabsContent value="business">
+            <BusinessIntelligenceDashboard />
+          </TabsContent>
+
+          <TabsContent value="performance">
+            <PerformanceMonitor />
           </TabsContent>
         </Tabs>
       </div>
