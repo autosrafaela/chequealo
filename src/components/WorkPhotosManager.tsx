@@ -1,0 +1,474 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { Plus, Edit, Trash2, Camera, Upload, Star, Eye, Image } from 'lucide-react';
+
+interface WorkPhoto {
+  id: string;
+  image_url: string;
+  caption: string | null;
+  work_type: string | null;
+  is_featured: boolean;
+  uploaded_by: string;
+  created_at: string;
+}
+
+interface PhotoFormData {
+  caption: string;
+  work_type: string;
+  is_featured: boolean;
+}
+
+export const WorkPhotosManager = () => {
+  const { user } = useAuth();
+  const [photos, setPhotos] = useState<WorkPhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPhoto, setEditingPhoto] = useState<WorkPhoto | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [formData, setFormData] = useState<PhotoFormData>({
+    caption: '',
+    work_type: '',
+    is_featured: false
+  });
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfessionalAndPhotos();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (selectedFile) {
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [selectedFile]);
+
+  const fetchProfessionalAndPhotos = async () => {
+    try {
+      // First get the professional ID
+      const { data: professional, error: profError } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (profError) throw profError;
+      
+      setProfessionalId(professional.id);
+
+      // Then get work photos
+      const { data: photosData, error: photosError } = await supabase
+        .from('work_photos')
+        .select('*')
+        .eq('professional_id', professional.id)
+        .order('created_at', { ascending: false });
+
+      if (photosError) throw photosError;
+
+      setPhotos(photosData || []);
+    } catch (error) {
+      console.error('Error fetching work photos:', error);
+      toast.error('Error al cargar las fotos de trabajos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      caption: '',
+      work_type: '',
+      is_featured: false
+    });
+    setEditingPhoto(null);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  };
+
+  const handleEdit = (photo: WorkPhoto) => {
+    setEditingPhoto(photo);
+    setFormData({
+      caption: photo.caption || '',
+      work_type: photo.work_type || '',
+      is_featured: photo.is_featured
+    });
+    setIsDialogOpen(true);
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${professionalId}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('work-photos')
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('work-photos')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!professionalId) {
+      toast.error('ID de profesional no encontrado');
+      return;
+    }
+
+    if (!editingPhoto && !selectedFile) {
+      toast.error('Selecciona una imagen');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      
+      let imageUrl = editingPhoto?.image_url || '';
+      
+      // Upload new image if selected
+      if (selectedFile) {
+        imageUrl = await uploadImage(selectedFile);
+      }
+
+      const photoData = {
+        professional_id: professionalId,
+        image_url: imageUrl,
+        caption: formData.caption.trim() || null,
+        work_type: formData.work_type || null,
+        is_featured: formData.is_featured,
+        uploaded_by: 'professional'
+      };
+
+      if (editingPhoto) {
+        // Update existing photo
+        const { error } = await supabase
+          .from('work_photos')
+          .update(photoData)
+          .eq('id', editingPhoto.id);
+
+        if (error) throw error;
+        toast.success('Foto actualizada correctamente');
+      } else {
+        // Create new photo
+        const { error } = await supabase
+          .from('work_photos')
+          .insert(photoData);
+
+        if (error) throw error;
+        toast.success('Foto subida correctamente');
+      }
+
+      setIsDialogOpen(false);
+      resetForm();
+      fetchProfessionalAndPhotos();
+    } catch (error) {
+      console.error('Error saving photo:', error);
+      toast.error('Error al guardar la foto');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (photoId: string, imageUrl: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta foto?')) {
+      return;
+    }
+
+    try {
+      // Delete from database
+      const { error } = await supabase
+        .from('work_photos')
+        .delete()
+        .eq('id', photoId);
+
+      if (error) throw error;
+
+      // Delete from storage
+      const fileName = imageUrl.split('/').pop();
+      if (fileName) {
+        await supabase.storage
+          .from('work-photos')
+          .remove([`${professionalId}/${fileName}`]);
+      }
+      
+      toast.success('Foto eliminada correctamente');
+      fetchProfessionalAndPhotos();
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      toast.error('Error al eliminar la foto');
+    }
+  };
+
+  const toggleFeatured = async (photo: WorkPhoto) => {
+    try {
+      const { error } = await supabase
+        .from('work_photos')
+        .update({ is_featured: !photo.is_featured })
+        .eq('id', photo.id);
+
+      if (error) throw error;
+      
+      toast.success(`Foto ${!photo.is_featured ? 'destacada' : 'no destacada'} correctamente`);
+      fetchProfessionalAndPhotos();
+    } catch (error) {
+      console.error('Error toggling featured status:', error);
+      toast.error('Error al cambiar el estado de destacado');
+    }
+  };
+
+  const workTypes = [
+    'Plomería', 'Electricidad', 'Carpintería', 'Pintura', 'Albañilería', 
+    'Jardinería', 'Limpieza', 'Reparaciones', 'Instalaciones', 'Decoración',
+    'Tecnología', 'Automotriz', 'Cocina', 'Baño', 'Otros'
+  ];
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Portfolio de Trabajos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Cargando fotos...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Portfolio de Trabajos ({photos.length})
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Muestra fotos de tus trabajos realizados para generar confianza
+            </p>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Subir Foto
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[525px]">
+              <form onSubmit={handleSubmit}>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingPhoto ? 'Editar Foto' : 'Subir Nueva Foto'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingPhoto 
+                      ? 'Modifica la información de la foto' 
+                      : 'Agrega una foto de tu trabajo al portfolio'
+                    }
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="grid gap-4 py-4">
+                  {!editingPhoto && (
+                    <div className="space-y-2">
+                      <Label htmlFor="image">Imagen *</Label>
+                      <Input
+                        id="image"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        required={!editingPhoto}
+                      />
+                      {previewUrl && (
+                        <img 
+                          src={previewUrl} 
+                          alt="Preview" 
+                          className="w-full h-32 object-cover rounded-md"
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {editingPhoto && (
+                    <div className="space-y-2">
+                      <Label>Imagen Actual</Label>
+                      <img 
+                        src={editingPhoto.image_url} 
+                        alt="Current" 
+                        className="w-full h-32 object-cover rounded-md"
+                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="new-image">Cambiar Imagen (opcional)</Label>
+                        <Input
+                          id="new-image"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        />
+                        {previewUrl && (
+                          <img 
+                            src={previewUrl} 
+                            alt="New preview" 
+                            className="w-full h-32 object-cover rounded-md"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="work_type">Tipo de Trabajo</Label>
+                    <Select value={formData.work_type} onValueChange={(value) => setFormData(prev => ({ ...prev, work_type: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona el tipo de trabajo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {workTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="caption">Descripción</Label>
+                    <Textarea
+                      id="caption"
+                      value={formData.caption}
+                      onChange={(e) => setFormData(prev => ({ ...prev, caption: e.target.value }))}
+                      placeholder="Describe el trabajo realizado..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="is_featured"
+                      checked={formData.is_featured}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
+                    />
+                    <Label htmlFor="is_featured">Foto destacada</Label>
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={uploading}>
+                    {uploading ? 'Subiendo...' : (editingPhoto ? 'Actualizar' : 'Subir Foto')}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {photos.length === 0 ? (
+          <div className="text-center py-8">
+            <Image className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No tienes fotos en tu portfolio</h3>
+            <p className="text-muted-foreground mb-4">
+              Sube fotos de tus trabajos para mostrar tu experiencia a los clientes
+            </p>
+            <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Subir tu primera foto
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {photos.map((photo) => (
+              <div key={photo.id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                <div className="relative">
+                  <img 
+                    src={photo.image_url} 
+                    alt={photo.caption || 'Trabajo realizado'}
+                    className="w-full h-48 object-cover"
+                  />
+                  {photo.is_featured && (
+                    <Badge className="absolute top-2 left-2" variant="default">
+                      <Star className="h-3 w-3 mr-1" />
+                      Destacada
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="p-4">
+                  {photo.work_type && (
+                    <Badge variant="secondary" className="mb-2">
+                      {photo.work_type}
+                    </Badge>
+                  )}
+                  
+                  {photo.caption && (
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {photo.caption}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center justify-between">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleFeatured(photo)}
+                      title={photo.is_featured ? 'Quitar de destacadas' : 'Marcar como destacada'}
+                    >
+                      <Star className={`h-4 w-4 ${photo.is_featured ? 'fill-current text-yellow-500' : ''}`} />
+                    </Button>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(photo)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(photo.id, photo.image_url)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
