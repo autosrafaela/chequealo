@@ -251,7 +251,7 @@ const Header = () => {
                   {user ? (
                     <>
                       <div className="text-sm text-gray-600 mb-2">
-                        Hola, {user.email}
+                        {user.email}
                       </div>
                       
                       <Link to="/user-dashboard" onClick={() => setIsUserMenuOpen(false)}>
