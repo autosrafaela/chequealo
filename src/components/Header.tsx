@@ -11,7 +11,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, profile } = useAuth();
   const { isAdmin } = useUserRole();
   const navigate = useNavigate();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -251,7 +251,7 @@ const Header = () => {
                   {user ? (
                     <>
                       <div className="text-sm text-gray-600 mb-2">
-                        Hola, {user.email}
+                        Hola, {profile?.full_name || user.email}!
                       </div>
                       
                       <Link to="/user-dashboard" onClick={() => setIsUserMenuOpen(false)}>

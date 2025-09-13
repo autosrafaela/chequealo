@@ -158,7 +158,7 @@ export const MobileOptimizedHeader: React.FC = () => {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-medium">{profile?.full_name || 'Usuario'}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                      <p className="text-sm text-muted-foreground">Hola, {profile?.full_name?.split(' ')[0] || user.email}!</p>
                     </div>
                   </div>
                 ) : (
