@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { 
   User, 
@@ -68,12 +70,24 @@ const UserDashboard = () => {
   const [updating, setUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [isProfessional, setIsProfessional] = useState(false);
+  const [showProfessionalForm, setShowProfessionalForm] = useState(false);
 
   // Form states
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // Professional form states
+  const [professionalData, setProfessionalData] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    profession: '',
+    location: '',
+    description: ''
+  });
+  const [creatingProfessional, setCreatingProfessional] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -231,6 +245,66 @@ const UserDashboard = () => {
     }
   };
 
+  const handleCreateProfessional = async () => {
+    if (!user) return;
+
+    try {
+      setCreatingProfessional(true);
+
+      // Validate required fields
+      if (!professionalData.full_name.trim() || !professionalData.email.trim() || !professionalData.profession.trim()) {
+        toast.error('Por favor completa todos los campos obligatorios');
+        return;
+      }
+
+      // Create professional profile
+      const { error } = await supabase
+        .from('professionals')
+        .insert({
+          user_id: user.id,
+          full_name: professionalData.full_name,
+          email: professionalData.email,
+          phone: professionalData.phone,
+          profession: professionalData.profession,
+          location: professionalData.location,
+          description: professionalData.description
+        });
+
+      if (error) throw error;
+
+      toast.success('¡Perfil profesional creado exitosamente!');
+      setShowProfessionalForm(false);
+      setIsProfessional(true);
+      
+      // Reset form
+      setProfessionalData({
+        full_name: '',
+        email: '',
+        phone: '',
+        profession: '',
+        location: '',
+        description: ''
+      });
+
+      fetchUserData();
+    } catch (error) {
+      console.error('Error creating professional profile:', error);
+      toast.error('Error al crear perfil profesional');
+    } finally {
+      setCreatingProfessional(false);
+    }
+  };
+
+  const openProfessionalForm = () => {
+    // Pre-fill form with user data
+    setProfessionalData(prev => ({
+      ...prev,
+      full_name: userProfile?.full_name || fullName || '',
+      email: user?.email || ''
+    }));
+    setShowProfessionalForm(true);
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { variant: 'secondary' as const, label: 'Pendiente' },
@@ -348,7 +422,7 @@ const UserDashboard = () => {
           {!isProfessional && (
             <Card 
               className="cursor-pointer hover:shadow-md transition-shadow border-2 border-dashed border-primary hover:border-primary/80 hover:bg-primary/5"
-              onClick={() => window.open('/register?type=professional', '_self')}
+              onClick={openProfessionalForm}
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -651,6 +725,133 @@ const UserDashboard = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Professional Registration Modal */}
+        <Dialog open={showProfessionalForm} onOpenChange={setShowProfessionalForm}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Crear Perfil Profesional</DialogTitle>
+              <DialogDescription>
+                Completa tu información profesional para comenzar a recibir solicitudes de clientes
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="prof-fullname">Nombre Completo *</Label>
+                  <Input
+                    id="prof-fullname"
+                    value={professionalData.full_name}
+                    onChange={(e) => setProfessionalData(prev => ({
+                      ...prev,
+                      full_name: e.target.value
+                    }))}
+                    placeholder="Tu nombre completo"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="prof-email">Email *</Label>
+                  <Input
+                    id="prof-email"
+                    type="email"
+                    value={professionalData.email}
+                    onChange={(e) => setProfessionalData(prev => ({
+                      ...prev,
+                      email: e.target.value
+                    }))}
+                    placeholder="tu@email.com"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="prof-phone">Teléfono</Label>
+                  <Input
+                    id="prof-phone"
+                    value={professionalData.phone}
+                    onChange={(e) => setProfessionalData(prev => ({
+                      ...prev,
+                      phone: e.target.value
+                    }))}
+                    placeholder="11 1234-5678"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="prof-profession">Profesión *</Label>
+                  <Select
+                    value={professionalData.profession}
+                    onValueChange={(value) => setProfessionalData(prev => ({
+                      ...prev,
+                      profession: value
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona tu profesión" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="plomero">Plomero</SelectItem>
+                      <SelectItem value="electricista">Electricista</SelectItem>
+                      <SelectItem value="jardinero">Jardinero</SelectItem>
+                      <SelectItem value="mecanico">Mecánico</SelectItem>
+                      <SelectItem value="limpieza">Limpieza</SelectItem>
+                      <SelectItem value="nutricionista">Nutricionista</SelectItem>
+                      <SelectItem value="veterinario">Veterinario</SelectItem>
+                      <SelectItem value="dermatologo">Dermatólogo</SelectItem>
+                      <SelectItem value="otro">Otro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="prof-location">Ubicación</Label>
+                <Input
+                  id="prof-location"
+                  value={professionalData.location}
+                  onChange={(e) => setProfessionalData(prev => ({
+                    ...prev,
+                    location: e.target.value
+                  }))}
+                  placeholder="Ciudad, Provincia"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="prof-description">Descripción de servicios</Label>
+                <Textarea
+                  id="prof-description"
+                  value={professionalData.description}
+                  onChange={(e) => setProfessionalData(prev => ({
+                    ...prev,
+                    description: e.target.value
+                  }))}
+                  placeholder="Describe tus servicios y experiencia..."
+                  rows={4}
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowProfessionalForm(false)}
+                  disabled={creatingProfessional}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleCreateProfessional}
+                  disabled={creatingProfessional}
+                >
+                  {creatingProfessional ? 'Creando...' : 'Crear Perfil Profesional'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
