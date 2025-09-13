@@ -44,50 +44,44 @@ const UserManagementPanel = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
-      // Get users from auth.users
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
 
-      // Get profiles data
+      // Obtener perfiles (fuente principal de usuarios)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*');
+        .select('user_id, full_name, username, avatar_url, created_at');
       if (profilesError) throw profilesError;
 
-      // Get user roles
+      // Obtener roles
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
       if (rolesError) throw rolesError;
 
-      // Get professionals data
+      // Obtener profesionales (para email/phone/location si existe)
       const { data: professionals, error: profError } = await supabase
         .from('professionals')
-        .select('id, user_id, phone, location');
+        .select('id, user_id, phone, location, email, created_at');
       if (profError) throw profError;
 
-      // Combine data
-      const combinedUsers: UserProfile[] = authUsers.users.map(authUser => {
-        const profile = profiles.find(p => p.user_id === authUser.id);
-        const roles = userRoles.filter(r => r.user_id === authUser.id).map(r => r.role);
-        const professional = professionals.find(p => p.user_id === authUser.id);
-        
+      const combinedUsers: UserProfile[] = (profiles || []).map((p: any) => {
+        const roles = (userRoles || []).filter(r => r.user_id === p.user_id).map(r => r.role);
+        const professional = (professionals || []).find(pr => pr.user_id === p.user_id);
+
         return {
-          id: authUser.id,
-          user_id: authUser.id,
-          email: authUser.email || '',
-          full_name: profile?.full_name || '',
-          username: profile?.username || '',
-          avatar_url: profile?.avatar_url || '',
-          created_at: authUser.created_at,
-          last_sign_in_at: authUser.last_sign_in_at || '',
-          roles: roles,
+          id: p.user_id,
+          user_id: p.user_id,
+          email: professional?.email || '',
+          full_name: p.full_name || '',
+          username: p.username || '',
+          avatar_url: p.avatar_url || '',
+          created_at: p.created_at,
+          last_sign_in_at: '',
+          roles,
           is_professional: !!professional,
           professional_id: professional?.id,
           phone: professional?.phone,
           location: professional?.location
-        };
+        } as UserProfile;
       });
 
       setUsers(combinedUsers);
@@ -100,9 +94,9 @@ const UserManagementPanel = () => {
   };
 
   const filteredUsers = users.filter(user => 
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchQuery.toLowerCase())
+    (user.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.username || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleUpdateProfile = async (userData: Partial<UserProfile>) => {
