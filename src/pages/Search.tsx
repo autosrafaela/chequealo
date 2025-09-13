@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { SearchFilters } from '@/components/SearchFilters';
-import { EnhancedProfessionalCard } from '@/components/EnhancedProfessionalCard';
+import ProfessionalCard from '@/components/ProfessionalCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon, Grid, List, SlidersHorizontal } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import Header from '@/components/Header';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -44,35 +45,25 @@ const Search = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Encuentra el profesional perfecto
-          </h1>
-          <p className="text-muted-foreground">
-            Busca entre miles de profesionales verificados con filtros avanzados
-          </p>
+        {/* Filters Top Bar */}
+        <div className="mb-6">
+          <SearchFilters
+            filters={filters}
+            searchQuery={searchQuery}
+            availableProfessions={availableProfessions}
+            availableLocations={availableLocations}
+            onFiltersChange={updateFilters}
+            onSearchChange={updateSearchQuery}
+            onClearFilters={clearFilters}
+            showMobileFilters={showMobileFilters}
+            onToggleMobileFilters={() => setShowMobileFilters(!showMobileFilters)}
+          />
         </div>
         
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:w-80 flex-shrink-0">
-            <SearchFilters
-              filters={filters}
-              searchQuery={searchQuery}
-              availableProfessions={availableProfessions}
-              availableLocations={availableLocations}
-              onFiltersChange={updateFilters}
-              onSearchChange={updateSearchQuery}
-              onClearFilters={clearFilters}
-              showMobileFilters={showMobileFilters}
-              onToggleMobileFilters={() => setShowMobileFilters(!showMobileFilters)}
-            />
-          </div>
-
-          {/* Results */}
-          <div className="flex-1">
+        {/* Results */}
+        <div className="w-full">
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
@@ -142,11 +133,18 @@ const Search = () => {
                   : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
               }`}>
                 {professionals.map((professional) => (
-                  <EnhancedProfessionalCard
+                  <ProfessionalCard
                     key={professional.id}
-                    professional={professional}
-                    compact={viewMode === 'list'}
-                    showDistance={true}
+                    id={professional.id}
+                    name={professional.full_name}
+                    profession={professional.profession}
+                    location={professional.location}
+                    rating={professional.rating}
+                    reviewCount={professional.review_count}
+                    description={professional.description}
+                    verified={professional.is_verified}
+                    availability={professional.availability}
+                    image={professional.image_url}
                   />
                 ))}
               </div>
@@ -166,7 +164,6 @@ const Search = () => {
                 </CardContent>
               </Card>
             )}
-          </div>
         </div>
       </div>
     </div>

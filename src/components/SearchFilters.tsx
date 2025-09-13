@@ -83,32 +83,53 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
   return (
     <>
-      {/* Desktop Filters */}
-      <div className="hidden md:block">
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtros
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FilterContent />
-          </CardContent>
-        </Card>
+      {/* Top Bar Filters */}
+      <div className="bg-card border rounded-lg p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Buscar profesionales..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Profession Filter */}
+          <div className="w-full md:w-64">
+            <Select value={filters.profession ?? 'all'} onValueChange={(value) => onFiltersChange({ profession: value === 'all' ? undefined : value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Todas las profesiones" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las profesiones</SelectItem>
+                {availableProfessions.map((profession) => (
+                  <SelectItem key={profession} value={profession}>
+                    {profession}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <Button
+              variant="outline"
+              onClick={onClearFilters}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Limpiar
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Mobile Filter Toggle */}
       <div className="md:hidden">
-        <Button
-          variant="outline"
-          onClick={onToggleMobileFilters}
-          className="w-full mb-4"
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          Filtros
-        </Button>
-
         {/* Mobile Filters Overlay */}
         {showMobileFilters && (
           <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
