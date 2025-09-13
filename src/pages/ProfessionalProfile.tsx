@@ -35,6 +35,7 @@ import {
   Twitter,
   Instagram
 } from "lucide-react";
+import { ProfessionalSEO } from "@/components/SEO/ProfessionalSEO";
 
 const ProfessionalProfile = () => {
   const { id } = useParams();
@@ -271,6 +272,7 @@ const ProfessionalProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ProfessionalSEO professional={professional} />
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">

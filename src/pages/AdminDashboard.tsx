@@ -13,6 +13,7 @@ import { SystemConfiguration } from '@/components/SystemConfiguration';
 import { BusinessIntelligenceDashboard } from '@/components/analytics/BusinessIntelligenceDashboard';
 import { PerformanceMonitor } from '@/components/analytics/PerformanceMonitor';
 import { CategoriesManager } from '@/components/admin/CategoriesManager';
+import { SitemapManager } from '@/components/admin/SitemapManager';
 import UserManagementPanel from '@/components/admin/UserManagementPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -475,7 +476,7 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-11">
+          <TabsList className="grid w-full grid-cols-12">
             <TabsTrigger value="professionals">Profesionales</TabsTrigger>
             <TabsTrigger value="categories">Categorías</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -487,6 +488,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="settings">Configuración</TabsTrigger>
             <TabsTrigger value="business">BI</TabsTrigger>
             <TabsTrigger value="performance">Monitor</TabsTrigger>
+            <TabsTrigger value="seo">SEO</TabsTrigger>
           </TabsList>
 
           <TabsContent value="professionals">
@@ -728,6 +730,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="performance">
             <PerformanceMonitor />
+          </TabsContent>
+
+          <TabsContent value="seo">
+            <SitemapManager />
           </TabsContent>
         </Tabs>
       </div>
