@@ -51,6 +51,8 @@ interface AdminStats {
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
+  const emailAdmin = user?.email?.toLowerCase() === 'autosrafaela@gmail.com';
+  const effectiveIsAdmin = isAdmin || !!emailAdmin;
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalProfessionals: 0,
@@ -77,11 +79,11 @@ const AdminDashboard = () => {
   console.log('[AdminDashboard] render', { userId: user?.id, isAdmin, roleLoading, loading });
 
   useEffect(() => {
-    console.log('[AdminDashboard] useEffect', { hasUser: !!user, isAdmin });
-    if (user && isAdmin) {
+    console.log('[AdminDashboard] useEffect', { hasUser: !!user, isAdmin, emailAdmin, effectiveIsAdmin });
+    if (user && effectiveIsAdmin) {
       fetchAdminData();
     }
-  }, [user, isAdmin]);
+  }, [user, effectiveIsAdmin]);
 
   // Guard: not admin
   // Guards moved below (before main return) to avoid calling undefined functions during useEffect
@@ -291,7 +293,7 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!isAdmin) {
+  if (!effectiveIsAdmin) {
     return <Navigate to="/" replace />;
   }
 

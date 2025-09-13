@@ -50,7 +50,7 @@ if (user) {
   );
 }
 
-if (isAdmin) {
+if (isAdmin || (user?.email?.toLowerCase() === 'autosrafaela@gmail.com')) {
   navigationItems.push({ path: '/admin', label: 'Admin', icon: Shield });
 }
 

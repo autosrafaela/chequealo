@@ -262,7 +262,7 @@ const Header = () => {
                         </Button>
                       </Link>
 
-                      {isAdmin && (
+                      {(isAdmin || (user?.email?.toLowerCase() === 'autosrafaela@gmail.com')) && (
                         <Link to="/admin" onClick={() => setIsUserMenuOpen(false)}>
                           <Button variant="outline" size="sm" className="w-full border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white">
                             <Shield className="h-4 w-4 mr-2" />
