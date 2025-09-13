@@ -301,6 +301,7 @@ export const WorkPhotosManager = () => {
                           id="image"
                           type="file"
                           accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
+                          capture="environment"
                           onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                           required={!editingPhoto}
                           className="sr-only"
@@ -339,6 +340,7 @@ export const WorkPhotosManager = () => {
                             id="new-image"
                             type="file"
                             accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
+                            capture="environment"
                             onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                             className="sr-only"
                           />

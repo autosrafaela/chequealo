@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,8 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isAddingService, setIsAddingService] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   const [profileForm, setProfileForm] = useState({
     description: professionalData?.description || '',

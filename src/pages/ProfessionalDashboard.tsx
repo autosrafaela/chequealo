@@ -54,6 +54,7 @@ const ProfessionalDashboard = () => {
     pendingResponses: 0
   });
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>('requests');
 
   useEffect(() => {
     if (user) {
@@ -186,15 +187,7 @@ const ProfessionalDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
             className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02] border-2 hover:border-primary/20"
-            onClick={() => {
-              const requestsTab = document.querySelector('[data-state="inactive"][value="requests"]') as HTMLElement;
-              if (requestsTab) {
-                requestsTab.click();
-              } else {
-                const activeTab = document.querySelector('[value="requests"]') as HTMLElement;
-                activeTab?.click();
-              }
-            }}
+              onClick={() => setActiveTab('requests')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -212,15 +205,7 @@ const ProfessionalDashboard = () => {
 
           <Card 
             className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02] border-2 hover:border-orange-200"
-            onClick={() => {
-              const requestsTab = document.querySelector('[data-state="inactive"][value="requests"]') as HTMLElement;
-              if (requestsTab) {
-                requestsTab.click();
-              } else {
-                const activeTab = document.querySelector('[value="requests"]') as HTMLElement;
-                activeTab?.click();
-              }
-            }}
+              onClick={() => setActiveTab('requests')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -336,10 +321,7 @@ const ProfessionalDashboard = () => {
 
           <Card 
             className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
-            onClick={() => {
-              const reviewsTab = document.querySelector('[value="reviews"]') as HTMLElement;
-              reviewsTab?.click();
-            }}
+            onClick={() => setActiveTab('reviews')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -378,8 +360,7 @@ const ProfessionalDashboard = () => {
                 variant="outline"
                 onClick={(e) => {
                   e.stopPropagation();
-                  const reviewsTab = document.querySelector('[value="reviews"]') as HTMLElement;
-                  reviewsTab?.click();
+                  setActiveTab('reviews');
                 }}
               >
                 <span>Gestionar Reseñas</span>
@@ -389,10 +370,7 @@ const ProfessionalDashboard = () => {
 
           <Card 
             className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
-            onClick={() => {
-              const servicesTab = document.querySelector('[value="services"]') as HTMLElement;
-              servicesTab?.click();
-            }}
+            onClick={() => setActiveTab('services')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -407,8 +385,7 @@ const ProfessionalDashboard = () => {
               <Button asChild className="w-full mt-4" variant="outline">
                 <span onClick={(e) => {
                   e.stopPropagation();
-                  const servicesTab = document.querySelector('[value="services"]') as HTMLElement;
-                  servicesTab?.click();
+                  setActiveTab('services');
                 }}>
                   Gestionar Servicios
                 </span>
@@ -418,10 +395,7 @@ const ProfessionalDashboard = () => {
 
           <Card 
             className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
-            onClick={() => {
-              const portfolioTab = document.querySelector('[value="portfolio"]') as HTMLElement;
-              portfolioTab?.click();
-            }}
+            onClick={() => setActiveTab('portfolio')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -436,8 +410,7 @@ const ProfessionalDashboard = () => {
               <Button asChild className="w-full mt-4" variant="outline">
                 <span onClick={(e) => {
                   e.stopPropagation();
-                  const portfolioTab = document.querySelector('[value="portfolio"]') as HTMLElement;
-                  portfolioTab?.click();
+                  setActiveTab('portfolio');
                 }}>
                   Ver Portfolio
                 </span>
@@ -447,7 +420,7 @@ const ProfessionalDashboard = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="requests" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-10 sticky top-4 z-10 bg-background">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
