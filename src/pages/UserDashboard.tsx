@@ -70,6 +70,7 @@ const UserDashboard = () => {
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -175,6 +176,49 @@ const UserDashboard = () => {
     }
   };
 
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      setUploadingPhoto(true);
+      
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+      
+      const { data, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        });
+
+      if (updateError) throw updateError;
+
+      toast.success('Foto de perfil actualizada');
+      fetchUserData();
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      toast.error('Error al subir foto de perfil');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { variant: 'secondary' as const, label: 'Pendiente' },
@@ -236,7 +280,10 @@ const UserDashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setActiveTab('requests')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -250,7 +297,10 @@ const UserDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setActiveTab('requests')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -266,7 +316,10 @@ const UserDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setActiveTab('favorites')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -318,10 +371,26 @@ const UserDashboard = () => {
                       {fullName.charAt(0) || user.email?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <Button variant="outline" disabled>
-                    <Camera className="h-4 w-4 mr-2" />
-                    Cambiar Foto (Próximamente)
-                  </Button>
+                  <div className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      disabled={uploadingPhoto}
+                      onClick={() => document.getElementById('photo-upload')?.click()}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      {uploadingPhoto ? 'Subiendo...' : 'Cambiar Foto'}
+                    </Button>
+                    <input
+                      id="photo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Formatos: JPG, PNG, GIF (máx. 5MB)
+                    </p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -488,23 +557,22 @@ const UserDashboard = () => {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Información de Cuenta</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                      <Mail className="h-5 w-5 text-muted-foreground" />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Email</p>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                      <Calendar className="h-5 w-5 text-muted-foreground" />
+                    
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Miembro desde</p>
                         <p className="text-sm text-muted-foreground">
-                          {userProfile?.created_at 
-                            ? format(new Date(userProfile.created_at), 'dd/MM/yyyy', { locale: es })
-                            : 'Fecha no disponible'
-                          }
+                          {format(new Date(userProfile?.created_at || new Date()), 'dd/MM/yyyy', { locale: es })}
                         </p>
                       </div>
                     </div>
@@ -513,14 +581,29 @@ const UserDashboard = () => {
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Acciones de Cuenta</h3>
-                  <div className="space-y-2">
-                    <Button variant="outline" disabled>
+                  
+                  <div className="space-y-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => toast.info('Funcionalidad próximamente')}
+                    >
                       Cambiar Contraseña (Próximamente)
                     </Button>
-                    <Button variant="outline" disabled>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => toast.info('Funcionalidad próximamente')}
+                    >
                       Exportar Datos (Próximamente)
                     </Button>
-                    <Button variant="destructive" disabled>
+                    
+                    <Button 
+                      variant="destructive" 
+                      className="w-full justify-start"
+                      onClick={() => toast.error('Para eliminar tu cuenta, contacta soporte')}
+                    >
                       Eliminar Cuenta (Próximamente)
                     </Button>
                   </div>
