@@ -1,227 +1,171 @@
-import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Filter, Grid, List, SlidersHorizontal } from "lucide-react";
-import Header from "@/components/Header";
-import ProfessionalCard from "@/components/ProfessionalCard";
-import FilterDropdown from "@/components/FilterDropdown";
-import { supabase } from "@/integrations/supabase/client";
-import { useSearchParams } from "react-router-dom";
+import React, { useState } from 'react';
+import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
+import { SearchFilters } from '@/components/SearchFilters';
+import { EnhancedProfessionalCard } from '@/components/EnhancedProfessionalCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Search as SearchIcon, Grid, List, SlidersHorizontal } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState('latest');
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const searchQuery = searchParams.get('q') || '';
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  
+  const {
+    professionals,
+    loading,
+    filters,
+    searchQuery,
+    availableProfessions,
+    availableLocations,
+    updateFilters,
+    updateSearchQuery,
+    clearFilters
+  } = useAdvancedSearch();
 
-  const handleToggleFavorite = (id: string) => {
-    setFavorites(prev => 
-      prev.includes(id) 
-        ? prev.filter(fav => fav !== id)
-        : [...prev, id]
-    );
-  };
-
-  const sortOptions = [
-    { 
-      value: 'latest', 
-      label: 'Últimas publicaciones',
-      description: 'Los profesionales agregados más recientemente'
-    },
-    { 
-      value: 'rating', 
-      label: 'Mejor puntuadas',
-      description: 'Profesionales con mejores calificaciones'
-    },
-    { 
-      value: 'price', 
-      label: 'Precio',
-      description: 'Ordenar por precio más conveniente'
-    },
-    { 
-      value: 'speed', 
-      label: 'Rapidez',
-      description: 'Profesionales con respuesta más rápida'
-    },
-    { 
-      value: 'quality', 
-      label: 'Calidad',
-      description: 'Profesionales destacados por calidad'
+  // Initialize search from URL params
+  React.useEffect(() => {
+    const queryParam = searchParams.get('q');
+    const professionParam = searchParams.get('profession');
+    const locationParam = searchParams.get('location');
+    
+    if (queryParam) {
+      updateSearchQuery(queryParam);
     }
-  ];
-
-  const [professionals, setProfessionals] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadProfessionals = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('professionals')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (error) throw error;
-        const mapped = (data || []).map((p) => ({
-          id: p.id,
-          name: p.full_name,
-          profession: p.profession,
-          location: p.location || '',
-          rating: Number(p.rating || 0),
-          reviewCount: p.review_count || 0,
-          description: p.description || '',
-          verified: !!p.is_verified,
-          availability: p.availability || 'Disponible',
-          image: p.image_url || undefined,
-        }));
-        setProfessionals(mapped);
-      } catch (e: any) {
-        console.error('Error loading professionals:', e);
-        setLoadError('No se pudieron cargar los profesionales');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadProfessionals();
-  }, []);
-
-
-  const filteredAndSortedProfessionals = useMemo(() => {
-    // Filter by search query first
-    let filtered = professionals;
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = professionals.filter(prof => 
-        prof.name.toLowerCase().includes(query) ||
-        prof.profession.toLowerCase().includes(query) ||
-        prof.description.toLowerCase().includes(query) ||
-        prof.location.toLowerCase().includes(query)
-      );
+    
+    if (professionParam || locationParam) {
+      updateFilters({
+        profession: professionParam || undefined,
+        location: locationParam || undefined
+      });
     }
-
-    // Then sort
-    const list = [...filtered];
-    switch (sortBy) {
-      case 'rating':
-        return list.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
-      case 'quality':
-        // Aproximación: más calidad = mejor combinación de rating y cantidad de reseñas
-        return list.sort((a, b) => (b.rating * b.reviewCount) - (a.rating * a.reviewCount));
-      case 'speed': {
-        // Prioriza disponibilidad más inmediata
-        const score = (a: string) => {
-          const map: Record<string, number> = {
-            'Disponible ahora': 4,
-            'Disponible hoy': 3,
-            'Disponible mañana': 2,
-            'Disponible esta semana': 1,
-            'Disponible próxima semana': 0,
-          };
-          return map[a] ?? 0;
-        };
-        return list.sort((a, b) => score(b.availability) - score(a.availability));
-      }
-      case 'price':
-        // Sin dato de precio, usamos orden alfabético como aproximación visible
-        return list.sort((a, b) => a.name.localeCompare(b.name));
-      case 'latest':
-      default:
-        return filtered; // orden original como "Últimas publicaciones"
-    }
-  }, [sortBy, professionals, searchQuery]);
+  }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        {/* Search Header */}
-        <div className="mb-8">
-          <div className="bg-navy text-navy-foreground px-4 py-2 rounded-lg inline-block mb-4">
-            <span className="text-sm">
-              {searchQuery ? `Búsqueda: "${searchQuery}"` : 'Todas las publicaciones'}
-            </span>
-            <span className="font-semibold ml-2">{filteredAndSortedProfessionals.length} resultado(s)</span>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Encuentra el profesional perfecto
+          </h1>
+          <p className="text-muted-foreground">
+            Busca entre miles de profesionales verificados con filtros avanzados
+          </p>
+        </div>
+        
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Filters Sidebar */}
+          <div className="lg:w-80 flex-shrink-0">
+            <SearchFilters
+              filters={filters}
+              searchQuery={searchQuery}
+              availableProfessions={availableProfessions}
+              availableLocations={availableLocations}
+              onFiltersChange={updateFilters}
+              onSearchChange={updateSearchQuery}
+              onClearFilters={clearFilters}
+              showMobileFilters={showMobileFilters}
+              onToggleMobileFilters={() => setShowMobileFilters(!showMobileFilters)}
+            />
           </div>
 
-          {/* Filters and Controls */}
-          <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-white p-4 rounded-xl shadow-sm">
-            <div></div>
+          {/* Results */}
+          <div className="flex-1">
+            {/* Results Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-semibold text-foreground">
+                  {loading 
+                    ? 'Buscando...' 
+                    : `${professionals.length} profesionales encontrados`
+                  }
+                </h2>
+                
+                {/* View Mode Toggle */}
+                <div className="hidden md:flex border rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="p-2"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="p-2"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-2">
-              <FilterDropdown
-                options={sortOptions}
-                selected={sortBy}
-                onSelect={setSortBy}
-                placeholder="Filtros y Ordenamiento"
-              />
-              
-              <div className="flex rounded-lg overflow-hidden border">
+              {/* Mobile Filter Toggle */}
+              <div className="md:hidden">
                 <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  variant="outline"
                   size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="rounded-none"
+                  onClick={() => setShowMobileFilters(true)}
                 >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="rounded-none"
-                >
-                  <List className="h-4 w-4" />
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
+                  Filtros
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Results Grid */}
-        {loading ? (
-          <div className="text-center text-muted-foreground py-12">
-            Cargando profesionales...
-          </div>
-        ) : (
-          <div className={`grid gap-6 ${
-            viewMode === 'grid' 
-              ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
-              : 'grid-cols-1'
-          }`}>
-            {filteredAndSortedProfessionals.length > 0 ? (
-              filteredAndSortedProfessionals.map((professional) => (
-                <ProfessionalCard
-                  key={professional.id}
-                  {...professional}
-                  onToggleFavorite={handleToggleFavorite}
-                  isFavorite={favorites.includes(professional.id)}
-                />
-              ))
-            ) : (
-              <div className="text-center text-muted-foreground py-12 col-span-full">
-                {searchQuery ? 
-                  `No se encontraron profesionales para "${searchQuery}".` :
-                  'No se encontraron profesionales.'
-                }
+            
+            {/* Results Grid/List */}
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        <div className="w-16 h-16 bg-muted rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-muted rounded w-3/4"></div>
+                          <div className="h-3 bg-muted rounded w-1/2"></div>
+                          <div className="h-3 bg-muted rounded w-full"></div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+            ) : professionals.length > 0 ? (
+              <div className={`grid gap-6 ${
+                viewMode === 'list' 
+                  ? 'grid-cols-1' 
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              }`}>
+                {professionals.map((professional) => (
+                  <EnhancedProfessionalCard
+                    key={professional.id}
+                    professional={professional}
+                    compact={viewMode === 'list'}
+                    showDistance={true}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">
+                    No se encontraron profesionales
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Intenta con otros términos de búsqueda o ajusta los filtros
+                  </p>
+                  <Button onClick={clearFilters} variant="outline">
+                    Limpiar filtros
+                  </Button>
+                </CardContent>
+              </Card>
             )}
-          </div>
-        )}
-
-        {/* Pagination */}
-        <div className="flex justify-center mt-12">
-          <div className="flex space-x-2">
-            <Button variant="outline" disabled>
-              Anterior
-            </Button>
-            <Button variant="default" className="bg-primary">1</Button>
-            <Button variant="outline">2</Button>
-            <Button variant="outline">3</Button>
-            <Button variant="outline">
-              Siguiente
-            </Button>
           </div>
         </div>
       </div>
