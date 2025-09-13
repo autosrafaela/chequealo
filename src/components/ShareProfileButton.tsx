@@ -111,7 +111,7 @@ export const ShareProfileButton = ({ professionalName, professionalId, professio
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 bg-background border shadow-md z-50">
         <DropdownMenuItem onClick={copyToClipboard} className="cursor-pointer">
           <Link className="h-4 w-4 mr-3" />
           Copiar enlace
