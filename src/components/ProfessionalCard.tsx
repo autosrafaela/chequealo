@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useFavorites } from "@/hooks/useFavorites";
+import { ContactRequestDialog } from "@/components/ContactRequestDialog";
 
 interface ProfessionalCardProps {
   id: string;
@@ -165,9 +166,11 @@ const ProfessionalCard = ({
             <Eye className="h-4 w-4 mr-1" />
             Ver Perfil
           </Button>
-          <Button className="flex-1 bg-primary hover:bg-primary/90 text-sm">
-            Pedir Presupuesto
-          </Button>
+          <ContactRequestDialog 
+            professionalId={id}
+            professionalName={name}
+            type="quote"
+          />
         </div>
       </div>
     </div>

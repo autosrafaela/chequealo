@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, Phone, MessageCircle, Heart, Shield, Clock } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Heart, Shield, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFavorites } from '@/hooks/useFavorites';
 
@@ -50,8 +50,25 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
 
   const handleContactClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // This would open a contact modal or navigate to contact page
-    navigate(`/professional/${professional.id}#contact`);
+    // Open WhatsApp directly if phone is available
+    if (professional.phone) {
+      const cleanPhone = professional.phone.replace(/\D/g, '');
+      let whatsappNumber = cleanPhone;
+      if (!cleanPhone.startsWith('54')) {
+        if (cleanPhone.startsWith('9') || cleanPhone.length === 10) {
+          whatsappNumber = `54${cleanPhone}`;
+        } else if (cleanPhone.length === 8 || cleanPhone.length === 7) {
+          whatsappNumber = `5411${cleanPhone}`;
+        }
+      }
+      const message = `Hola ${professional.full_name}! Te contacto desde TodoAca.ar. Me interesa conocer más sobre tus servicios.`;
+      const encodedText = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
+      window.open(whatsappUrl, '_blank');
+    } else {
+      // Navigate to professional profile contact section
+      navigate(`/professional/${professional.id}#contact`);
+    }
   };
 
   const getAvailabilityColor = (availability: string) => {
@@ -177,10 +194,10 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
                 <Button
                   size="sm"
                   onClick={handleContactClick}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                 >
                   <MessageCircle className="h-4 w-4" />
-                  Contactar
+                  WhatsApp
                 </Button>
               )}
             </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, X, MapPin, Star, Phone, Mail } from "lucide-react";
+import { Heart, X, MapPin, Star, Mail } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -9,6 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 
 interface FavoriteProfessional {
   id: string;
@@ -30,6 +32,7 @@ interface FavoritesPanelProps {
 
 const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Mock data for demonstration
   const mockFavorites: FavoriteProfessional[] = [
@@ -69,6 +72,17 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
     }
   ];
 
+  const handleViewProfile = (professionalId: string) => {
+    navigate(`/professional/${professionalId}`);
+    setIsOpen(false);
+  };
+
+  const handleEmailContact = (email: string, name: string) => {
+    const subject = encodeURIComponent(`Contacto desde TodoAca.ar - ${name}`);
+    const body = encodeURIComponent(`Hola ${name}! Te contacto desde TodoAca.ar. Me interesa conocer más sobre tus servicios.`);
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  };
+
   const favoritesToShow = favorites.length > 0 ? favorites : mockFavorites;
 
   return (
@@ -96,7 +110,8 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
             favoritesToShow.map((professional) => (
               <div
                 key={professional.id}
-                className="p-4 rounded-lg border bg-white hover:bg-gray-50 transition-colors"
+                className="p-4 rounded-lg border bg-white hover:bg-gray-50 transition-all cursor-pointer hover:shadow-md"
+                onClick={() => handleViewProfile(professional.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -126,13 +141,23 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
 
                     <div className="flex items-center space-x-3 mb-3">
                       {professional.phone && (
-                        <Button variant="ghost" size="sm" className="h-8 px-2">
-                          <Phone className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Llamar</span>
-                        </Button>
+                        <div className="flex-1" onClick={(e) => e.stopPropagation()}>
+                          <WhatsAppContactButton 
+                            phone={professional.phone}
+                            professionalName={professional.name}
+                          />
+                        </div>
                       )}
                       {professional.email && (
-                        <Button variant="ghost" size="sm" className="h-8 px-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 px-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEmailContact(professional.email!, professional.name);
+                          }}
+                        >
                           <Mail className="h-3 w-3 mr-1" />
                           <span className="text-xs">Email</span>
                         </Button>
@@ -145,7 +170,10 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onRemoveFavorite(professional.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveFavorite(professional.id);
+                    }}
                     className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
                   >
                     <X className="h-4 w-4" />

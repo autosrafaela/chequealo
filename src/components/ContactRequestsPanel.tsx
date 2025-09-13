@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useContactRequests, ContactRequest } from "@/hooks/useContactRequests";
-import { MessageCircle, Calculator, Phone, Mail, Calendar, User, Clock } from "lucide-react";
+import { MessageCircle, Calculator, Mail, Calendar, User, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 
 export const ContactRequestsPanel = () => {
   const { requests, loading, updateRequestStatus } = useContactRequests();
@@ -108,11 +109,13 @@ export const ContactRequestsPanel = () => {
                   </a>
                 </div>
                 {request.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-3 w-3 text-muted-foreground" />
-                    <a href={`tel:${request.phone}`} className="text-primary hover:underline">
-                      {request.phone}
-                    </a>
+                  <div className="space-y-2">
+                    <div className="text-xs text-muted-foreground mb-1">Contactar por:</div>
+                    <WhatsAppContactButton 
+                      phone={request.phone}
+                      professionalName={request.name}
+                      message={`Hola ${request.name}! Recibí tu solicitud desde TodoAca.ar. Te contacto para coordinar el servicio de ${request.service_type || 'tu servicio'}.`}
+                    />
                   </div>
                 )}
                 {request.service_type && (
