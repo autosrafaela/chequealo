@@ -21,6 +21,7 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   
   const [profileForm, setProfileForm] = useState({
     description: professionalData?.description || '',
@@ -37,9 +38,18 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
 
   const [photoForm, setPhotoForm] = useState({
     caption: '',
-    work_type: '',
-    image_url: ''
+    work_type: ''
   });
+
+  useEffect(() => {
+    if (selectedFile) {
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [selectedFile]);
 
   const updateProfile = async () => {
     try {
@@ -105,13 +115,40 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
     }
   };
 
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${professionalData.id}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('work-photos')
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('work-photos')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
   const uploadWorkPhoto = async () => {
+    if (!selectedFile) {
+      toast.error('Selecciona una imagen');
+      return;
+    }
+
     try {
+      setUploading(true);
+      
+      // Upload image to storage
+      const imageUrl = await uploadImage(selectedFile);
+
       const { error } = await supabase
         .from('work_photos')
         .insert({
           professional_id: professionalData.id,
-          image_url: photoForm.image_url,
+          image_url: imageUrl,
           caption: photoForm.caption,
           work_type: photoForm.work_type,
           uploaded_by: 'professional'
@@ -121,11 +158,15 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
 
       toast.success('Foto de trabajo agregada');
       setIsUploadingPhoto(false);
-      setPhotoForm({ caption: '', work_type: '', image_url: '' });
+      setPhotoForm({ caption: '', work_type: '' });
+      setSelectedFile(null);
+      setPreviewUrl(null);
       onUpdate();
     } catch (error) {
       console.error('Error uploading photo:', error);
       toast.error('Error al subir la foto');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -285,14 +326,34 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
             <DialogTitle>Subir Foto de Trabajo Realizado</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="image_url">URL de la Imagen</Label>
-              <Input
-                id="image_url"
-                placeholder="https://ejemplo.com/imagen.jpg"
-                value={photoForm.image_url}
-                onChange={(e) => setPhotoForm({...photoForm, image_url: e.target.value})}
-              />
+            <div className="space-y-2">
+              <Label htmlFor="photo-file">Subir desde tu dispositivo *</Label>
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
+                <Input
+                  id="photo-file"
+                  type="file"
+                  accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
+                  capture="environment"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  required
+                  className="sr-only"
+                />
+                <Label htmlFor="photo-file" className="cursor-pointer flex flex-col items-center gap-2">
+                  <Upload className="h-8 w-8 text-muted-foreground" />
+                  <span className="text-sm font-medium">Click para seleccionar imagen</span>
+                  <span className="text-xs text-muted-foreground">JPG, PNG, WEBP (máx. 10MB)</span>
+                </Label>
+              </div>
+              {previewUrl && (
+                <div className="mt-3">
+                  <p className="text-sm font-medium mb-2">Vista previa:</p>
+                  <img 
+                    src={previewUrl} 
+                    alt="Preview" 
+                    className="w-full h-32 object-cover rounded-md border"
+                  />
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="photo_caption">Descripción del Trabajo</Label>
@@ -313,10 +374,15 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
               />
             </div>
             <div className="flex gap-2">
-              <Button onClick={uploadWorkPhoto} className="flex-1">
-                Subir Foto
+              <Button onClick={uploadWorkPhoto} className="flex-1" disabled={uploading || !selectedFile}>
+                {uploading ? 'Subiendo...' : 'Subir Foto'}
               </Button>
-              <Button variant="outline" onClick={() => setIsUploadingPhoto(false)}>
+              <Button variant="outline" onClick={() => {
+                setIsUploadingPhoto(false);
+                setSelectedFile(null);
+                setPreviewUrl(null);
+                setPhotoForm({ caption: '', work_type: '' });
+              }}>
                 Cancelar
               </Button>
             </div>
