@@ -13,6 +13,7 @@ import { SubscriptionAlert } from '@/components/SubscriptionAlert';
 import { ServicesManager } from '@/components/ServicesManager';
 import { WorkPhotosManager } from '@/components/WorkPhotosManager';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -27,7 +28,8 @@ import {
   Eye,
   Edit3,
   Package,
-  Camera
+  Camera,
+  MessageSquare
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -37,6 +39,7 @@ interface DashboardStats {
   totalReviews: number;
   averageRating: number;
   profileViews: number;
+  pendingResponses: number;
 }
 
 const ProfessionalDashboard = () => {
@@ -47,7 +50,8 @@ const ProfessionalDashboard = () => {
     pendingRequests: 0,
     totalReviews: 0,
     averageRating: 0,
-    profileViews: 0
+    profileViews: 0,
+    pendingResponses: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -88,10 +92,20 @@ const ProfessionalDashboard = () => {
       // Get reviews stats
       const { data: reviews, error: reviewsError } = await supabase
         .from('reviews')
-        .select('rating')
+        .select('id, rating')
         .eq('professional_id', professionalData.id);
 
       if (reviewsError) throw reviewsError;
+
+      // Get pending responses count
+      const reviewIds = reviews?.map(r => r.id) || [];
+      const { data: responses } = await supabase
+        .from('review_responses')
+        .select('review_id')
+        .in('review_id', reviewIds);
+
+      const respondedReviewIds = responses?.map(r => r.review_id) || [];
+      const pendingResponses = reviewIds.filter(id => !respondedReviewIds.includes(id)).length;
 
       // Calculate stats
       const totalRequests = requests?.length || 0;
@@ -106,7 +120,8 @@ const ProfessionalDashboard = () => {
         pendingRequests,
         totalReviews,
         averageRating: Math.round(averageRating * 10) / 10,
-        profileViews: 0 // We can implement this later with analytics
+        profileViews: 0, // We can implement this later with analytics
+        pendingResponses
       });
 
     } catch (error) {
@@ -257,7 +272,7 @@ const ProfessionalDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card 
             className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
             onClick={() => window.location.href = `/professional/${professional.id}`}
@@ -304,6 +319,59 @@ const ProfessionalDashboard = () => {
                   isOwner={true}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => {
+              const reviewsTab = document.querySelector('[value="reviews"]') as HTMLElement;
+              reviewsTab?.click();
+            }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold mb-2">Gestión de Reseñas</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Responde y gestiona opiniones
+                  </p>
+                </div>
+                <MessageSquare className="h-8 w-8 text-blue-500" />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="text-lg font-bold">{stats.totalReviews}</span>
+                    <Star className="h-4 w-4 text-yellow-400" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Reseñas</p>
+                </div>
+                <div className="text-center">
+                  <span className="text-lg font-bold">{stats.averageRating}</span>
+                  <p className="text-xs text-muted-foreground">Promedio</p>
+                </div>
+              </div>
+
+              {stats.pendingResponses > 0 && (
+                <Badge variant="destructive" className="mt-3 w-full justify-center">
+                  {stats.pendingResponses} sin responder
+                </Badge>
+              )}
+
+              <Button 
+                asChild 
+                className="w-full mt-4" 
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const reviewsTab = document.querySelector('[value="reviews"]') as HTMLElement;
+                  reviewsTab?.click();
+                }}
+              >
+                <span>Gestionar Reseñas</span>
+              </Button>
             </CardContent>
           </Card>
 
@@ -368,9 +436,12 @@ const ProfessionalDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
+            </TabsTrigger>
+            <TabsTrigger value="reviews">
+              Reseñas ({stats.totalReviews})
             </TabsTrigger>
             <TabsTrigger value="services">
               Servicios
@@ -400,6 +471,10 @@ const ProfessionalDashboard = () => {
 
           <TabsContent value="requests">
             <ContactRequestsPanel />
+          </TabsContent>
+
+          <TabsContent value="reviews">
+            <ReviewManagementPanel />
           </TabsContent>
 
           <TabsContent value="services">
