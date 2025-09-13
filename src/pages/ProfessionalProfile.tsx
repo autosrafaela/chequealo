@@ -28,7 +28,8 @@ import {
   Camera,
   Award,
   ThumbsUp,
-  Trash2
+  Trash2,
+  Share2
 } from "lucide-react";
 
 const ProfessionalProfile = () => {
@@ -209,6 +210,30 @@ const ProfessionalProfile = () => {
     setIsFavorite(!isFavorite);
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: `${professional.full_name} - ${professional.profession}`,
+      text: `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location}`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Enlace copiado al portapapeles');
+      } catch (error) {
+        toast.error('No se pudo copiar el enlace');
+      }
+    }
+  };
+
   const formatPrice = (priceFrom: number | null, priceTo: number | null) => {
     if (!priceFrom && !priceTo) return 'Consultar precio';
     if (priceFrom && priceTo) return `$${priceFrom.toLocaleString()} - $${priceTo.toLocaleString()}`;
@@ -314,6 +339,14 @@ const ProfessionalProfile = () => {
                       className={isFavorite ? 'text-red-500 border-red-200' : ''}
                     >
                       <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={handleShare}
+                      title="Compartir perfil"
+                    >
+                      <Share2 className="h-5 w-5" />
                     </Button>
                   </div>
 
