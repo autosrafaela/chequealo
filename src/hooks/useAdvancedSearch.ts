@@ -59,14 +59,14 @@ export const useAdvancedSearch = () => {
         .from('professionals')
         .select('*');
 
-      // Text search
+      // Text search - search in name, profession, and description
       if (query.trim()) {
         supabaseQuery = supabaseQuery.or(`full_name.ilike.%${query}%,profession.ilike.%${query}%,description.ilike.%${query}%`);
       }
 
       // Apply filters
       if (currentFilters.profession) {
-        supabaseQuery = supabaseQuery.eq('profession', currentFilters.profession);
+        supabaseQuery = supabaseQuery.ilike('profession', `%${currentFilters.profession}%`);
       }
       if (currentFilters.location) {
         supabaseQuery = supabaseQuery.ilike('location', `%${currentFilters.location}%`);
@@ -97,6 +97,7 @@ export const useAdvancedSearch = () => {
         
         supabaseQuery = supabaseQuery.order(orderColumn as any, { ascending });
       } else {
+        // Default sorting by rating desc
         supabaseQuery = supabaseQuery.order('rating', { ascending: false });
       }
 

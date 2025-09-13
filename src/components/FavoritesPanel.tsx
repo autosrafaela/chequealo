@@ -17,63 +17,68 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface FavoriteProfessional {
   id: string;
-  name: string;
+  full_name: string;
   profession: string;
   location: string;
   rating: number;
-  reviewCount: number;
-  verified: boolean;
+  review_count: number;
+  is_verified: boolean;
   phone?: string;
-  email?: string;
-  addedDate: string;
+  email: string;
+  created_at: string;
 }
 
 interface FavoritesPanelProps {
-  favorites: FavoriteProfessional[];
-  onRemoveFavorite: (id: string) => void;
+  favorites?: FavoriteProfessional[];
+  onRemoveFavorite?: (id: string) => void;
 }
 
-const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProps) => {
+const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propOnRemoveFavorite }: FavoritesPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [realFavorites, setRealFavorites] = useState<FavoriteProfessional[]>([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { favorites: favoriteIds, toggleFavorite } = useFavorites();
 
-  // Mock data for demonstration
-  const mockFavorites: FavoriteProfessional[] = [
-    {
-      id: '1',
-      name: 'Ana Rodríguez',
-      profession: 'Contadora Pública',
-      location: 'Rafaela, Santa Fe',
-      rating: 4.8,
-      reviewCount: 15,
-      verified: true,
-      phone: '+54 3492 123456',
-      email: 'ana.rodriguez@email.com',
-      addedDate: 'Hace 2 días'
-    },
-    {
-      id: '3',
-      name: 'Laura Gómez',
-      profession: 'Electricista Domiciliaria',
-      location: 'Rafaela, Santa Fe',
-      rating: 5.0,
-      reviewCount: 12,
-      verified: true,
-      phone: '+54 3492 789012',
-      addedDate: 'Hace 1 semana'
-    },
-    {
-      id: '5',
-      name: 'María López',
-      profession: 'Abogada',
-      location: 'Rafaela, Santa Fe',
-      rating: 4.7,
-      reviewCount: 18,
-      verified: true,
-      phone: '+54 3492 345678',
-      addedDate: 'Hace 2 semanas'
+  useEffect(() => {
+    if (favoriteIds.length > 0 && user) {
+      fetchFavoriteDetails();
+    } else {
+      setRealFavorites([]);
     }
-  ];
+  }, [favoriteIds, user]);
+
+  const fetchFavoriteDetails = async () => {
+    if (favoriteIds.length === 0) {
+      setRealFavorites([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('professionals')
+        .select('*')
+        .in('id', favoriteIds);
+
+      if (error) throw error;
+      setRealFavorites(data || []);
+    } catch (error) {
+      console.error('Error fetching favorite details:', error);
+      setRealFavorites([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveFavorite = async (professionalId: string) => {
+    try {
+      await toggleFavorite(professionalId);
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+    }
+  };
 
   const handleViewProfile = (professionalId: string) => {
     navigate(`/professional/${professionalId}`);
@@ -86,7 +91,19 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
     window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
   };
 
-  const favoritesToShow = favorites.length > 0 ? favorites : mockFavorites;
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays === 0) return 'Hoy';
+    if (diffInDays === 1) return 'Ayer';
+    if (diffInDays < 7) return `Hace ${diffInDays} días`;
+    if (diffInDays < 30) return `Hace ${Math.floor(diffInDays / 7)} semanas`;
+    return `Hace ${Math.floor(diffInDays / 30)} meses`;
+  };
+
+  const favoritesToShow = user ? realFavorites : [];
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -119,8 +136,8 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-semibold text-gray-900">{professional.name}</h3>
-                      {professional.verified && (
+                      <h3 className="font-semibold text-gray-900">{professional.full_name}</h3>
+                      {professional.is_verified && (
                         <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
                           ✓ Verificado
                         </Badge>
@@ -138,7 +155,7 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
                       <div className="flex items-center space-x-1">
                         <Star className="h-3 w-3 text-yellow-400 fill-current" />
                         <span className="text-xs font-medium">{professional.rating}</span>
-                        <span className="text-xs text-gray-500">({professional.reviewCount})</span>
+                        <span className="text-xs text-gray-500">({professional.review_count})</span>
                       </div>
                     </div>
 
@@ -147,7 +164,7 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
                         <div className="flex-1" onClick={(e) => e.stopPropagation()}>
                           <WhatsAppContactButton 
                             phone={professional.phone}
-                            professionalName={professional.name}
+                            professionalName={professional.full_name}
                           />
                         </div>
                       )}
@@ -158,7 +175,7 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
                           className="h-8 px-2"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleEmailContact(professional.email!, professional.name);
+                            handleEmailContact(professional.email, professional.full_name);
                           }}
                         >
                           <Mail className="h-3 w-3 mr-1" />
@@ -167,7 +184,7 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
                       )}
                     </div>
 
-                    <p className="text-xs text-gray-400">Guardado {professional.addedDate}</p>
+                    <p className="text-xs text-gray-400">Guardado {formatDate(professional.created_at)}</p>
                   </div>
 
                   <Button
@@ -175,7 +192,7 @@ const FavoritesPanel = ({ favorites = [], onRemoveFavorite }: FavoritesPanelProp
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onRemoveFavorite(professional.id);
+                      handleRemoveFavorite(professional.id);
                     }}
                     className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
                   >

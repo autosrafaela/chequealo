@@ -102,13 +102,39 @@ const Header = () => {
     }
   ];
 
-  // Mock notification handlers
-  const handleRemoveFavorite = (id: string) => {
-    console.log('Removing favorite:', id);
+  // Handle Enter key press in search input
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Remove unused handlers  
+  const handleRemoveFavorite = () => {
+    // This is now handled by the FavoritesPanel itself
   };
 
   const handleSearch = () => {
-    console.log('Searching for:', searchTerm, 'in', selectedProvince, selectedCity);
+    const params = new URLSearchParams();
+    
+    if (searchTerm.trim()) {
+      params.append('q', searchTerm.trim());
+    }
+    
+    if (selectedProvince) {
+      params.append('location', selectedProvince);
+    }
+    
+    if (selectedCity) {
+      params.append('city', selectedCity);
+    }
+    
+    if (selectedFilter && selectedFilter !== 'latest') {
+      params.append('sort', selectedFilter);
+    }
+    
+    const searchUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
+    navigate(searchUrl);
   };
 
   return (
@@ -140,7 +166,7 @@ const Header = () => {
                     placeholder="Ej: plomero, gasista, grúa"
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
-                    disabled={false}
+                    onKeyPress={handleKeyPress}
                     className="w-full pl-16 pr-4 py-3 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm font-medium"
                   />
                 </div>
@@ -302,12 +328,9 @@ const Header = () => {
                   </select>
                 </div>
 
-                {/* Favorites - Moved down */}
+                {/* Favorites - Now uses real data */}
                 <div className="px-4 py-2 bg-white">
-                  <FavoritesPanel 
-                    favorites={[]}
-                    onRemoveFavorite={handleRemoveFavorite}
-                  />
+                  <FavoritesPanel />
                 </div>
 
                 {/* Mobile Filter */}
