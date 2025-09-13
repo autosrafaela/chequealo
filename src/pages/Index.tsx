@@ -13,7 +13,7 @@ const Index = () => {
       <ServiceCategories />
       
       {/* Features Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -50,8 +50,8 @@ const Index = () => {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-yellow-600" />
+              <div className="w-16 h-16 bg-warning/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-warning" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Calidad Garantizada</h3>
               <p className="text-muted-foreground">Sistema de calificaciones y reseñas de clientes reales</p>
@@ -80,45 +80,45 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
+      <footer className="bg-card text-card-foreground py-12 border-t">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-white text-lg font-semibold mb-4">Chequealo</h3>
-              <p className="text-sm mb-4">
+              <h3 className="text-foreground text-lg font-semibold mb-4">Chequealo</h3>
+              <p className="text-sm mb-4 text-muted-foreground">
                 La plataforma líder para conectar clientes con profesionales de confianza en Argentina.
               </p>
             </div>
 
             <div>
-              <h4 className="text-white font-semibold mb-4">Para Clientes</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white">Buscar profesionales</a></li>
-                <li><a href="#" className="hover:text-white">Cómo funciona</a></li>
-                <li><a href="#" className="hover:text-white">Preguntas frecuentes</a></li>
+              <h4 className="text-foreground font-semibold mb-4">Para Clientes</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground transition-colors">Buscar profesionales</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Cómo funciona</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Preguntas frecuentes</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-white font-semibold mb-4">Para Profesionales</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/register" className="hover:text-white">Registrarme</Link></li>
-                <li><a href="#" className="hover:text-white">Planes y precios</a></li>
-                <li><a href="#" className="hover:text-white">Centro de ayuda</a></li>
+              <h4 className="text-foreground font-semibold mb-4">Para Profesionales</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/register" className="hover:text-foreground transition-colors">Registrarme</Link></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Planes y precios</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Centro de ayuda</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-white font-semibold mb-4">Contacto</h4>
-              <ul className="space-y-2 text-sm">
-                <li>📧 info@chequealo.ar</li>
+              <h4 className="text-foreground font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/terms" className="hover:text-foreground transition-colors">Términos de Servicio</Link></li>
+                <li><Link to="/privacy" className="hover:text-foreground transition-colors">Política de Privacidad</Link></li>
                 <li>📱 +54 9 3492 60-7224</li>
-                <li>📍 Argentina</li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
+          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
             <p>&copy; 2024 Chequealo. Todos los derechos reservados.</p>
           </div>
         </div>

@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import SeoLanding from "./pages/SeoLanding";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TestResults from "./pages/TestResults";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -38,6 +39,7 @@ const App = () => (
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/test-results" element={<TestResults />} />
         {/* SEO-friendly URLs */}
         <Route path="/:profession/:location/:name" element={<SeoLanding />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

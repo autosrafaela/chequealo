@@ -65,7 +65,7 @@ const ServiceCategories = () => {
   };
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-muted/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -83,7 +83,7 @@ const ServiceCategories = () => {
               <Link
                 key={index}
                 to={`/search?q=${encodeURIComponent(category.searchTerm)}`}
-                className="group p-4 lg:p-6 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100 hover:border-primary/20 text-left block"
+                className="group p-4 lg:p-6 bg-card rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border hover:border-primary/20 text-left block"
               >
                 <div className="flex flex-col items-center text-center space-y-3">
                   <div className={`p-3 rounded-xl ${category.color} group-hover:scale-110 transition-transform duration-300`}>
@@ -116,9 +116,9 @@ const ServiceCategories = () => {
 
           {/* Dropdown with all professions */}
           {showAllCategories && (
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-4 w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-4 w-full max-w-4xl bg-popover rounded-2xl shadow-xl border z-50 max-h-96 overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-xl font-semibold mb-4 text-center text-foreground">
+                <h3 className="text-xl font-semibold mb-4 text-center text-popover-foreground">
                   Categorías disponibles
                 </h3>
                 {(allProfessions.length > 0 || allServices.length > 0) ? (
@@ -131,10 +131,10 @@ const ServiceCategories = () => {
                             <Link
                               key={`prof-${index}`}
                               to={`/search?q=${encodeURIComponent(profession)}`}
-                              className="block p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary/20"
+                              className="block p-3 rounded-lg hover:bg-accent transition-colors border hover:border-primary/20"
                               onClick={() => setShowAllCategories(false)}
                             >
-                              <div className="text-sm font-medium text-foreground text-center">
+                              <div className="text-sm font-medium text-popover-foreground text-center">
                                 {profession}
                               </div>
                             </Link>
@@ -151,10 +151,10 @@ const ServiceCategories = () => {
                             <Link
                               key={`svc-${index}`}
                               to={`/search?q=${encodeURIComponent(service)}`}
-                              className="block p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary/20"
+                              className="block p-3 rounded-lg hover:bg-accent transition-colors border hover:border-primary/20"
                               onClick={() => setShowAllCategories(false)}
                             >
-                              <div className="text-sm font-medium text-foreground text-center">
+                              <div className="text-sm font-medium text-popover-foreground text-center">
                                 {service}
                               </div>
                             </Link>
@@ -171,10 +171,10 @@ const ServiceCategories = () => {
                         <Link
                           key={`fallback-${i}`}
                           to={`/search?q=${encodeURIComponent(c.searchTerm)}`}
-                          className="block p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 hover:border-primary/20"
+                          className="block p-3 rounded-lg hover:bg-accent transition-colors border hover:border-primary/20"
                           onClick={() => setShowAllCategories(false)}
                         >
-                          <div className="text-sm font-medium text-foreground text-center">
+                          <div className="text-sm font-medium text-popover-foreground text-center">
                             {c.name}
                           </div>
                         </Link>

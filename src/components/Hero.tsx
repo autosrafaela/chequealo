@@ -47,9 +47,9 @@ const Hero = () => {
                   placeholder="¿Qué servicio necesitás? Ej: plomero, electricista..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-12 sm:h-14 text-base sm:text-lg px-4 sm:px-6 pr-12 bg-white/95 border-0 rounded-full placeholder:text-gray-500 w-full"
+                  className="h-12 sm:h-14 text-base sm:text-lg px-4 sm:px-6 pr-12 bg-background/95 border-0 rounded-full placeholder:text-muted-foreground w-full"
                 />
-                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
               </div>
               <Button 
                 type="submit"
