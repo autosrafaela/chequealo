@@ -40,7 +40,7 @@ const Register = () => {
     { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600" },
     { name: "Escribano", icon: Laptop, color: "bg-gray-100 text-gray-600" },
     { name: "Esteticista / Cosmetóloga", icon: Heart, color: "bg-pink-200 text-pink-700" },
-    { name: "Fiestas y Mudanzas", icon: Building, color: "bg-orange-200 text-orange-700" },
+    { name: "Fletes y Mudanzas", icon: Building, color: "bg-orange-200 text-orange-700" },
     { name: "Fotógrafo / Videógrafo", icon: Laptop, color: "bg-cyan-100 text-cyan-600" },
     { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600" },
     { name: "Gasista / Plomero", icon: Flame, color: "bg-red-200 text-red-700" },
