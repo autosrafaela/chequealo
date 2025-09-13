@@ -2,6 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import NotificationSystem from "@/components/NotificationSystem";
+import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Auth from "./pages/Auth";
@@ -16,6 +18,9 @@ const App = () => (
   <TooltipProvider>
     <Toaster />
     <Sonner />
+    <NotificationSystem />
+    <PWAInstallPrompt />
+    <IOSInstallInstructions />
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />

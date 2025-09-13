@@ -441,31 +441,17 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="professionals">
-              Profesionales ({stats.totalProfessionals})
-            </TabsTrigger>
-            <TabsTrigger value="analytics">
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="moderation">
-              Moderación
-            </TabsTrigger>
-            <TabsTrigger value="subscriptions">
-              Suscripciones ({stats.totalSubscriptions})
-            </TabsTrigger>
-            <TabsTrigger value="plans">
-              Planes
-            </TabsTrigger>
-            <TabsTrigger value="verifications">
-              Verificaciones ({stats.pendingVerifications})
-            </TabsTrigger>
-            <TabsTrigger value="users">
-              Usuarios
-            </TabsTrigger>
-            <TabsTrigger value="settings">
-              Configuración
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-10">
+            <TabsTrigger value="professionals">Profesionales</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="moderation">Moderación</TabsTrigger>
+            <TabsTrigger value="subscriptions">Suscripciones</TabsTrigger>
+            <TabsTrigger value="plans">Planes</TabsTrigger>
+            <TabsTrigger value="verifications">Verificaciones</TabsTrigger>
+            <TabsTrigger value="users">Usuarios</TabsTrigger>
+            <TabsTrigger value="settings">Configuración</TabsTrigger>
+            <TabsTrigger value="business">BI</TabsTrigger>
+            <TabsTrigger value="performance">Monitor</TabsTrigger>
           </TabsList>
 
           <TabsContent value="professionals">
