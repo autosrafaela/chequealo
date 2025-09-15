@@ -916,14 +916,12 @@ export type Database = {
           availability: string | null
           created_at: string | null
           description: string | null
-          email: string | null
           full_name: string | null
           id: string | null
           image_url: string | null
           is_blocked: boolean | null
           is_verified: boolean | null
           location: string | null
-          phone: string | null
           profession: string | null
           rating: number | null
           review_count: number | null
@@ -935,14 +933,12 @@ export type Database = {
           availability?: string | null
           created_at?: string | null
           description?: string | null
-          email?: never
           full_name?: string | null
           id?: string | null
           image_url?: string | null
           is_blocked?: boolean | null
           is_verified?: boolean | null
           location?: string | null
-          phone?: never
           profession?: string | null
           rating?: number | null
           review_count?: number | null
@@ -954,14 +950,12 @@ export type Database = {
           availability?: string | null
           created_at?: string | null
           description?: string | null
-          email?: never
           full_name?: string | null
           id?: string | null
           image_url?: string | null
           is_blocked?: boolean | null
           is_verified?: boolean | null
           location?: string | null
-          phone?: never
           profession?: string | null
           rating?: number | null
           review_count?: number | null
@@ -980,6 +974,13 @@ export type Database = {
       check_subscription_status: {
         Args: { professional_user_id: string }
         Returns: string
+      }
+      get_professional_contact: {
+        Args: { prof_id: string }
+        Returns: {
+          email: string
+          phone: string
+        }[]
       }
       has_role: {
         Args: {
