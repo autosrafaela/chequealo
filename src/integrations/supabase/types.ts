@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_access_logs: {
+        Row: {
+          access_type: string
+          accessed_by: string | null
+          created_at: string | null
+          id: string
+          professional_id: string
+        }
+        Insert: {
+          access_type: string
+          accessed_by?: string | null
+          created_at?: string | null
+          id?: string
+          professional_id: string
+        }
+        Update: {
+          access_type?: string
+          accessed_by?: string | null
+          created_at?: string | null
+          id?: string
+          professional_id?: string
+        }
+        Relationships: []
+      }
       contact_requests: {
         Row: {
           budget_range: string | null
@@ -87,6 +111,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
             referencedColumns: ["id"]
           },
         ]
@@ -288,6 +319,13 @@ export type Database = {
             referencedRelation: "professionals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "professional_services_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       professionals: {
@@ -444,6 +482,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "review_responses_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "review_responses_review_id_fkey"
             columns: ["review_id"]
             isOneToOne: false
@@ -501,6 +546,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
             referencedColumns: ["id"]
           },
         ]
@@ -848,11 +900,77 @@ export type Database = {
             referencedRelation: "professionals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "work_photos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      professionals_public: {
+        Row: {
+          availability: string | null
+          created_at: string | null
+          description: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          image_url: string | null
+          is_blocked: boolean | null
+          is_verified: boolean | null
+          location: string | null
+          phone: string | null
+          profession: string | null
+          rating: number | null
+          review_count: number | null
+          updated_at: string | null
+          user_id: string | null
+          verification_date: string | null
+        }
+        Insert: {
+          availability?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: never
+          full_name?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_blocked?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          phone?: never
+          profession?: string | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_date?: string | null
+        }
+        Update: {
+          availability?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: never
+          full_name?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_blocked?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          phone?: never
+          profession?: string | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_date?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_user_admin_role: {
@@ -869,6 +987,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_contact_access: {
+        Args: { access_type: string; prof_id: string }
+        Returns: undefined
       }
     }
     Enums: {
