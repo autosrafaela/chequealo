@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import NotificationCenter from './NotificationCenter';
-import chequealoLogo from "@/assets/chequealo-new-logo.png";
+import chequealoLogo from "@/assets/chequealo-final-logo.png";
 
 export const MobileOptimizedHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -71,7 +71,7 @@ if (isAdmin || (user?.email?.toLowerCase() === 'autosrafaela@gmail.com')) {
             className="hover:bg-transparent flex items-center space-x-2"
             onClick={() => navigate('/')}
           >
-            <img src={chequealoLogo} alt="Chequealo" className="h-8 w-auto" />
+            <img src={chequealoLogo} alt="Chequealo" className="h-10 w-auto" />
           </Button>
         </div>
 

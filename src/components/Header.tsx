@@ -9,7 +9,7 @@ import { provinceCityMap } from "../data/provinceCityData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import chequealoLogo from "@/assets/chequealo-new-logo.png";
+import chequealoLogo from "@/assets/chequealo-final-logo.png";
 
 const Header = () => {
   const { user, signOut, profile } = useAuth();
@@ -143,8 +143,8 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img src={chequealoLogo} alt="Chequealo" className="h-10 w-auto" />
+          <Link to="/" className="flex items-center mr-6">
+            <img src={chequealoLogo} alt="Chequealo" className="h-12 w-auto" />
           </Link>
 
           {/* Main Search Section */}
