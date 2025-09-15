@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserRatingModal } from './UserRatingModal';
+import { BidirectionalReviewSystem } from './BidirectionalReviewSystem';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ import {
 interface Transaction {
   id: string;
   user_id: string;
+  professional_id: string;
   contact_request_id?: string;
   service_type?: string;
   amount?: number;
@@ -309,12 +311,14 @@ export const TransactionManager = () => {
                     )}
 
                     {transaction.status === 'completed' && (
-                      <UserRatingModal
-                        transactionId={transaction.id}
-                        userId={transaction.user_id}
-                        userName={transaction.profiles?.full_name || 'Cliente'}
-                        onRatingSubmitted={fetchTransactions}
-                      />
+                      <div className="space-y-2">
+                        <UserRatingModal
+                          transactionId={transaction.id}
+                          userId={transaction.user_id}
+                          userName={transaction.profiles?.full_name || 'Cliente'}
+                          onRatingSubmitted={fetchTransactions}
+                        />
+                      </div>
                     )}
 
                     {transaction.status !== 'cancelled' && transaction.status !== 'completed' && (
@@ -327,12 +331,26 @@ export const TransactionManager = () => {
                       </Button>
                     )}
                   </div>
+                  </div>
+                  
+                  {transaction.status === 'completed' && (
+                    <div className="mt-4">
+                      <BidirectionalReviewSystem
+                        transactionId={transaction.id}
+                        userId={transaction.user_id}
+                        professionalId={transaction.professional_id}
+                        userName={transaction.profiles?.full_name || 'Cliente'}
+                        professionalName="Tu negocio"
+                        serviceType={transaction.service_type || 'Servicio'}
+                        onReviewsUpdated={fetchTransactions}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };

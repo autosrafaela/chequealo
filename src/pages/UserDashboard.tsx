@@ -33,6 +33,7 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import { Navigate } from 'react-router-dom';
 import FavoritesPanel from '@/components/FavoritesPanel';
+import { UserTransactionReviews } from '@/components/UserTransactionReviews';
 
 interface UserProfile {
   id: string;
@@ -454,7 +455,7 @@ const UserDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
               Mi Perfil
@@ -466,6 +467,10 @@ const UserDashboard = () => {
             <TabsTrigger value="requests">
               <MessageSquare className="h-4 w-4 mr-2" />
               Mis Solicitudes
+            </TabsTrigger>
+            <TabsTrigger value="reviews">
+              <Star className="h-4 w-4 mr-2" />
+              Reseñas
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
@@ -670,6 +675,10 @@ const UserDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="reviews">
+            <UserTransactionReviews />
           </TabsContent>
 
           <TabsContent value="settings">

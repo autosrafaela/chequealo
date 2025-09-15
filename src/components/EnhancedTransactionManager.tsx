@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserRatingModal } from './UserRatingModal';
+import { BidirectionalReviewSystem } from './BidirectionalReviewSystem';
 import { useTransactions } from '@/hooks/useTransactions';
 import { toast } from 'sonner';
 import { 
@@ -299,12 +300,14 @@ export const EnhancedTransactionManager = () => {
                             )}
 
                             {transaction.status === 'completed' && (
-                              <UserRatingModal
-                                transactionId={transaction.id}
-                                userId={transaction.user_id}
-                                userName={transaction.profiles?.full_name || 'Cliente'}
-                                onRatingSubmitted={() => {}}
-                              />
+                              <div className="space-y-2">
+                                <UserRatingModal
+                                  transactionId={transaction.id}
+                                  userId={transaction.user_id}
+                                  userName={transaction.profiles?.full_name || 'Cliente'}
+                                  onRatingSubmitted={() => {}}
+                                />
+                              </div>
                             )}
 
                             {transaction.status !== 'cancelled' && transaction.status !== 'completed' && (
@@ -319,6 +322,20 @@ export const EnhancedTransactionManager = () => {
                             )}
                           </div>
                         </div>
+                        
+                        {transaction.status === 'completed' && (
+                          <div className="mt-4">
+                            <BidirectionalReviewSystem
+                              transactionId={transaction.id}
+                              userId={transaction.user_id}
+                              professionalId={transaction.professional_id}
+                              userName={transaction.profiles?.full_name || 'Cliente'}
+                              professionalName="Tu negocio"
+                              serviceType={transaction.service_type || 'Servicio'}
+                              onReviewsUpdated={() => {}}
+                            />
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
