@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NotificationSystem from "@/components/NotificationSystem";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
-import { LogoProcessor } from "@/components/LogoProcessor";
+
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Auth from "./pages/Auth";
@@ -27,7 +27,7 @@ const App = () => (
     <NotificationSystem />
     <PWAInstallPrompt />
     <IOSInstallInstructions />
-    <LogoProcessor />
+    
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />

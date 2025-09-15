@@ -9,7 +9,7 @@ import { provinceCityMap } from "../data/provinceCityData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import chequealoLogo from "@/assets/chequealo-final-logo.png";
+import chequealoLogo from "@/assets/chequealo-transparent-logo.png";
 
 const Header = () => {
   const { user, signOut, profile } = useAuth();

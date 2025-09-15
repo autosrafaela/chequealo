@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import NotificationCenter from './NotificationCenter';
-import chequealoLogo from "@/assets/chequealo-final-logo.png";
+import chequealoLogo from "@/assets/chequealo-transparent-logo.png";
 
 export const MobileOptimizedHeader: React.FC = () => {
   const navigate = useNavigate();
