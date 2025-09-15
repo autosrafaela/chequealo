@@ -14,6 +14,7 @@ import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfessionalContact } from "@/hooks/useProfessionalContact";
 
 interface FavoriteProfessional {
   id: string;
@@ -23,8 +24,6 @@ interface FavoriteProfessional {
   rating: number;
   review_count: number;
   is_verified: boolean;
-  phone?: string;
-  email: string;
   created_at: string;
 }
 
@@ -37,9 +36,11 @@ const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propO
   const [isOpen, setIsOpen] = useState(false);
   const [realFavorites, setRealFavorites] = useState<FavoriteProfessional[]>([]);
   const [loading, setLoading] = useState(false);
+  const [contactInfos, setContactInfos] = useState<{ [key: string]: { phone: string | null; email: string | null } }>({});
   const navigate = useNavigate();
   const { user } = useAuth();
   const { favorites: favoriteIds, toggleFavorite } = useFavorites();
+  const { getContactInfo } = useProfessionalContact();
 
   useEffect(() => {
     if (favoriteIds.length > 0 && user) {
@@ -58,12 +59,24 @@ const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propO
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('professionals')
+        .from('professionals_public')
         .select('*')
         .in('id', favoriteIds);
 
       if (error) throw error;
       setRealFavorites(data || []);
+
+      // Get contact info for each favorite
+      const contacts: { [key: string]: { phone: string | null; email: string | null } } = {};
+      if (data) {
+        for (const professional of data) {
+          const contactInfo = await getContactInfo(professional.id);
+          if (contactInfo) {
+            contacts[professional.id] = contactInfo;
+          }
+        }
+      }
+      setContactInfos(contacts);
     } catch (error) {
       console.error('Error fetching favorite details:', error);
       setRealFavorites([]);
@@ -160,22 +173,22 @@ const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propO
                     </div>
 
                     <div className="flex items-center space-x-3 mb-3">
-                      {professional.phone && (
+                      {contactInfos[professional.id]?.phone && (
                         <div className="flex-1" onClick={(e) => e.stopPropagation()}>
                           <WhatsAppContactButton 
-                            phone={professional.phone}
+                            phone={contactInfos[professional.id].phone || undefined}
                             professionalName={professional.full_name}
                           />
                         </div>
                       )}
-                      {professional.email && (
+                      {contactInfos[professional.id]?.email && (
                         <Button 
                           variant="ghost" 
                           size="sm" 
                           className="h-8 px-2"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleEmailContact(professional.email, professional.full_name);
+                            handleEmailContact(contactInfos[professional.id].email!, professional.full_name);
                           }}
                         >
                           <Mail className="h-3 w-3 mr-1" />

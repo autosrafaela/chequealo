@@ -18,8 +18,6 @@ interface Professional {
   image_url?: string;
   is_verified: boolean;
   availability: string;
-  phone?: string;
-  email: string;
   distance?: number;
 }
 
@@ -50,25 +48,8 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
 
   const handleContactClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Open WhatsApp directly if phone is available
-    if (professional.phone) {
-      const cleanPhone = professional.phone.replace(/\D/g, '');
-      let whatsappNumber = cleanPhone;
-      if (!cleanPhone.startsWith('54')) {
-        if (cleanPhone.startsWith('9') || cleanPhone.length === 10) {
-          whatsappNumber = `54${cleanPhone}`;
-        } else if (cleanPhone.length === 8 || cleanPhone.length === 7) {
-          whatsappNumber = `5411${cleanPhone}`;
-        }
-      }
-      const message = `Hola ${professional.full_name}! Te contacto desde Chequealo. Me interesa conocer más sobre tus servicios.`;
-      const encodedText = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
-      window.open(whatsappUrl, '_blank');
-    } else {
-      // Navigate to professional profile contact section
-      navigate(`/professional/${professional.id}#contact`);
-    }
+    // Navigate to professional profile to handle contact securely
+    navigate(`/professional/${professional.id}#contact`);
   };
 
   const getAvailabilityColor = (availability: string) => {

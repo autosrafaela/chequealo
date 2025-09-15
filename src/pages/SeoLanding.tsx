@@ -26,7 +26,7 @@ const SeoLanding = () => {
         const decodedName = decodeURIComponent(name.replace(/-/g, ' '));
 
         const { data, error } = await supabase
-          .from('professionals')
+          .from('professionals_public')
           .select('*')
           .ilike('profession', `%${decodedProfession}%`)
           .ilike('location', `%${decodedLocation}%`)
@@ -87,8 +87,6 @@ const SeoLanding = () => {
         "worstRating": 1
       },
       "priceRange": "$$",
-      "telephone": prof.phone,
-      "email": prof.email,
       "url": window.location.href,
       "serviceType": professionText,
       "areaServed": locationText

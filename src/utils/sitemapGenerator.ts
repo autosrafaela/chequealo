@@ -45,7 +45,7 @@ export class SitemapGenerator {
     try {
       // Add professional pages
       const { data: professionals, error } = await supabase
-        .from('professionals')
+        .from('professionals_public')
         .select('id, updated_at')
         .eq('is_verified', true);
 
@@ -98,7 +98,7 @@ ${urls.map(url => `  <url>
   static async getProfessionalUrls(): Promise<string[]> {
     try {
       const { data: professionals, error } = await supabase
-        .from('professionals')
+        .from('professionals_public')
         .select('id, full_name, profession, location')
         .eq('is_verified', true);
 

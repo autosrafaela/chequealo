@@ -14,6 +14,7 @@ import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { TransactionManager } from "@/components/TransactionManager";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfessionalContact } from "@/hooks/useProfessionalContact";
 import { toast } from "sonner";
 import { 
   Star, 
@@ -47,6 +48,8 @@ const ProfessionalProfile = () => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [contactInfo, setContactInfo] = useState<{ phone: string | null; email: string | null } | null>(null);
+  const { getContactInfo, loading: contactLoading } = useProfessionalContact();
 
   useEffect(() => {
     fetchProfessionalData();
@@ -76,9 +79,9 @@ const ProfessionalProfile = () => {
         return;
       }
 
-      // Fetch professional data
+      // Fetch professional data from public view first
       const { data: professionalData, error: profError } = await supabase
-        .from('professionals')
+        .from('professionals_public')
         .select('*')
         .eq('id', id)
         .maybeSingle();
@@ -99,6 +102,10 @@ const ProfessionalProfile = () => {
       } else {
         setIsOwner(false);
       }
+
+      // Get contact info if user is authorized
+      const contact = await getContactInfo(id);
+      setContactInfo(contact);
 
       // Fetch services
       const { data: servicesData, error: servicesError } = await supabase
@@ -353,7 +360,7 @@ const ProfessionalProfile = () => {
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3">
                     <WhatsAppContactButton 
-                      phone={professional.phone}
+                      phone={contactInfo?.phone || undefined}
                       professionalName={professional.full_name}
                     />
                     <ContactRequestDialog 
@@ -414,11 +421,11 @@ const ProfessionalProfile = () => {
                     <CardContent className="space-y-3">
                       <div className="flex items-center">
                         <Phone className="h-4 w-4 mr-3 text-muted-foreground" />
-                        <span>{professional.phone || 'No disponible'}</span>
+                        <span>{contactInfo?.phone || 'No disponible'}</span>
                       </div>
                       <div className="flex items-center">
                         <Mail className="h-4 w-4 mr-3 text-muted-foreground" />
-                        <span>{professional.email}</span>
+                        <span>{contactInfo?.email || 'No disponible'}</span>
                       </div>
                     </CardContent>
                   </Card>

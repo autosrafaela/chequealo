@@ -34,7 +34,7 @@ const Header = () => {
 
     try {
       const { data, error } = await supabase
-        .from('professionals')
+        .from('professionals_public')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();

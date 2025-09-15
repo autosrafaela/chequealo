@@ -23,8 +23,6 @@ export interface Professional {
   image_url?: string;
   is_verified: boolean;
   availability: string;
-  phone?: string;
-  email: string;
   distance?: number;
 }
 
@@ -56,7 +54,7 @@ export const useAdvancedSearch = () => {
     setLoading(true);
     try {
       let supabaseQuery = supabase
-        .from('professionals')
+        .from('professionals_public')
         .select('*');
 
       // Text search - search in name, profession, and description
@@ -115,9 +113,7 @@ export const useAdvancedSearch = () => {
         review_count: item.review_count || 0,
         image_url: item.image_url,
         is_verified: item.is_verified,
-        availability: item.availability || 'available',
-        phone: item.phone,
-        email: item.email
+        availability: item.availability || 'available'
       }));
 
       setProfessionals(mappedData);

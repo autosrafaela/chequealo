@@ -74,7 +74,7 @@ const TestResults = () => {
 
     // Test Base de Datos
     try {
-      const { data, error } = await supabase.from('professionals').select('count', { count: 'exact', head: true });
+      const { data, error } = await supabase.from('professionals_public').select('count', { count: 'exact', head: true });
       suites[0].tests.push({
         name: 'Conexión a Supabase',
         status: error ? 'failed' : 'passed',

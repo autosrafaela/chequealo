@@ -47,7 +47,7 @@ const ProfessionalCard = ({
     const checkVerification = async () => {
       try {
         const { data, error } = await supabase
-          .from('professionals')
+          .from('professionals_public')
           .select('is_verified')
           .eq('id', id)
           .maybeSingle();
