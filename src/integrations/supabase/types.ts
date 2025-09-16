@@ -926,7 +926,6 @@ export type Database = {
           rating: number | null
           review_count: number | null
           updated_at: string | null
-          user_id: string | null
           verification_date: string | null
         }
         Insert: {
@@ -943,7 +942,6 @@ export type Database = {
           rating?: number | null
           review_count?: number | null
           updated_at?: string | null
-          user_id?: string | null
           verification_date?: string | null
         }
         Update: {
@@ -960,7 +958,6 @@ export type Database = {
           rating?: number | null
           review_count?: number | null
           updated_at?: string | null
-          user_id?: string | null
           verification_date?: string | null
         }
         Relationships: []
@@ -980,6 +977,22 @@ export type Database = {
         Returns: {
           email: string
           phone: string
+        }[]
+      }
+      get_public_professional_profile: {
+        Args: { prof_id: string }
+        Returns: {
+          availability: string
+          description: string
+          full_name: string
+          id: string
+          image_url: string
+          is_verified: boolean
+          location: string
+          profession: string
+          rating: number
+          review_count: number
+          verification_date: string
         }[]
       }
       has_role: {
