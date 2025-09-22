@@ -3,25 +3,36 @@ import { Button } from '@/components/ui/button';
 
 export const FloatingWhatsAppWidget = () => {
   const handleSuggestionContact = () => {
-    // Número de teléfono del administrador/owner de Chequealo
-    const adminPhone = '5491169374435'; // Número real del administrador
+    const adminPhone = '5493492607224'; // Formato internacional sin signos
     
     const suggestionMessage = encodeURIComponent(
       'Hola! Tengo una sugerencia para Chequealo: '
     );
-    
-    // Usar solo wa.me que es más confiable y no está bloqueado
-    const whatsappUrl = `https://wa.me/${adminPhone}?text=${suggestionMessage}`;
-    
-    // Abrir en nueva pestaña
-    window.open(whatsappUrl, '_blank');
+
+    const isMobile = /Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry/i.test(navigator.userAgent);
+    const candidates = isMobile
+      ? [
+          `whatsapp://send?phone=${adminPhone}&text=${suggestionMessage}`,
+          `https://wa.me/${adminPhone}?text=${suggestionMessage}`,
+        ]
+      : [
+          `https://wa.me/${adminPhone}?text=${suggestionMessage}`,
+          `https://web.whatsapp.com/send?phone=${adminPhone}&text=${suggestionMessage}`,
+        ];
+
+    let opened = false;
+    for (const url of candidates) {
+      const w = window.open(url, '_blank');
+      if (w) { opened = true; break; }
+    }
+    if (!opened) window.location.href = candidates[0];
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <Button
         onClick={handleSuggestionContact}
-        className="flex items-center gap-2 rounded-full px-4 py-3 h-auto bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+        className="flex items-center gap-2 rounded-full px-4 py-3 h-auto bg-success hover:bg-success/90 text-success-foreground shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
         title="Enviar sugerencia por WhatsApp"
       >
         <MessageCircle className="h-5 w-5" />
