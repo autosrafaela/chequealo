@@ -10,6 +10,7 @@ export const FloatingWhatsAppWidget = () => {
       'Hola! Tengo una sugerencia para Chequealo: '
     );
     
+    // Usar solo wa.me que es más confiable y no está bloqueado
     const whatsappUrl = `https://wa.me/${adminPhone}?text=${suggestionMessage}`;
     
     // Abrir en nueva pestaña
@@ -20,10 +21,11 @@ export const FloatingWhatsAppWidget = () => {
     <div className="fixed bottom-6 right-6 z-50">
       <Button
         onClick={handleSuggestionContact}
-        className="rounded-full w-14 h-14 bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl"
+        className="flex items-center gap-2 rounded-full px-4 py-3 h-auto bg-green-500 hover:bg-green-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
         title="Enviar sugerencia por WhatsApp"
       >
-        <MessageCircle className="h-6 w-6" />
+        <MessageCircle className="h-5 w-5" />
+        <span className="text-sm font-medium">Sugerencias</span>
       </Button>
     </div>
   );
