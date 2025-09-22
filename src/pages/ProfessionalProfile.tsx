@@ -95,10 +95,17 @@ const ProfessionalProfile = () => {
 
       setProfessional(professionalData);
 
-      // Check if current user is the owner
+      // Check if current user is the owner - query the full professionals table
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && professionalData.user_id === user.id) {
-        setIsOwner(true);
+      if (user) {
+        const { data: ownerData } = await supabase
+          .from('professionals')
+          .select('user_id')
+          .eq('id', id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        setIsOwner(!!ownerData);
       } else {
         setIsOwner(false);
       }

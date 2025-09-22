@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NotificationSystem from "@/components/NotificationSystem";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
+import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
 
 import Index from "./pages/Index";
 import Search from "./pages/Search";
@@ -27,6 +28,7 @@ const App = () => (
     <NotificationSystem />
     <PWAInstallPrompt />
     <IOSInstallInstructions />
+    <FloatingWhatsAppWidget />
     
     <BrowserRouter>
       <Routes>
