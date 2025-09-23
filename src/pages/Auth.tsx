@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import { PasswordStrengthIndicator } from '@/components/ui/password-strength-indicator';
@@ -16,16 +17,21 @@ import { validatePassword } from '@/utils/passwordValidation';
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { signIn, signUp, user, loading } = useAuth();
+  const { signIn, signUp, resetPassword, user, loading } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  
+  // Forgot password form
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
   
   // Signup form
   const [signupEmail, setSignupEmail] = useState('');
@@ -106,6 +112,27 @@ const Auth = () => {
       setError('Error inesperado. Inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+
+    try {
+      const { error } = await resetPassword(resetEmail);
+      
+      if (error) {
+        toast.error('Error al enviar el email de recuperación: ' + error.message);
+      } else {
+        toast.success('¡Email de recuperación enviado! Revisa tu bandeja de entrada.');
+        setShowForgotPassword(false);
+        setResetEmail('');
+      }
+    } catch (err) {
+      toast.error('Error inesperado. Inténtalo de nuevo.');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -203,6 +230,17 @@ const Auth = () => {
                         'Iniciar Sesión'
                       )}
                     </Button>
+                    
+                    <div className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotPassword(true)}
+                        className="text-sm text-primary hover:underline"
+                        disabled={isLoading}
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </button>
+                    </div>
                   </form>
                 </TabsContent>
                 
@@ -325,6 +363,71 @@ const Auth = () => {
               </Tabs>
             </CardContent>
           </Card>
+          
+          {/* Forgot Password Modal */}
+          {showForgotPassword && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="w-full max-w-md">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowForgotPassword(false)}
+                      className="p-1 hover:bg-muted rounded"
+                      disabled={resetLoading}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <CardTitle>Recuperar Contraseña</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reset-email">Email</Label>
+                      <Input
+                        id="reset-email"
+                        type="email"
+                        placeholder="tu@email.com"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        required
+                        disabled={resetLoading}
+                      />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowForgotPassword(false)}
+                        disabled={resetLoading}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={resetLoading}
+                        className="flex-1"
+                      >
+                        {resetLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          'Enviar'
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
           
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>
