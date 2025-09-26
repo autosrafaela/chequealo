@@ -74,7 +74,7 @@ serve(async (req: Request) => {
       const { data: existingProfessionalNotification } = await supabase
         .from('notifications')
         .select('id')
-        .eq('user_id', transaction.professionals.user_id)
+        .eq('user_id', (transaction as any).professionals.user_id)
         .eq('title', 'Recordatorio: Evalúa al cliente')
         .gte('created_at', tenDaysAgo.toISOString())
         .single();
@@ -86,7 +86,7 @@ serve(async (req: Request) => {
           .insert({
             user_id: transaction.user_id,
             title: 'Recordatorio: Deja tu reseña',
-            message: `¿Cómo fue tu experiencia con ${transaction.professionals.full_name}? Tu opinión ayuda a otros usuarios.`,
+            message: `¿Cómo fue tu experiencia con ${(transaction as any).professionals.full_name}? Tu opinión ayuda a otros usuarios.`,
             type: 'info',
             action_url: `/professional/${transaction.professional_id}?review=true`
           });
@@ -103,7 +103,7 @@ serve(async (req: Request) => {
         const { error: professionalNotificationError } = await supabase
           .from('notifications')
           .insert({
-            user_id: transaction.professionals.user_id,
+            user_id: (transaction as any).professionals.user_id,
             title: 'Recordatorio: Evalúa al cliente',
             message: 'No olvides evaluar la experiencia con tu cliente reciente. Esto ayuda a mejorar la plataforma.',
             type: 'info',
@@ -113,7 +113,7 @@ serve(async (req: Request) => {
         if (professionalNotificationError) {
           console.error('Error sending professional notification:', professionalNotificationError);
         } else {
-          console.log(`Review reminder sent to professional ${transaction.professionals.user_id}`);
+          console.log(`Review reminder sent to professional ${(transaction as any).professionals.user_id}`);
         }
       }
     }
@@ -132,7 +132,7 @@ serve(async (req: Request) => {
   } catch (error) {
     console.error('Error in send-review-reminders function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
