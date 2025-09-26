@@ -207,12 +207,14 @@ export const useAdvancedSearch = () => {
   }, [professionals]);
 
   useEffect(() => {
-    // Only search automatically if there are no URL params that will trigger a search
-    const hasUrlParams = window.location.search.includes('q=') || 
-                         window.location.search.includes('location=') || 
-                         window.location.search.includes('city=');
+    // Only search automatically if we're not on a search page with URL params
+    const currentPath = window.location.pathname;
+    const hasSearchParams = window.location.search.includes('q=') || 
+                           window.location.search.includes('location=') || 
+                           window.location.search.includes('city=');
     
-    if (!hasUrlParams) {
+    // Load professionals automatically unless we're on search page with params
+    if (!(currentPath === '/search' && hasSearchParams)) {
       searchProfessionals();
     }
   }, []);
