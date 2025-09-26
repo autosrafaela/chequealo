@@ -30,18 +30,23 @@ const Search = () => {
     const queryParam = searchParams.get('q');
     const professionParam = searchParams.get('profession');
     const locationParam = searchParams.get('location');
+    const cityParam = searchParams.get('city');
+    const sortParam = searchParams.get('sort');
     
-    if (queryParam) {
+    if (queryParam && queryParam !== searchQuery) {
       updateSearchQuery(queryParam);
     }
     
-    if (professionParam || locationParam) {
-      updateFilters({
-        profession: professionParam || undefined,
-        location: locationParam || undefined
-      });
+    const filtersToUpdate: any = {};
+    if (professionParam) filtersToUpdate.profession = professionParam;
+    if (locationParam) filtersToUpdate.location = locationParam;
+    if (cityParam) filtersToUpdate.location = cityParam;
+    if (sortParam) filtersToUpdate.sortBy = sortParam;
+    
+    if (Object.keys(filtersToUpdate).length > 0) {
+      updateFilters(filtersToUpdate);
     }
-  }, [searchParams]);
+  }, [searchParams, updateSearchQuery, updateFilters]);
 
   return (
     <div className="min-h-screen bg-background">

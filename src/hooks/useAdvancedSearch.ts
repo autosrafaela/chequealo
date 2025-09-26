@@ -53,57 +53,114 @@ export const useAdvancedSearch = () => {
   const searchProfessionals = async (query: string = searchQuery, currentFilters: SearchFiltersType = filters) => {
     setLoading(true);
     try {
-      let supabaseQuery = supabase
-        .from('professionals_public')
-        .select('*');
+      let baseQuery = supabase
+        .from('professionals')
+        .select(`
+          id,
+          full_name,
+          profession,
+          location,
+          description,
+          rating,
+          review_count,
+          image_url,
+          is_verified,
+          availability
+        `)
+        .eq('is_blocked', false);
 
-      // Text search - search in name, profession, and description
+      // If there's a search query, we need to handle it differently
+      let searchResults: any[] = [];
+      
       if (query.trim()) {
-        supabaseQuery = supabaseQuery.or(`full_name.ilike.%${query}%,profession.ilike.%${query}%,description.ilike.%${query}%`);
+        const searchTerm = query.trim().toLowerCase();
+        
+        // Search in profession first (most relevant)
+        const { data: professionResults } = await baseQuery
+          .ilike('profession', `%${searchTerm}%`);
+        
+        // Search in full name
+        const { data: nameResults } = await baseQuery
+          .ilike('full_name', `%${searchTerm}%`);
+        
+        // Search in description
+        const { data: descriptionResults } = await baseQuery
+          .ilike('description', `%${searchTerm}%`);
+        
+        // Combine results and remove duplicates
+        const allResults = [
+          ...(professionResults || []),
+          ...(nameResults || []),
+          ...(descriptionResults || [])
+        ];
+        
+        // Remove duplicates by id
+        const uniqueResults = allResults.filter((item, index, self) => 
+          index === self.findIndex(t => t.id === item.id)
+        );
+        
+        searchResults = uniqueResults;
+      } else {
+        // No search query, get all professionals
+        const { data } = await baseQuery;
+        searchResults = data || [];
       }
 
-      // Apply filters
+      // Apply additional filters
+      let filteredResults = searchResults;
+      
       if (currentFilters.profession) {
-        supabaseQuery = supabaseQuery.ilike('profession', `%${currentFilters.profession}%`);
+        filteredResults = filteredResults.filter(item => 
+          item.profession.toLowerCase().includes(currentFilters.profession!.toLowerCase())
+        );
       }
       if (currentFilters.location) {
-        supabaseQuery = supabaseQuery.ilike('location', `%${currentFilters.location}%`);
+        filteredResults = filteredResults.filter(item => 
+          item.location?.toLowerCase().includes(currentFilters.location!.toLowerCase())
+        );
       }
       if (currentFilters.rating) {
-        supabaseQuery = supabaseQuery.gte('rating', currentFilters.rating);
+        filteredResults = filteredResults.filter(item => 
+          (item.rating || 0) >= currentFilters.rating!
+        );
       }
       if (currentFilters.verified !== undefined) {
-        supabaseQuery = supabaseQuery.eq('is_verified', currentFilters.verified);
+        filteredResults = filteredResults.filter(item => 
+          item.is_verified === currentFilters.verified
+        );
       }
       if (currentFilters.availability) {
-        supabaseQuery = supabaseQuery.eq('availability', currentFilters.availability);
+        filteredResults = filteredResults.filter(item => 
+          item.availability === currentFilters.availability
+        );
       }
 
       // Apply sorting
       if (currentFilters.sortBy) {
         const ascending = currentFilters.sortOrder === 'asc';
-        let orderColumn: string = currentFilters.sortBy;
-        
-        // Map sort options to actual column names
-        if (currentFilters.sortBy === 'reviews') {
-          orderColumn = 'review_count';
-        } else if (currentFilters.sortBy === 'price') {
-          // For now, we'll sort by rating since we don't have price in professionals table
-          // In the future, you might want to join with professional_services for price sorting
-          orderColumn = 'rating';
-        }
-        
-        supabaseQuery = supabaseQuery.order(orderColumn as any, { ascending });
+        filteredResults.sort((a, b) => {
+          let aValue, bValue;
+          
+          if (currentFilters.sortBy === 'rating') {
+            aValue = a.rating || 0;
+            bValue = b.rating || 0;
+          } else if (currentFilters.sortBy === 'reviews') {
+            aValue = a.review_count || 0;
+            bValue = b.review_count || 0;
+          } else {
+            aValue = a.rating || 0;
+            bValue = b.rating || 0;
+          }
+          
+          return ascending ? aValue - bValue : bValue - aValue;
+        });
       } else {
         // Default sorting by rating desc
-        supabaseQuery = supabaseQuery.order('rating', { ascending: false });
+        filteredResults.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       }
 
-      const { data, error } = await supabaseQuery;
-      if (error) throw error;
-
       // Map data to Professional interface
-      const mappedData: Professional[] = (data || []).map(item => ({
+      const mappedData: Professional[] = filteredResults.map(item => ({
         id: item.id,
         full_name: item.full_name,
         profession: item.profession,
