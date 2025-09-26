@@ -22,7 +22,8 @@ const Search = () => {
     availableLocations,
     updateFilters,
     updateSearchQuery,
-    clearFilters
+    clearFilters,
+    searchProfessionals
   } = useAdvancedSearch();
 
   // Initialize search from URL params
@@ -33,20 +34,32 @@ const Search = () => {
     const cityParam = searchParams.get('city');
     const sortParam = searchParams.get('sort');
     
-    if (queryParam && queryParam !== searchQuery) {
-      updateSearchQuery(queryParam);
-    }
+    // Only update if there are actual search params
+    const hasSearchParams = queryParam || professionParam || locationParam || cityParam || sortParam;
     
-    const filtersToUpdate: any = {};
-    if (professionParam) filtersToUpdate.profession = professionParam;
-    if (locationParam) filtersToUpdate.location = locationParam;
-    if (cityParam) filtersToUpdate.location = cityParam;
-    if (sortParam) filtersToUpdate.sortBy = sortParam;
-    
-    if (Object.keys(filtersToUpdate).length > 0) {
-      updateFilters(filtersToUpdate);
+    if (hasSearchParams) {
+      const filtersToUpdate: any = {};
+      if (professionParam) filtersToUpdate.profession = professionParam;
+      if (locationParam) filtersToUpdate.location = locationParam;
+      if (cityParam) filtersToUpdate.location = cityParam;
+      if (sortParam) filtersToUpdate.sortBy = sortParam;
+      
+      // Update both query and filters at once
+      if (queryParam) {
+        updateSearchQuery(queryParam);
+        if (Object.keys(filtersToUpdate).length > 0) {
+          setTimeout(() => updateFilters(filtersToUpdate), 0);
+        }
+      } else if (Object.keys(filtersToUpdate).length > 0) {
+        updateFilters(filtersToUpdate);
+      }
+    } else {
+      // No search params, load all professionals only if needed
+      if (professionals.length === 0 && !loading) {
+        updateSearchQuery('');
+      }
     }
-  }, [searchParams, updateSearchQuery, updateFilters]);
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-background">
