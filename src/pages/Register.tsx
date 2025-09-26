@@ -682,6 +682,7 @@ const Register = () => {
                             <p>
                               Estos Términos se rigen por las leyes de la República Argentina. Para cualquier controversia, las partes se someten a los tribunales competentes de [Ciudad/Provincia], con renuncia a cualquier otro fuero o jurisdicción.
                             </p>
+                          </div>
                         </div>
                       </ScrollArea>
                     </DialogContent>
