@@ -472,7 +472,7 @@ const Register = () => {
                           <p><strong>Última actualización:</strong> 12 de septiembre de 2025</p>
                           
                           <p>
-                            Bienvenido/a a TIKO.AR (el "Sitio" y/o la "Plataforma"), operado por [Razón Social], CUIT [CUIT], con domicilio en [Domicilio legal] ("TIKO.AR", "nosotros" o "nuestro").
+                            Bienvenido/a a CHEQUEALO.AR (el "Sitio" y/o la "Plataforma"), operado por [Razón Social], CUIT [CUIT], con domicilio en [Domicilio legal] ("CHEQUEALO.AR", "nosotros" o "nuestro").
                             Estos Términos y Condiciones (los "Términos") regulan el acceso y uso del Sitio, de nuestras aplicaciones asociadas y de los servicios que ofrecemos (los "Servicios"). Al registrarte, acceder o utilizar la Plataforma aceptás estos Términos y nuestra Política de Privacidad.
                           </p>
                           
@@ -481,8 +481,8 @@ const Register = () => {
                           <div>
                             <h3 className="font-semibold mb-2">1) Objeto del servicio</h3>
                             <p>
-                              TIKO.AR es un directorio y canal de contacto que conecta usuarios que buscan servicios ("Usuarios") con profesionales y comercios que los ofrecen ("Profesionales").
-                              TIKO.AR no presta servicios profesionales, no participa en la relación contractual entre Usuarios y Profesionales, ni garantiza resultados, precios, plazos, títulos, habilitaciones o calidad.
+                              CHEQUEALO.AR es un directorio y canal de contacto que conecta usuarios que buscan servicios ("Usuarios") con profesionales y comercios que los ofrecen ("Profesionales").
+                              CHEQUEALO.AR no presta servicios profesionales, no participa en la relación contractual entre Usuarios y Profesionales, ni garantiza resultados, precios, plazos, títulos, habilitaciones o calidad.
                             </p>
                           </div>
 
@@ -523,7 +523,7 @@ const Register = () => {
                               Aceptan que son exclusivos responsables por la relación con Usuarios, por la ejecución de sus servicios y por cualquier reclamo, daño o perjuicio que pudiese derivarse.
                             </p>
                             
-                            <h4 className="font-medium mb-1 mt-3">3.3. TIKO.AR</h4>
+                            <h4 className="font-medium mb-1 mt-3">3.3. CHEQUEALO.AR</h4>
                             <p>
                               Ofrece herramientas de exhibición, búsqueda, mensajería y reseñas.
                             </p>
@@ -541,7 +541,7 @@ const Register = () => {
                               Al publicar textos, imágenes, logos, precios, descripciones, reseñas u otros ("Contenido"), garantizás que tenés derechos para usarlos y que no infringen derechos de terceros.
                             </p>
                             <p>
-                              Nos concedés una licencia no exclusiva, gratuita, transferible y sublicenciable para alojar, reproducir, adaptar, comunicar y exhibir ese Contenido dentro de la Plataforma y con fines de promoción de TIKO.AR.
+                              Nos concedés una licencia no exclusiva, gratuita, transferible y sublicenciable para alojar, reproducir, adaptar, comunicar y exhibir ese Contenido dentro de la Plataforma y con fines de promoción de CHEQUEALO.AR.
                             </p>
                             <p>
                               Está prohibido subir Contenido ilegal, difamatorio, engañoso, discriminatorio, violento, sexualmente explícito, con datos personales de terceros sin autorización, o que contenga virus o scripts maliciosos.
@@ -557,7 +557,7 @@ const Register = () => {
                               Se prohíbe la manipulación (autorreseñas, reseñas pagadas, presión o intercambio de beneficios).
                             </p>
                             <p>
-                              TIKO.AR puede eliminar o editar reseñas que incumplan estos Términos o que contengan lenguaje ofensivo, datos sensibles o información personal de terceros.
+                              CHEQUEALO.AR puede eliminar o editar reseñas que incumplan estos Términos o que contengan lenguaje ofensivo, datos sensibles o información personal de terceros.
                             </p>
                           </div>
 
@@ -603,7 +603,7 @@ const Register = () => {
                           <div>
                             <h3 className="font-semibold mb-2">9) Propiedad Intelectual</h3>
                             <p>
-                              El Sitio, su código, diseño, marcas, logos, bases de datos y contenidos propios son propiedad de TIKO.AR o de sus licenciantes y están protegidos por las leyes de Propiedad Intelectual.
+                              El Sitio, su código, diseño, marcas, logos, bases de datos y contenidos propios son propiedad de CHEQUEALO.AR o de sus licenciantes y están protegidos por las leyes de Propiedad Intelectual.
                             </p>
                             <p>
                               No se otorga licencia alguna sobre dichos derechos salvo lo expresamente previsto.
@@ -624,10 +624,10 @@ const Register = () => {
                             <h3 className="font-semibold mb-2">11) Limitación de responsabilidad</h3>
                             <p>En la máxima medida permitida por la ley aplicable:</p>
                             <p>
-                              TIKO.AR no es responsable por daños directos o indirectos, lucro cesante, pérdida de chance, datos o reputación derivados del uso o imposibilidad de uso de la Plataforma o de relaciones entre Usuarios y Profesionales.
+                              CHEQUEALO.AR no es responsable por daños directos o indirectos, lucro cesante, pérdida de chance, datos o reputación derivados del uso o imposibilidad de uso de la Plataforma o de relaciones entre Usuarios y Profesionales.
                             </p>
                             <p>
-                              TIKO.AR no garantiza la veracidad, integridad o actualización de contenidos provistos por terceros (Profesionales o Usuarios).
+                              CHEQUEALO.AR no garantiza la veracidad, integridad o actualización de contenidos provistos por terceros (Profesionales o Usuarios).
                             </p>
                             <p>
                               Los riesgos derivados de la contratación y ejecución de servicios corren por cuenta y riesgo de Usuarios y Profesionales.
@@ -637,7 +637,7 @@ const Register = () => {
                           <div>
                             <h3 className="font-semibold mb-2">12) Indemnidad</h3>
                             <p>
-                              Te comprometés a mantener indemne a TIKO.AR, sus directivos y colaboradores frente a reclamos, daños, sanciones, costos y gastos (incluidos honorarios razonables) originados por:
+                              Te comprometés a mantener indemne a CHEQUEALO.AR, sus directivos y colaboradores frente a reclamos, daños, sanciones, costos y gastos (incluidos honorarios razonables) originados por:
                               a) tu Contenido; b) tu uso de la Plataforma; c) incumplimientos a estos Términos o a la ley; d) reclamos de terceros vinculados a tus publicaciones o servicios.
                             </p>
                           </div>
@@ -645,7 +645,7 @@ const Register = () => {
                           <div>
                             <h3 className="font-semibold mb-2">13) Enlaces a terceros</h3>
                             <p>
-                              La Plataforma puede contener enlaces a sitios o servicios de terceros. TIKO.AR no controla ni respalda esos contenidos y no asume responsabilidad por daños que pudieran derivarse de su uso.
+                              La Plataforma puede contener enlaces a sitios o servicios de terceros. CHEQUEALO.AR no controla ni respalda esos contenidos y no asume responsabilidad por daños que pudieran derivarse de su uso.
                             </p>
                           </div>
 
@@ -682,18 +682,6 @@ const Register = () => {
                             <p>
                               Estos Términos se rigen por las leyes de la República Argentina. Para cualquier controversia, las partes se someten a los tribunales competentes de [Ciudad/Provincia], con renuncia a cualquier otro fuero o jurisdicción.
                             </p>
-                          </div>
-
-                          <div>
-                            <h3 className="font-semibold mb-2">19) Contacto</h3>
-                            <p>Para consultas, quejas o derechos de usuarios, podés comunicarte a:</p>
-                            <p>
-                              [Razón Social] — [CUIT]<br />
-                              [Domicilio] — [Ciudad, Provincia, CP]<br />
-                              Email: [correo@tiko.ar] — Tel.: [número]<br />
-                              Horario de atención: [días y horarios]
-                            </p>
-                          </div>
                         </div>
                       </ScrollArea>
                     </DialogContent>
