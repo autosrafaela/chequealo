@@ -93,9 +93,9 @@ const Index = () => {
             <div>
               <h4 className="text-foreground font-semibold mb-4">Para Clientes</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Buscar profesionales</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Cómo funciona</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Preguntas frecuentes</a></li>
+                <li><Link to="/search" className="hover:text-foreground transition-colors">Buscar profesionales</Link></li>
+                <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">Cómo funciona</Link></li>
+                <li><Link to="/faq" className="hover:text-foreground transition-colors">Preguntas frecuentes</Link></li>
               </ul>
             </div>
 
@@ -103,8 +103,8 @@ const Index = () => {
               <h4 className="text-foreground font-semibold mb-4">Para Profesionales</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link to="/register" className="hover:text-foreground transition-colors">Registrarme</Link></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Planes y precios</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Centro de ayuda</a></li>
+                <li><Link to="/pricing" className="hover:text-foreground transition-colors">Planes y precios</Link></li>
+                <li><Link to="/faq" className="hover:text-foreground transition-colors">Centro de ayuda</Link></li>
               </ul>
             </div>
 

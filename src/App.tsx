@@ -20,6 +20,9 @@ import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TestResults from "./pages/TestResults";
 import NotFound from "./pages/NotFound";
+import HowItWorks from "./pages/HowItWorks";
+import FAQ from "./pages/FAQ";
+import Pricing from "./pages/Pricing";
 
 const App = () => (
   <TooltipProvider>
@@ -41,6 +44,9 @@ const App = () => (
         <Route path="/dashboard" element={<ProfessionalDashboard />} />
         <Route path="/user-dashboard" element={<UserDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/test-results" element={<TestResults />} />
