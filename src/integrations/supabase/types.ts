@@ -14,6 +14,152 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability_slots: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean
+          max_bookings_per_slot: number
+          professional_id: string
+          slot_duration_minutes: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean
+          max_bookings_per_slot?: number
+          professional_id: string
+          slot_duration_minutes?: number
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          max_bookings_per_slot?: number
+          professional_id?: string
+          slot_duration_minutes?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          booking_date: string
+          booking_reference: string | null
+          cancellation_reason: string | null
+          client_email: string
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          currency: string | null
+          duration_minutes: number
+          id: string
+          notes: string | null
+          professional_id: string
+          rescheduled_from: string | null
+          service_id: string | null
+          status: string
+          total_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_date: string
+          booking_reference?: string | null
+          cancellation_reason?: string | null
+          client_email: string
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          currency?: string | null
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          professional_id: string
+          rescheduled_from?: string | null
+          service_id?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          booking_reference?: string | null
+          cancellation_reason?: string | null
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          currency?: string | null
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          professional_id?: string
+          rescheduled_from?: string | null
+          service_id?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_rescheduled_from_fkey"
+            columns: ["rescheduled_from"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "professional_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_access_logs: {
         Row: {
           access_type: string
@@ -86,6 +232,70 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          contact_request_id: string | null
+          created_at: string
+          id: string
+          last_message_at: string | null
+          last_message_preview: string | null
+          professional_id: string
+          status: string
+          unread_count_professional: number | null
+          unread_count_user: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_request_id?: string | null
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          professional_id: string
+          status?: string
+          unread_count_professional?: number | null
+          unread_count_user?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_request_id?: string | null
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          professional_id?: string
+          status?: string
+          unread_count_professional?: number | null
+          unread_count_user?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_contact_request_id_fkey"
+            columns: ["contact_request_id"]
+            isOneToOne: false
+            referencedRelation: "contact_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string
@@ -121,6 +331,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          is_read: boolean
+          message_type: string
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_read?: boolean
+          message_type?: string
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_read?: boolean
+          message_type?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -608,6 +866,9 @@ export type Database = {
         Row: {
           advanced_analytics: boolean | null
           billing_interval: string
+          calendar_integration: boolean | null
+          can_receive_messages: boolean | null
+          can_send_files: boolean | null
           created_at: string
           currency: string
           featured_listing: boolean | null
@@ -616,6 +877,7 @@ export type Database = {
           id: string
           is_active: boolean
           max_contact_requests: number | null
+          max_monthly_bookings: number | null
           max_work_photos: number | null
           name: string
           price: number
@@ -625,6 +887,9 @@ export type Database = {
         Insert: {
           advanced_analytics?: boolean | null
           billing_interval?: string
+          calendar_integration?: boolean | null
+          can_receive_messages?: boolean | null
+          can_send_files?: boolean | null
           created_at?: string
           currency?: string
           featured_listing?: boolean | null
@@ -633,6 +898,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_contact_requests?: number | null
+          max_monthly_bookings?: number | null
           max_work_photos?: number | null
           name: string
           price: number
@@ -642,6 +908,9 @@ export type Database = {
         Update: {
           advanced_analytics?: boolean | null
           billing_interval?: string
+          calendar_integration?: boolean | null
+          can_receive_messages?: boolean | null
+          can_send_files?: boolean | null
           created_at?: string
           currency?: string
           featured_listing?: boolean | null
@@ -650,6 +919,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_contact_requests?: number | null
+          max_monthly_bookings?: number | null
           max_work_photos?: number | null
           name?: string
           price?: number

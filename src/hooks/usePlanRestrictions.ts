@@ -10,6 +10,10 @@ interface PlanLimits {
   advancedAnalytics: boolean;
   featuredListing: boolean;
   canAccessAdvancedFeatures: boolean;
+  canReceiveMessages: boolean;
+  canSendFiles: boolean;
+  maxMonthlyBookings: number;
+  calendarIntegration: boolean;
 }
 
 interface ExtendedSubscription {
@@ -44,7 +48,11 @@ export const usePlanRestrictions = () => {
     prioritySupport: true,
     advancedAnalytics: false,
     featuredListing: false,
-    canAccessAdvancedFeatures: true
+    canAccessAdvancedFeatures: true,
+    canReceiveMessages: true,
+    canSendFiles: false,
+    maxMonthlyBookings: -1,
+    calendarIntegration: false
   });
   const [loading, setLoading] = useState(true);
 
@@ -75,7 +83,11 @@ export const usePlanRestrictions = () => {
             prioritySupport: professionalPlan.priority_support,
             advancedAnalytics: professionalPlan.advanced_analytics,
             featuredListing: professionalPlan.featured_listing,
-            canAccessAdvancedFeatures: true
+            canAccessAdvancedFeatures: true,
+            canReceiveMessages: professionalPlan.can_receive_messages,
+            canSendFiles: professionalPlan.can_send_files,
+            maxMonthlyBookings: professionalPlan.max_monthly_bookings,
+            calendarIntegration: professionalPlan.calendar_integration
           });
         }
         return;
@@ -100,7 +112,11 @@ export const usePlanRestrictions = () => {
           prioritySupport: plan.priority_support,
           advancedAnalytics: plan.advanced_analytics,
           featuredListing: plan.featured_listing,
-          canAccessAdvancedFeatures: status === 'active'
+          canAccessAdvancedFeatures: status === 'active',
+          canReceiveMessages: plan.can_receive_messages,
+          canSendFiles: plan.can_send_files,
+          maxMonthlyBookings: plan.max_monthly_bookings,
+          calendarIntegration: plan.calendar_integration
         });
       }
 
