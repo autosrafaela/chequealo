@@ -254,18 +254,28 @@ const UserDashboard = () => {
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) {
-      console.log('No file selected or no user');
+    console.log('handlePhotoUpload called', { file, user: user?.id });
+    
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+    
+    if (!user) {
+      console.log('No user found');
+      toast.error('Debes estar conectado para subir una foto');
       return;
     }
 
     // Validate file size (5MB max)
+    console.log('File size:', file.size, 'bytes');
     if (file.size > 5 * 1024 * 1024) {
       toast.error('La imagen debe ser menor a 5MB');
       return;
     }
 
     // Validate file type
+    console.log('File type:', file.type);
     if (!file.type.startsWith('image/')) {
       toast.error('Solo se permiten archivos de imagen');
       return;
@@ -275,18 +285,23 @@ const UserDashboard = () => {
       setUploadingPhoto(true);
       console.log('Starting photo upload for user:', user.id);
       
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
+      // Create a simple filename
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `${user.id}/avatar.${fileExt}`;
+      console.log('Target filename:', fileName);
       
-      console.log('Uploading file:', fileName);
+      // Try to upload file
+      console.log('Attempting upload to avatars bucket...');
       const { data, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, { 
+          upsert: true,
+          contentType: file.type 
+        });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Error de subida: ${uploadError.message}`);
       }
 
       console.log('Upload successful:', data);
@@ -296,18 +311,21 @@ const UserDashboard = () => {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      console.log('Public URL:', publicUrl);
+      console.log('Generated public URL:', publicUrl);
 
-      // First check if profile exists
+      // Update profile with new avatar URL
+      console.log('Updating profile with new avatar URL...');
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      console.log('Existing profile check:', existingProfile);
+
       let updateError;
       if (existingProfile) {
-        // Update existing profile
+        console.log('Updating existing profile...');
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -317,13 +335,13 @@ const UserDashboard = () => {
           .eq('user_id', user.id);
         updateError = error;
       } else {
-        // Create new profile with avatar
+        console.log('Creating new profile with avatar...');
         const { error } = await supabase
           .from('profiles')
           .insert({
             user_id: user.id,
             avatar_url: publicUrl,
-            full_name: fullName || '',
+            full_name: fullName || user.email?.split('@')[0] || '',
             username: username || '',
             bio: bio || '',
             location: location || ''
@@ -333,17 +351,24 @@ const UserDashboard = () => {
 
       if (updateError) {
         console.error('Profile update error:', updateError);
-        throw updateError;
+        throw new Error(`Error al actualizar perfil: ${updateError.message}`);
       }
 
-      console.log('Profile updated successfully');
-      toast.success('Foto de perfil actualizada');
-      fetchUserData();
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      toast.error(`Error al subir foto de perfil: ${error.message || 'Error desconocido'}`);
+      console.log('Photo upload and profile update completed successfully');
+      toast.success('Foto de perfil actualizada correctamente');
+      
+      // Reset the file input
+      event.target.value = '';
+      
+      // Refresh user data
+      await fetchUserData();
+      
+    } catch (error: any) {
+      console.error('Complete error in handlePhotoUpload:', error);
+      toast.error(error.message || 'Error desconocido al subir la foto');
     } finally {
       setUploadingPhoto(false);
+      console.log('Photo upload process finished');
     }
   };
 
@@ -591,21 +616,27 @@ const UserDashboard = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="space-y-2">
-                    <Button 
-                      variant="outline" 
-                      disabled={uploadingPhoto}
-                      onClick={() => document.getElementById('photo-upload')?.click()}
-                    >
+                     <Button 
+                       variant="outline" 
+                       disabled={uploadingPhoto}
+                       onClick={() => {
+                         console.log('Attempting to click file input');
+                         document.getElementById('photo-upload')?.click();
+                       }}
+                     >
                       <Camera className="h-4 w-4 mr-2" />
                       {uploadingPhoto ? 'Subiendo...' : 'Cambiar Foto'}
                     </Button>
-                    <input
-                      id="photo-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                    />
+                     <input
+                       id="photo-upload"
+                       type="file"
+                       accept="image/jpeg,image/png,image/gif,image/webp"
+                       onChange={(e) => {
+                         console.log('File input changed:', e.target.files);
+                         handlePhotoUpload(e);
+                       }}
+                       className="hidden"
+                     />
                     <p className="text-xs text-muted-foreground">
                       Formatos: JPG, PNG, GIF (máx. 5MB)
                     </p>
