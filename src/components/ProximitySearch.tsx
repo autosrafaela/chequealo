@@ -107,7 +107,12 @@ export const ProximitySearch: React.FC<ProximitySearchProps> = ({ onResultsChang
 
       if (error) throw error;
 
-      let filteredProfessionals = data || [];
+      let filteredProfessionals: Professional[] = (data || []).map(prof => ({
+        ...prof,
+        image_url: prof.image_url || null,
+        latitude: prof.latitude || null,
+        longitude: prof.longitude || null,
+      }));
 
       // Filter by proximity if we have user location
       if (userLocation) {
