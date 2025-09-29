@@ -96,15 +96,19 @@ const AdminDashboard = () => {
       setLoading(true);
 
       // Fetch users count
-      const { data: profiles } = await supabase
+      console.log('[AdminDashboard] Fetching profiles...');
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id');
+      console.log('[AdminDashboard] Profiles result:', { data: profiles, error: profilesError, count: profiles?.length });
 
       // Fetch professionals
-      const { data: professionalsData } = await supabase
+      console.log('[AdminDashboard] Fetching professionals...');
+      const { data: professionalsData, error: professionalsError } = await supabase
         .from('professionals')
         .select('*')
         .order('created_at', { ascending: false });
+      console.log('[AdminDashboard] Professionals result:', { data: professionalsData, error: professionalsError, count: professionalsData?.length });
 
       // Fetch verification requests
       const { data: verificationsData } = await supabase
@@ -118,9 +122,11 @@ const AdminDashboard = () => {
         .select('rating');
 
       // Fetch contact requests
-      const { data: contactRequestsData } = await supabase
+      console.log('[AdminDashboard] Fetching contact requests...');
+      const { data: contactRequestsData, error: contactRequestsError } = await supabase
         .from('contact_requests')
         .select('id');
+      console.log('[AdminDashboard] Contact requests result:', { data: contactRequestsData, error: contactRequestsError, count: contactRequestsData?.length });
 
       // Fetch subscriptions
       const { data: subscriptionsData } = await supabase
