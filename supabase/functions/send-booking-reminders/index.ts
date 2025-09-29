@@ -253,10 +253,11 @@ Este es un recordatorio automático de TodoAca.ar
 
       } catch (bookingError) {
         console.error(`Error processing booking ${booking.id}:`, bookingError);
+        const errorMessage = bookingError instanceof Error ? bookingError.message : String(bookingError);
         remindersResults.push({
           booking_id: booking.id,
           status: 'error',
-          error: bookingError.message
+          error: errorMessage
         });
       }
     }
@@ -278,10 +279,11 @@ Este es un recordatorio automático de TodoAca.ar
 
   } catch (error) {
     console.error('Error in send-booking-reminders function:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: errorMessage,
         details: 'Failed to process booking reminders'
       }),
       { 

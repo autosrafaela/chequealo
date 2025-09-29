@@ -162,18 +162,22 @@ export const RealtimeNotifications: React.FC = () => {
           const booking = payload.new || payload.old;
           
           // Show notification based on event type
-          if (payload.eventType === 'INSERT') {
+          if (payload.eventType === 'INSERT' && booking && 'booking_date' in booking) {
+            const bookingData = booking as any;
             toast('Nueva reserva', {
-              description: `Nueva cita programada para ${new Date(booking.booking_date).toLocaleDateString()}`,
+              description: `Nueva cita programada para ${new Date(bookingData.booking_date).toLocaleDateString()}`,
               icon: <Calendar className="h-4 w-4" />,
               action: {
                 label: "Ver",
                 onClick: () => window.location.href = '/professional/bookings'
               }
             });
-          } else if (payload.eventType === 'UPDATE' && payload.old.status !== payload.new.status) {
+          } else if (payload.eventType === 'UPDATE' && payload.old && payload.new && 
+                    'status' in payload.old && 'status' in payload.new && 
+                    payload.old.status !== payload.new.status) {
+            const newBooking = payload.new as any;
             toast('Reserva actualizada', {
-              description: `Estado de cita cambiado a: ${booking.status}`,
+              description: `Estado de cita cambiado a: ${newBooking.status}`,
               icon: <Calendar className="h-4 w-4" />
             });
           }

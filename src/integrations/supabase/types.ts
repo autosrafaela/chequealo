@@ -82,6 +82,7 @@ export type Database = {
           id: string
           notes: string | null
           professional_id: string
+          reminder_sent: boolean | null
           rescheduled_from: string | null
           service_id: string | null
           status: string
@@ -102,6 +103,7 @@ export type Database = {
           id?: string
           notes?: string | null
           professional_id: string
+          reminder_sent?: boolean | null
           rescheduled_from?: string | null
           service_id?: string | null
           status?: string
@@ -122,6 +124,7 @@ export type Database = {
           id?: string
           notes?: string | null
           professional_id?: string
+          reminder_sent?: boolean | null
           rescheduled_from?: string | null
           service_id?: string | null
           status?: string
