@@ -2,6 +2,8 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import ServiceCategories from "@/components/ServiceCategories";
 import { LatestProfessionals } from "@/components/LatestProfessionals";
+import OnboardingTour from "@/components/OnboardingTour";
+import ContextualTips from "@/components/ContextualTips";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -13,6 +15,10 @@ const Index = () => {
       <Hero />
       <ServiceCategories />
       <LatestProfessionals />
+      
+      {/* UX Enhancement Components */}
+      <OnboardingTour />
+      <ContextualTips />
       
       {/* Features Section */}
       <section className="py-16 bg-card">

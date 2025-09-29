@@ -35,6 +35,7 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
+import ProfileCompletionChecklist from '@/components/ProfileCompletionChecklist';
 import { Navigate } from 'react-router-dom';
 import FavoritesPanel from '@/components/FavoritesPanel';
 import { UserTransactionReviews } from '@/components/UserTransactionReviews';

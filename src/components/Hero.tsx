@@ -1,23 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
 import { useState } from "react";
 import heroProfessionals from "@/assets/hero-professionals.jpg";
+import IntelligentSearch from "./IntelligentSearch";
 
 const Hero = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Navigate to search page with query parameter (empty query shows all results)
-    const params = new URLSearchParams();
-    if (searchQuery.trim()) {
-      params.set('q', searchQuery.trim());
-    }
-    navigate(`/search?${params.toString()}`);
-  };
 
   return (
     <section 
@@ -38,27 +27,12 @@ const Hero = () => {
             Conectamos clientes con profesionales de confianza en tu zona
           </p>
 
-          {/* Search Bar */}
+          {/* Intelligent Search Bar */}
           <div className="mb-8 max-w-2xl mx-auto px-4 sm:px-0">
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-2">
-              <div className="flex-1 relative">
-                <Input
-                  type="text"
-                  placeholder="¿Qué servicio necesitás? Ej: plomero, electricista..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-12 sm:h-14 text-base sm:text-lg px-4 sm:px-6 pr-12 bg-background/95 border-0 rounded-full placeholder:text-muted-foreground w-full"
-                />
-                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
-              </div>
-              <Button 
-                type="submit"
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 rounded-full w-full sm:w-auto whitespace-nowrap"
-              >
-                Buscar
-              </Button>
-            </form>
+            <IntelligentSearch 
+              placeholder="Describí tu problema... Ej: 'mi aire acondicionado no enfría bien'"
+              className="w-full"
+            />
             
             {/* Alternative CTA */}
             <div className="mt-4">
