@@ -134,6 +134,7 @@ const Index = () => {
                 <li><Link to="/terms" className="hover:text-foreground transition-colors">Términos de Servicio</Link></li>
                 <li><Link to="/privacy" className="hover:text-foreground transition-colors">Política de Privacidad</Link></li>
                 <li>📱 +54 9 3492 60-7224</li>
+                <li>📧 info@chequealo.ar</li>
               </ul>
             </div>
           </div>
