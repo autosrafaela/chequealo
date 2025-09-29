@@ -333,6 +333,7 @@ export type Database = {
           availability: string | null
           created_at: string
           description: string | null
+          dni: string | null
           email: string
           full_name: string
           id: string
@@ -352,6 +353,7 @@ export type Database = {
           availability?: string | null
           created_at?: string
           description?: string | null
+          dni?: string | null
           email: string
           full_name: string
           id?: string
@@ -371,6 +373,7 @@ export type Database = {
           availability?: string | null
           created_at?: string
           description?: string | null
+          dni?: string | null
           email?: string
           full_name?: string
           id?: string

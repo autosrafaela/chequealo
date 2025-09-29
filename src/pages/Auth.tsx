@@ -40,6 +40,8 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
+  const [dni, setDni] = useState('');
+  const [isProfessional, setIsProfessional] = useState(false);
 
   const defaultTab = searchParams.get('tab') || 'login';
 
@@ -94,6 +96,46 @@ const Auth = () => {
       return;
     }
 
+    // Verificaciones para profesionales
+    if (isProfessional) {
+      // Verificar DNI requerido
+      if (!dni.trim()) {
+        setError('El DNI es requerido para profesionales');
+        setIsLoading(false);
+        return;
+      }
+
+      // Verificar que el email no esté ya registrado como profesional
+      try {
+        const { data: existingProfessional } = await supabase
+          .from('professionals')
+          .select('id')
+          .eq('email', signupEmail)
+          .single();
+          
+        if (existingProfessional) {
+          setError('Este email ya está registrado como profesional');
+          setIsLoading(false);
+          return;
+        }
+
+        // Verificar que el DNI no esté ya registrado
+        const { data: existingDNI } = await supabase
+          .from('professionals')
+          .select('id')
+          .eq('dni', dni.trim())
+          .single();
+          
+        if (existingDNI) {
+          setError('Este DNI ya está registrado como profesional');
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        // Los errores aquí son esperados si no hay registros existentes
+      }
+    }
+
     try {
       const { error } = await signUp(signupEmail, signupPassword, fullName, username);
       
@@ -106,8 +148,13 @@ const Auth = () => {
           setError(error.message);
         }
       } else {
-        toast.success('¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.');
-        // Don't navigate immediately, let them confirm email
+        // Si es profesional, crear el perfil profesional después del registro
+        if (isProfessional) {
+          // Redirigir a la página de registro de profesional con información precargada
+          navigate(`/register?type=professional&email=${encodeURIComponent(signupEmail)}&name=${encodeURIComponent(fullName)}&dni=${encodeURIComponent(dni)}`, { replace: true });
+        } else {
+          toast.success('¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.');
+        }
       }
     } catch (err) {
       setError('Error inesperado. Inténtalo de nuevo.');
@@ -382,6 +429,34 @@ const Auth = () => {
 
                   <form onSubmit={handleSignup} className="space-y-4">
                     <div className="space-y-2">
+                      <Label>Tipo de cuenta</Label>
+                      <div className="flex bg-muted rounded-lg p-1">
+                        <button
+                          type="button"
+                          onClick={() => setIsProfessional(false)}
+                          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                            !isProfessional
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Cliente
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsProfessional(true)}
+                          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                            isProfessional
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Profesional
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label htmlFor="full-name">Nombre Completo (opcional)</Label>
                       <Input
                         id="full-name"
@@ -405,6 +480,22 @@ const Auth = () => {
                         disabled={isLoading}
                       />
                     </div>
+
+                    {/* DNI para profesionales */}
+                    {isProfessional && (
+                      <div className="space-y-2">
+                        <Label htmlFor="dni">DNI (requerido para profesionales)</Label>
+                        <Input
+                          id="dni"
+                          type="text"
+                          placeholder="12345678"
+                          value={dni}
+                          onChange={(e) => setDni(e.target.value)}
+                          required={isProfessional}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    )}
                     
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Contraseña</Label>

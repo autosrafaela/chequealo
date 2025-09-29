@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, MapPin, Search, Loader2 } from "lucide-react";
 import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,23 +22,33 @@ import {
 const Register = () => {
   const navigate = useNavigate();
   const { signUp, signIn } = useAuth();
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [userType, setUserType] = useState<'professional' | 'client'>('professional');
+  
+  // Get URL parameters
+  const urlType = searchParams.get('type');
+  const urlEmail = searchParams.get('email');
+  const urlName = searchParams.get('name');
+  const urlDni = searchParams.get('dni');
+  
+  const [userType, setUserType] = useState<'professional' | 'client'>(
+    urlType === 'professional' ? 'professional' : 'professional'
+  );
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Form data
+  // Form data - prefill from URL parameters
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
+    fullName: urlName || '',
+    email: urlEmail || '',
     password: '',
     confirmPassword: '',
     description: '',
     location: '',
     phone: '',
-    dni: '',
+    dni: urlDni || '',
     acceptTerms: false
   });
 
@@ -137,6 +147,11 @@ const Register = () => {
       return;
     }
 
+    if (userType === 'professional' && !formData.dni.trim()) {
+      toast.error('El DNI es requerido para profesionales');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -151,6 +166,20 @@ const Register = () => {
         if (existingProfessional) {
           toast.error('Este email ya está registrado como profesional');
           return;
+        }
+
+        // Verificar que el DNI no esté ya registrado
+        if (formData.dni) {
+          const { data: existingDNI } = await supabase
+            .from('professionals')
+            .select('id')
+            .eq('dni', formData.dni)
+            .single();
+            
+          if (existingDNI) {
+            toast.error('Este DNI ya está registrado como profesional');
+            return;
+          }
         }
       }
       
@@ -184,6 +213,7 @@ const Register = () => {
               full_name: formData.fullName,
               email: formData.email,
               phone: formData.phone || '',
+              dni: formData.dni || '',
               profession: selectedServices[0] || 'Profesional',
               location: formData.location || '',
               description: formData.description || '',
