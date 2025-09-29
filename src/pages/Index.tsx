@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import ServiceCategories from "@/components/ServiceCategories";
+import { LatestProfessionals } from "@/components/LatestProfessionals";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -11,6 +12,7 @@ const Index = () => {
       <Header />
       <Hero />
       <ServiceCategories />
+      <LatestProfessionals />
       
       {/* Features Section */}
       <section className="py-16 bg-card">
