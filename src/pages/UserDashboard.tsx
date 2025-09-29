@@ -185,18 +185,41 @@ const UserDashboard = () => {
     try {
       setUpdating(true);
 
-      const { error } = await supabase
+      // First check if profile exists
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user.id,
-          full_name: fullName,
-          username: username,
-          bio: bio,
-          location: location,
-          updated_at: new Date().toISOString()
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (existingProfile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: fullName,
+            username: username,
+            bio: bio,
+            location: location,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        // Create new profile
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            full_name: fullName,
+            username: username,
+            bio: bio,
+            location: location
+          });
+
+        if (error) throw error;
+      }
 
       toast.success('Perfil actualizado correctamente');
       fetchUserData();
