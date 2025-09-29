@@ -30,7 +30,8 @@ import {
   Plus,
   Key,
   Download,
-  Trash2
+  Trash2,
+  Smartphone
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -39,6 +40,7 @@ import ProfileCompletionChecklist from '@/components/ProfileCompletionChecklist'
 import { Navigate } from 'react-router-dom';
 import FavoritesPanel from '@/components/FavoritesPanel';
 import { UserTransactionReviews } from '@/components/UserTransactionReviews';
+import PWAFeatures from '@/components/PWAFeatures';
 
 interface UserProfile {
   id: string;
@@ -774,7 +776,7 @@ const UserDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
               Mi Perfil
@@ -790,6 +792,10 @@ const UserDashboard = () => {
             <TabsTrigger value="reviews">
               <Star className="h-4 w-4 mr-2" />
               Reseñas
+            </TabsTrigger>
+            <TabsTrigger value="mobile">
+              <Smartphone className="h-4 w-4 mr-2" />
+              App Móvil
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
@@ -1004,6 +1010,20 @@ const UserDashboard = () => {
 
           <TabsContent value="reviews">
             <UserTransactionReviews />
+          </TabsContent>
+
+          <TabsContent value="mobile">
+            <Card>
+              <CardHeader>
+                <CardTitle>Funcionalidades Móviles</CardTitle>
+                <CardDescription>
+                  Configura las funciones de la aplicación móvil y PWA
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PWAFeatures />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="settings">
