@@ -276,6 +276,13 @@ const ProfessionalProfile = () => {
     toast.success('Enlace copiado. Puedes pegarlo en tu historia de Instagram');
   };
 
+  const shareToEmail = () => {
+    const subject = `Conoce a ${professional.full_name} - ${professional.profession}`;
+    const body = `Te recomiendo a ${professional.full_name}, ${professional.profession} en ${professional.location}.\n\nPuedes ver su perfil aquí: ${window.location.href}`;
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+  };
+
   const formatPrice = (priceFrom: number | null, priceTo: number | null) => {
     if (!priceFrom && !priceTo) return 'Consultar precio';
     if (priceFrom && priceTo) return `$${priceFrom.toLocaleString()} - $${priceTo.toLocaleString()}`;
@@ -411,6 +418,10 @@ const ProfessionalProfile = () => {
                         <DropdownMenuItem onClick={shareToInstagram} className="cursor-pointer">
                           <Instagram className="h-4 w-4 mr-2 text-pink-600" />
                           Instagram
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={shareToEmail} className="cursor-pointer">
+                          <Mail className="h-4 w-4 mr-2 text-gray-600" />
+                          Email
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleShare} className="cursor-pointer">
                           <Share2 className="h-4 w-4 mr-2" />

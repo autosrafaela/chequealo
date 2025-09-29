@@ -30,17 +30,25 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     // Remove existing meta tags
     const existingDescription = document.querySelector('meta[name="description"]');
     const existingKeywords = document.querySelector('meta[name="keywords"]');
+    const existingOgType = document.querySelector('meta[property="og:type"]');
     const existingOgTitle = document.querySelector('meta[property="og:title"]');
     const existingOgDescription = document.querySelector('meta[property="og:description"]');
     const existingOgImage = document.querySelector('meta[property="og:image"]');
+    const existingOgImageWidth = document.querySelector('meta[property="og:image:width"]');
+    const existingOgImageHeight = document.querySelector('meta[property="og:image:height"]');
+    const existingOgImageType = document.querySelector('meta[property="og:image:type"]');
     const existingOgUrl = document.querySelector('meta[property="og:url"]');
     const existingCanonical = document.querySelector('link[rel="canonical"]');
 
     if (existingDescription) existingDescription.remove();
     if (existingKeywords) existingKeywords.remove();
+    if (existingOgType) existingOgType.remove();
     if (existingOgTitle) existingOgTitle.remove();
     if (existingOgDescription) existingOgDescription.remove();
     if (existingOgImage) existingOgImage.remove();
+    if (existingOgImageWidth) existingOgImageWidth.remove();
+    if (existingOgImageHeight) existingOgImageHeight.remove();
+    if (existingOgImageType) existingOgImageType.remove();
     if (existingOgUrl) existingOgUrl.remove();
     if (existingCanonical) existingCanonical.remove();
 
@@ -56,6 +64,11 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     document.head.appendChild(metaKeywords);
 
     // Open Graph tags
+    const ogType = document.createElement('meta');
+    ogType.setAttribute('property', 'og:type');
+    ogType.content = 'profile';
+    document.head.appendChild(ogType);
+
     const ogTitle = document.createElement('meta');
     ogTitle.setAttribute('property', 'og:title');
     ogTitle.content = title;
@@ -74,8 +87,28 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     if (professional.image_url) {
       const ogImage = document.createElement('meta');
       ogImage.setAttribute('property', 'og:image');
-      ogImage.content = professional.image_url;
+      // Ensure we have an absolute URL for the image
+      const imageUrl = professional.image_url.startsWith('http') 
+        ? professional.image_url 
+        : `${window.location.origin}${professional.image_url}`;
+      ogImage.content = imageUrl;
       document.head.appendChild(ogImage);
+
+      // Add image dimensions for better Facebook display
+      const ogImageWidth = document.createElement('meta');
+      ogImageWidth.setAttribute('property', 'og:image:width');
+      ogImageWidth.content = '1200';
+      document.head.appendChild(ogImageWidth);
+
+      const ogImageHeight = document.createElement('meta');
+      ogImageHeight.setAttribute('property', 'og:image:height');
+      ogImageHeight.content = '630';
+      document.head.appendChild(ogImageHeight);
+
+      const ogImageType = document.createElement('meta');
+      ogImageType.setAttribute('property', 'og:image:type');
+      ogImageType.content = 'image/jpeg';
+      document.head.appendChild(ogImageType);
     }
 
     // Canonical URL
@@ -139,11 +172,18 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       // Remove added meta tags
       if (metaDescription.parentNode) metaDescription.remove();
       if (metaKeywords.parentNode) metaKeywords.remove();
+      if (ogType.parentNode) ogType.remove();
       if (ogTitle.parentNode) ogTitle.remove();
       if (ogDescription.parentNode) ogDescription.remove();
       if (ogUrl.parentNode) ogUrl.remove();
       if (canonical.parentNode) canonical.remove();
       if (script.parentNode) script.remove();
+
+      // Remove image meta tags if they exist
+      const imageMetaTags = document.querySelectorAll('meta[property^="og:image"]');
+      imageMetaTags.forEach(tag => {
+        if (tag.parentNode) tag.remove();
+      });
     };
   }, [professional]);
 
