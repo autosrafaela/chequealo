@@ -38,6 +38,7 @@ const Register = () => {
     description: '',
     location: '',
     phone: '',
+    dni: '',
     acceptTerms: false
   });
 
@@ -139,6 +140,20 @@ const Register = () => {
     setIsLoading(true);
     
     try {
+      // Si es profesional, verificar que el email no esté ya registrado como profesional
+      if (userType === 'professional') {
+        const { data: existingProfessional } = await supabase
+          .from('professionals')
+          .select('id')
+          .eq('email', formData.email)
+          .single();
+          
+        if (existingProfessional) {
+          toast.error('Este email ya está registrado como profesional');
+          return;
+        }
+      }
+      
       // Crear usuario
       const { error: signUpError } = await signUp(
         formData.email,
@@ -356,7 +371,7 @@ const Register = () => {
               </div>
             )}
 
-            {/* Ubicación para profesionales */}
+            {/* DNI y Ubicación para profesionales */}
             {userType === 'professional' && (
               <div className="grid grid-cols-2 gap-4">
                 <LocationAutocomplete
@@ -381,6 +396,26 @@ const Register = () => {
                       onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                     />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* DNI para profesionales */}
+            {userType === 'professional' && (
+              <div>
+                <Label htmlFor="dni" className="text-sm font-medium text-gray-700">
+                  DNI (requerido para profesionales)
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    id="dni"
+                    type="text"
+                    placeholder="12345678"
+                    className="h-12 border-gray-200 focus:border-primary"
+                    value={formData.dni}
+                    onChange={(e) => setFormData(prev => ({ ...prev, dni: e.target.value }))}
+                    required={userType === 'professional'}
+                  />
                 </div>
               </div>
             )}
