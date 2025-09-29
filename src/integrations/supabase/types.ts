@@ -68,6 +68,51 @@ export type Database = {
           },
         ]
       }
+      badges: {
+        Row: {
+          category: string
+          condition_type: string
+          condition_value: number
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          points: number
+          rarity: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          condition_type: string
+          condition_value: number
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          is_active?: boolean
+          name: string
+          points?: number
+          rarity?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          condition_type?: string
+          condition_value?: number
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          points?: number
+          rarity?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -573,6 +618,57 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      professional_rankings: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          period_end: string | null
+          period_start: string | null
+          professional_id: string
+          rank_position: number
+          score: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          professional_id: string
+          rank_position: number
+          score?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          professional_id?: string
+          rank_position?: number
+          score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       professional_services: {
         Row: {
@@ -1093,6 +1189,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          is_displayed: boolean
+          progress: number | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          is_displayed?: boolean
+          progress?: number | null
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          is_displayed?: boolean
+          progress?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_ratings: {
         Row: {
           comment: string | null
@@ -1152,6 +1283,42 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          badges_count: number
+          created_at: string
+          experience_points: number
+          id: string
+          level: number
+          ranking_position: number | null
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          badges_count?: number
+          created_at?: string
+          experience_points?: number
+          id?: string
+          level?: number
+          ranking_position?: number | null
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          badges_count?: number
+          created_at?: string
+          experience_points?: number
+          id?: string
+          level?: number
+          ranking_position?: number | null
+          total_points?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -1339,6 +1506,10 @@ export type Database = {
     Functions: {
       add_user_admin_role: {
         Args: { _email: string }
+        Returns: undefined
+      }
+      check_and_award_badges: {
+        Args: { user_id_param: string }
         Returns: undefined
       }
       check_subscription_status: {

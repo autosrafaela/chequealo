@@ -4,6 +4,8 @@ import ServiceCategories from "@/components/ServiceCategories";
 import { LatestProfessionals } from "@/components/LatestProfessionals";
 import OnboardingTour from "@/components/OnboardingTour";
 import ContextualTips from "@/components/ContextualTips";
+import BadgeSystem from "@/components/BadgeSystem";
+import RankingSystem from "@/components/RankingSystem";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -15,6 +17,16 @@ const Index = () => {
       <Hero />
       <ServiceCategories />
       <LatestProfessionals />
+      
+      {/* Gamification Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-8">
+            <BadgeSystem compact={true} />
+            <RankingSystem limit={5} />
+          </div>
+        </div>
+      </section>
       
       {/* UX Enhancement Components */}
       <OnboardingTour />
