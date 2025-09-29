@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import Header from '@/components/Header';
 import { PasswordStrengthIndicator } from '@/components/ui/password-strength-indicator';
 import { validatePassword } from '@/utils/passwordValidation';
+import chequealoLogo from '@/assets/chequealo-transparent-logo.png';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -251,7 +252,13 @@ const Auth = () => {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Chequealo</CardTitle>
+              <div className="flex justify-center mb-4">
+                <img 
+                  src={chequealoLogo} 
+                  alt="Chequealo" 
+                  className="h-12 w-auto"
+                />
+              </div>
               <CardDescription>
                 Inicia sesión o crea tu cuenta para acceder a todas las funcionalidades
               </CardDescription>

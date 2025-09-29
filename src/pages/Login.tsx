@@ -6,6 +6,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import heroProfessionals from "@/assets/hero-professionals.jpg";
+import chequealoLogo from '@/assets/chequealo-transparent-logo.png';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +35,13 @@ const Login = () => {
         <div className="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-navy mb-2">Chequealo</h1>
+            <div className="flex justify-center mb-4">
+              <img 
+                src={chequealoLogo} 
+                alt="Chequealo" 
+                className="h-12 w-auto"
+              />
+            </div>
             <h2 className="text-xl font-semibold text-foreground mb-4">Iniciar Sesión</h2>
             
             {/* User Type Toggle */}
