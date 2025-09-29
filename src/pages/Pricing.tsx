@@ -10,7 +10,7 @@ const Pricing = () => {
     {
       id: "basic",
       name: "Plan Básico",
-      price: 9990,
+      price: 8990,
       originalPrice: null,
       description: "Ideal para profesionales que empiezan",
       icon: <Users className="h-8 w-8 text-blue-500" />,
@@ -32,7 +32,7 @@ const Pricing = () => {
     {
       id: "professional",
       name: "Plan Profesional",
-      price: 19990,
+      price: 14990,
       originalPrice: null,
       description: "El más elegido por profesionales establecidos",
       icon: <Star className="h-8 w-8 text-primary" />,
@@ -53,7 +53,7 @@ const Pricing = () => {
     {
       id: "premium",
       name: "Plan Premium",
-      price: 39990,
+      price: 24990,
       originalPrice: null,
       description: "Para profesionales que buscan máxima visibilidad",
       icon: <Crown className="h-8 w-8 text-yellow-500" />,
