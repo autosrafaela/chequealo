@@ -33,7 +33,8 @@ import {
   Star,
   TrendingUp,
   Ban,
-  Trash2
+  Trash2,
+  Search
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
@@ -76,6 +77,7 @@ const AdminDashboard = () => {
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [newPrice, setNewPrice] = useState('');
   const [activeTab, setActiveTab] = useState('professionals');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Debug logs to diagnose blank page
   console.log('[AdminDashboard] render', { userId: user?.id, isAdmin, roleLoading, loading });
@@ -570,10 +572,32 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Gestión de Profesionales</CardTitle>
+                <div className="mt-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nombre, profesión, ubicación o email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {professionals.map((professional) => (
+                  {professionals
+                    .filter((professional) => {
+                      if (!searchTerm) return true;
+                      const search = searchTerm.toLowerCase();
+                      return (
+                        professional.full_name?.toLowerCase().includes(search) ||
+                        professional.profession?.toLowerCase().includes(search) ||
+                        professional.location?.toLowerCase().includes(search) ||
+                        professional.email?.toLowerCase().includes(search)
+                      );
+                    })
+                    .map((professional) => (
                     <div key={professional.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
