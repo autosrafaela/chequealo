@@ -5,7 +5,7 @@ import { Crown, AlertTriangle, Zap } from "lucide-react";
 import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 
 interface PlanRestrictionsAlertProps {
-  featureType: 'contacts' | 'photos' | 'analytics' | 'support';
+  featureType: 'contacts' | 'photos' | 'analytics' | 'support' | 'advanced_availability' | 'bidirectional_reviews';
   currentUsage?: number;
   onUpgrade?: () => void;
 }
@@ -46,6 +46,20 @@ export const PlanRestrictionsAlert: React.FC<PlanRestrictionsAlertProps> = ({
           description: `El soporte prioritario no está incluido en tu ${getPlanName()}.`,
           icon: <Zap className="h-4 w-4" />,
           upgradeText: 'Upgrade para soporte prioritario'
+        };
+      case 'advanced_availability':
+        return {
+          title: 'Gestión de Disponibilidad Limitada',
+          description: 'Tu plan actual permite solo 5 horarios básicos. Actualiza para horarios ilimitados.',
+          icon: <AlertTriangle className="h-4 w-4" />,
+          upgradeText: 'Actualizar Plan'
+        };
+      case 'bidirectional_reviews':
+        return {
+          title: 'Sistema de Calificaciones Limitado',
+          description: 'Tu plan actual permite calificar hasta 10 clientes. Actualiza para calificaciones ilimitadas.',
+          icon: <Crown className="h-4 w-4" />,
+          upgradeText: 'Actualizar Plan'
         };
       default:
         return {

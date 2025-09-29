@@ -1,412 +1,509 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { PlanRestrictionsAlert } from './PlanRestrictionsAlert';
+import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Star, User, UserCheck, MessageSquare } from 'lucide-react';
-
-interface BidirectionalReviewSystemProps {
-  transactionId: string;
-  userId: string;
-  professionalId: string;
-  userName: string;
-  professionalName: string;
-  serviceType: string;
-  onReviewsUpdated?: () => void;
-}
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { 
+  Star, 
+  MessageCircle, 
+  User, 
+  Calendar as CalendarIcon,
+  TrendingUp,
+  Award,
+  Target,
+  Clock
+} from "lucide-react";
 
 interface Review {
   id: string;
   rating: number;
-  comment?: string;
-  service_provided?: string;
+  comment: string;
   created_at: string;
+  user_id: string;
+  professional_id: string;
+  service_provided: string;
+  profiles?: {
+    full_name: string;
+  };
 }
 
 interface UserRating {
   id: string;
+  overall_rating: number;
   communication_rating: number;
   punctuality_rating: number;
   payment_rating: number;
-  overall_rating: number;
-  comment?: string;
+  comment: string;
   created_at: string;
+  user_id: string;
+  professional_id: string;
+  transaction_id: string;
+  profiles?: {
+    full_name: string;
+  };
 }
 
-export const BidirectionalReviewSystem: React.FC<BidirectionalReviewSystemProps> = ({
-  transactionId,
-  userId,
-  professionalId,
-  userName,
-  professionalName,
-  serviceType,
-  onReviewsUpdated
-}) => {
+interface Transaction {
+  id: string;
+  user_id: string;
+  professional_id: string;
+  status: string;
+  service_type: string;
+  completed_at: string;
+  profiles?: {
+    full_name: string;
+  };
+}
+
+export const BidirectionalReviewSystem = () => {
   const { user } = useAuth();
-  const [userReview, setUserReview] = useState<Review | null>(null);
-  const [professionalRating, setProfessionalRating] = useState<UserRating | null>(null);
+  const { planLimits } = usePlanRestrictions();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [userRatings, setUserRatings] = useState<UserRating[]>([]);
+  const [completedTransactions, setCompletedTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showUserReviewModal, setShowUserReviewModal] = useState(false);
-  const [showProfessionalRatingModal, setShowProfessionalRatingModal] = useState(false);
-
-  // User review form state
-  const [userReviewForm, setUserReviewForm] = useState({
-    rating: 0,
-    comment: '',
-    service_provided: serviceType
-  });
-
-  // Professional rating form state
-  const [professionalRatingForm, setProfessionalRatingForm] = useState({
-    communication_rating: 0,
-    punctuality_rating: 0,
-    payment_rating: 0,
-    overall_rating: 0,
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+  
+  const [newUserRating, setNewUserRating] = useState({
+    overall_rating: 5,
+    communication_rating: 5,
+    punctuality_rating: 5,
+    payment_rating: 5,
     comment: ''
   });
 
   useEffect(() => {
-    loadExistingReviews();
-  }, [transactionId]);
+    fetchProfessionalData();
+  }, [user]);
 
-  const loadExistingReviews = async () => {
+  useEffect(() => {
+    if (professionalId) {
+      fetchReviewsAndRatings();
+      fetchCompletedTransactions();
+    }
+  }, [professionalId]);
+
+  const fetchProfessionalData = async () => {
+    if (!user) return;
+
+    try {
+      const { data: professional } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (professional) {
+        setProfessionalId(professional.id);
+      }
+    } catch (error) {
+      console.error('Error fetching professional data:', error);
+    }
+  };
+
+  const fetchReviewsAndRatings = async () => {
+    if (!professionalId) return;
+
     try {
       setLoading(true);
 
-      // Load user's review of professional
-      const { data: reviewData, error: reviewError } = await supabase
+      // Fetch reviews received by the professional
+      const { data: reviewsData } = await supabase
         .from('reviews')
         .select('*')
-        .eq('transaction_id', transactionId)
-        .eq('user_id', userId)
         .eq('professional_id', professionalId)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
-      if (reviewError) throw reviewError;
-      setUserReview(reviewData);
-
-      // Load professional's rating of user
-      const { data: ratingData, error: ratingError } = await supabase
+      // Fetch user ratings given by the professional
+      const { data: ratingsData } = await supabase
         .from('user_ratings')
         .select('*')
-        .eq('transaction_id', transactionId)
-        .eq('user_id', userId)
         .eq('professional_id', professionalId)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
-      if (ratingError) throw ratingError;
-      setProfessionalRating(ratingData);
-
+      setReviews(reviewsData || []);
+      setUserRatings(ratingsData || []);
     } catch (error) {
-      console.error('Error loading reviews:', error);
-      toast.error('Error al cargar las reseñas');
+      console.error('Error fetching reviews and ratings:', error);
+      toast.error('Error al cargar reseñas y calificaciones');
     } finally {
       setLoading(false);
     }
   };
 
-  const submitUserReview = async () => {
-    if (!user || userReviewForm.rating === 0) {
-      toast.error('Por favor selecciona una calificación');
-      return;
-    }
+  const fetchCompletedTransactions = async () => {
+    if (!professionalId) return;
 
     try {
-      const { error } = await supabase
-        .from('reviews')
-        .insert({
-          user_id: userId,
-          professional_id: professionalId,
-          transaction_id: transactionId,
-          rating: userReviewForm.rating,
-          comment: userReviewForm.comment || null,
-          service_provided: userReviewForm.service_provided,
-          is_transaction_verified: true
-        });
+      // Fetch completed transactions without user ratings
+      const { data: transactionsData } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('professional_id', professionalId)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: false });
 
-      if (error) throw error;
-
-      toast.success('Reseña enviada correctamente');
-      setShowUserReviewModal(false);
-      loadExistingReviews();
-      onReviewsUpdated?.();
+      if (transactionsData) {
+        // Filter out transactions that already have user ratings
+        const ratedTransactionIds = userRatings.map(r => r.transaction_id);
+        const unratedTransactions = transactionsData.filter(
+          t => !ratedTransactionIds.includes(t.id)
+        );
+        setCompletedTransactions(unratedTransactions);
+      }
     } catch (error) {
-      console.error('Error submitting review:', error);
-      toast.error('Error al enviar la reseña');
+      console.error('Error fetching completed transactions:', error);
     }
   };
 
-  const submitProfessionalRating = async () => {
-    if (!user || professionalRatingForm.overall_rating === 0) {
-      toast.error('Por favor completa la calificación general');
+  const handleSubmitUserRating = async () => {
+    if (!selectedTransaction || !professionalId) return;
+
+    // Check plan restrictions
+    if (!planLimits.canRateUsers) {
+      toast.error('Tu plan actual no permite calificar clientes. Actualiza tu plan.');
+      return;
+    }
+
+    if (!planLimits.advancedAnalytics && userRatings.length >= 10) {
+      toast.error('Tu plan actual solo permite 10 calificaciones de clientes. Actualiza tu plan.');
       return;
     }
 
     try {
-      // Get professional record
-      const { data: professional, error: profError } = await supabase
-        .from('professionals')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (profError) throw profError;
-      if (!professional) throw new Error('Perfil profesional no encontrado');
-
       const { error } = await supabase
         .from('user_ratings')
         .insert({
-          professional_id: professional.id,
-          user_id: userId,
-          transaction_id: transactionId,
-          communication_rating: professionalRatingForm.communication_rating,
-          punctuality_rating: professionalRatingForm.punctuality_rating,
-          payment_rating: professionalRatingForm.payment_rating,
-          overall_rating: professionalRatingForm.overall_rating,
-          comment: professionalRatingForm.comment || null
+          ...newUserRating,
+          user_id: selectedTransaction.user_id,
+          professional_id: professionalId,
+          transaction_id: selectedTransaction.id
         });
 
       if (error) throw error;
 
-      toast.success('Calificación del cliente enviada correctamente');
-      setShowProfessionalRatingModal(false);
-      loadExistingReviews();
-      onReviewsUpdated?.();
+      toast.success('Calificación enviada exitosamente');
+      setShowRatingDialog(false);
+      setSelectedTransaction(null);
+      fetchReviewsAndRatings();
+      fetchCompletedTransactions();
+      
+      // Reset form
+      setNewUserRating({
+        overall_rating: 5,
+        communication_rating: 5,
+        punctuality_rating: 5,
+        payment_rating: 5,
+        comment: ''
+      });
     } catch (error) {
       console.error('Error submitting user rating:', error);
-      toast.error('Error al enviar la calificación');
+      toast.error('Error al enviar calificación');
     }
   };
 
-  const renderStars = (rating: number, interactive: boolean = false, onChange?: (rating: number) => void) => {
+  const renderStars = (rating: number) => {
     return (
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`h-5 w-5 ${
-              star <= rating 
-                ? 'text-yellow-400 fill-yellow-400' 
-                : 'text-gray-300'
-            } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
-            onClick={interactive && onChange ? () => onChange(star) : undefined}
+            className={`w-4 h-4 ${
+              star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+            }`}
           />
         ))}
       </div>
     );
   };
 
-  const isProfessional = user?.id !== userId; // If current user is not the client, they're the professional
+  const renderStarSelector = (value: number, onChange: (value: number) => void) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onChange(star)}
+            className="focus:outline-none"
+          >
+            <Star
+              className={`w-5 h-5 transition-colors ${
+                star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 hover:text-yellow-200'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   if (loading) {
-    return <div className="text-center p-4">Cargando reseñas...</div>;
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">Cargando sistema de calificaciones...</div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
-          Sistema de Reseñas Bidireccional
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* User Review Section */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <h4 className="font-medium">Reseña del Cliente</h4>
-            </div>
-            
-            {userReview ? (
-              <div className="p-3 border rounded-lg space-y-2">
-                <div className="flex items-center gap-2">
-                  {renderStars(userReview.rating)}
-                  <Badge variant="secondary">Completada</Badge>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="w-5 h-5" />
+            Sistema de Calificaciones Bidireccional
+          </CardTitle>
+          <CardDescription>
+            Gestiona las reseñas que recibes y califica a tus clientes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!planLimits.canRateUsers && (
+            <PlanRestrictionsAlert 
+              featureType="bidirectional_reviews"
+              currentUsage={userRatings.length}
+            />
+          )}
+
+          <Tabs defaultValue="received-reviews" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="received-reviews">Reseñas Recibidas</TabsTrigger>
+              <TabsTrigger value="given-ratings">Calificaciones Dadas</TabsTrigger>
+              <TabsTrigger value="pending-ratings">Pendientes</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="received-reviews" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Reseñas de Clientes ({reviews.length})</h3>
+                <Badge variant="outline">
+                  <Star className="w-4 h-4 mr-1" />
+                  {reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : '0.0'}
+                </Badge>
+              </div>
+
+              {reviews.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Aún no tienes reseñas de clientes
                 </div>
-                {userReview.comment && (
-                  <p className="text-sm text-muted-foreground">{userReview.comment}</p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {new Date(userReview.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            ) : (
-              <div className="p-3 border rounded-lg space-y-2">
-                {user?.id === userId ? (
-                  <Dialog open={showUserReviewModal} onOpenChange={setShowUserReviewModal}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        Calificar Profesional
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Calificar a {professionalName}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Calificación *</Label>
-                          {renderStars(userReviewForm.rating, true, (rating) => 
-                            setUserReviewForm(prev => ({ ...prev, rating }))
-                          )}
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <Card key={review.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4" />
+                              <span className="font-medium">{review.profiles?.full_name || 'Cliente'}</span>
+                              {renderStars(review.rating)}
+                            </div>
+                            {review.service_provided && (
+                              <Badge variant="secondary">{review.service_provided}</Badge>
+                            )}
+                            <p className="text-sm text-muted-foreground">{review.comment}</p>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(review.created_at), 'dd/MM/yyyy', { locale: es })}
+                          </div>
                         </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="service">Servicio Recibido</Label>
-                          <Select
-                            value={userReviewForm.service_provided}
-                            onValueChange={(value) => setUserReviewForm(prev => ({ ...prev, service_provided: value }))}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={serviceType}>{serviceType}</SelectItem>
-                              <SelectItem value="Consultoría">Consultoría</SelectItem>
-                              <SelectItem value="Instalación">Instalación</SelectItem>
-                              <SelectItem value="Reparación">Reparación</SelectItem>
-                              <SelectItem value="Mantenimiento">Mantenimiento</SelectItem>
-                              <SelectItem value="Otro">Otro</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="comment">Comentario (opcional)</Label>
-                          <Textarea
-                            id="comment"
-                            placeholder="Comparte tu experiencia..."
-                            value={userReviewForm.comment}
-                            onChange={(e) => setUserReviewForm(prev => ({ ...prev, comment: e.target.value }))}
-                            rows={3}
-                          />
-                        </div>
-
-                        <div className="flex justify-end space-x-2">
-                          <Button variant="outline" onClick={() => setShowUserReviewModal(false)}>
-                            Cancelar
-                          </Button>
-                          <Button onClick={submitUserReview}>
-                            Enviar Reseña
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Esperando reseña del cliente</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Professional Rating Section */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
-              <h4 className="font-medium">Calificación del Profesional</h4>
-            </div>
-            
-            {professionalRating ? (
-              <div className="p-3 border rounded-lg space-y-2">
-                <div className="flex items-center gap-2">
-                  {renderStars(professionalRating.overall_rating)}
-                  <Badge variant="secondary">Completada</Badge>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <div className="text-xs space-y-1">
-                  <div>Comunicación: {renderStars(professionalRating.communication_rating)}</div>
-                  <div>Puntualidad: {renderStars(professionalRating.punctuality_rating)}</div>
-                  <div>Pago: {renderStars(professionalRating.payment_rating)}</div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="given-ratings" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Calificaciones Dadas ({userRatings.length})</h3>
+                {!planLimits.advancedAnalytics && (
+                  <Badge variant="outline">Máximo: 10</Badge>
+                )}
+              </div>
+
+              {userRatings.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Aún no has calificado a ningún cliente
                 </div>
-                {professionalRating.comment && (
-                  <p className="text-sm text-muted-foreground">{professionalRating.comment}</p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {new Date(professionalRating.created_at).toLocaleDateString()}
-                </p>
+              ) : (
+                <div className="space-y-4">
+                  {userRatings.map((rating) => (
+                    <Card key={rating.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4" />
+                              <span className="font-medium">{rating.profiles?.full_name || 'Cliente'}</span>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div className="flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4" />
+                                <span>General:</span>
+                                {renderStars(rating.overall_rating)}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <MessageCircle className="w-4 h-4" />
+                                <span>Comunicación:</span>
+                                {renderStars(rating.communication_rating)}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                <span>Puntualidad:</span>
+                                {renderStars(rating.punctuality_rating)}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Target className="w-4 h-4" />
+                                <span>Pago:</span>
+                                {renderStars(rating.payment_rating)}
+                              </div>
+                            </div>
+                            
+                            {rating.comment && (
+                              <p className="text-sm text-muted-foreground">{rating.comment}</p>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(rating.created_at), 'dd/MM/yyyy', { locale: es })}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="pending-ratings" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Transacciones Completadas Pendientes de Calificar</h3>
+                <Badge variant="outline">{completedTransactions.length} pendientes</Badge>
               </div>
-            ) : (
-              <div className="p-3 border rounded-lg space-y-2">
-                {isProfessional ? (
-                  <Dialog open={showProfessionalRatingModal} onOpenChange={setShowProfessionalRatingModal}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        Calificar Cliente
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Calificar a {userName}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            <Label>Comunicación</Label>
-                            {renderStars(professionalRatingForm.communication_rating, true, (rating) => 
-                              setProfessionalRatingForm(prev => ({ ...prev, communication_rating: rating }))
-                            )}
-                          </div>
 
+              {completedTransactions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No tienes transacciones pendientes de calificar
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {completedTransactions.map((transaction) => (
+                    <Card key={transaction.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
                           <div className="space-y-2">
-                            <Label>Puntualidad</Label>
-                            {renderStars(professionalRatingForm.punctuality_rating, true, (rating) => 
-                              setProfessionalRatingForm(prev => ({ ...prev, punctuality_rating: rating }))
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4" />
+                              <span className="font-medium">{transaction.profiles?.full_name || 'Cliente'}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <CalendarIcon className="w-4 h-4" />
+                              <span>Completado: {format(new Date(transaction.completed_at), 'dd/MM/yyyy', { locale: es })}</span>
+                            </div>
+                            {transaction.service_type && (
+                              <Badge variant="secondary">{transaction.service_type}</Badge>
                             )}
                           </div>
-
-                          <div className="space-y-2">
-                            <Label>Pago</Label>
-                            {renderStars(professionalRatingForm.payment_rating, true, (rating) => 
-                              setProfessionalRatingForm(prev => ({ ...prev, payment_rating: rating }))
-                            )}
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Calificación General *</Label>
-                            {renderStars(professionalRatingForm.overall_rating, true, (rating) => 
-                              setProfessionalRatingForm(prev => ({ ...prev, overall_rating: rating }))
-                            )}
-                          </div>
+                          <Dialog open={showRatingDialog && selectedTransaction?.id === transaction.id} onOpenChange={setShowRatingDialog}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setSelectedTransaction(transaction)}
+                                disabled={!planLimits.canRateUsers || (!planLimits.advancedAnalytics && userRatings.length >= 10)}
+                              >
+                                <Star className="w-4 h-4 mr-2" />
+                                Calificar Cliente
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Calificar Cliente</DialogTitle>
+                                <DialogDescription>
+                                  Califica tu experiencia con {selectedTransaction?.profiles?.full_name || 'este cliente'}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <Label>Calificación General</Label>
+                                  {renderStarSelector(newUserRating.overall_rating, (rating) =>
+                                    setNewUserRating({...newUserRating, overall_rating: rating})
+                                  )}
+                                </div>
+                                
+                                <div>
+                                  <Label>Comunicación</Label>
+                                  {renderStarSelector(newUserRating.communication_rating, (rating) =>
+                                    setNewUserRating({...newUserRating, communication_rating: rating})
+                                  )}
+                                </div>
+                                
+                                <div>
+                                  <Label>Puntualidad</Label>
+                                  {renderStarSelector(newUserRating.punctuality_rating, (rating) =>
+                                    setNewUserRating({...newUserRating, punctuality_rating: rating})
+                                  )}
+                                </div>
+                                
+                                <div>
+                                  <Label>Cumplimiento de Pago</Label>
+                                  {renderStarSelector(newUserRating.payment_rating, (rating) =>
+                                    setNewUserRating({...newUserRating, payment_rating: rating})
+                                  )}
+                                </div>
+                                
+                                <div>
+                                  <Label htmlFor="comment">Comentario (opcional)</Label>
+                                  <Textarea
+                                    id="comment"
+                                    placeholder="Describe tu experiencia con este cliente..."
+                                    value={newUserRating.comment}
+                                    onChange={(e) => setNewUserRating({...newUserRating, comment: e.target.value})}
+                                  />
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                  <Button onClick={handleSubmitUserRating} className="flex-1">
+                                    Enviar Calificación
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => {
+                                      setShowRatingDialog(false);
+                                      setSelectedTransaction(null);
+                                    }}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="comment">Comentario (opcional)</Label>
-                          <Textarea
-                            id="comment"
-                            placeholder="Comparte tu experiencia con este cliente..."
-                            value={professionalRatingForm.comment}
-                            onChange={(e) => setProfessionalRatingForm(prev => ({ ...prev, comment: e.target.value }))}
-                            rows={3}
-                          />
-                        </div>
-
-                        <div className="flex justify-end space-x-2">
-                          <Button variant="outline" onClick={() => setShowProfessionalRatingModal(false)}>
-                            Cancelar
-                          </Button>
-                          <Button onClick={submitProfessionalRating}>
-                            Enviar Calificación
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Esperando calificación del profesional</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

@@ -14,6 +14,8 @@ interface PlanLimits {
   canSendFiles: boolean;
   maxMonthlyBookings: number;
   calendarIntegration: boolean;
+  maxAvailabilitySlots: number;
+  canRateUsers: boolean;
 }
 
 interface ExtendedSubscription {
@@ -52,7 +54,9 @@ export const usePlanRestrictions = () => {
     canReceiveMessages: true,
     canSendFiles: false,
     maxMonthlyBookings: -1,
-    calendarIntegration: false
+    calendarIntegration: false,
+    maxAvailabilitySlots: 5,
+    canRateUsers: false
   });
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +91,9 @@ export const usePlanRestrictions = () => {
             canReceiveMessages: professionalPlan.can_receive_messages,
             canSendFiles: professionalPlan.can_send_files,
             maxMonthlyBookings: professionalPlan.max_monthly_bookings,
-            calendarIntegration: professionalPlan.calendar_integration
+            calendarIntegration: professionalPlan.calendar_integration,
+            maxAvailabilitySlots: -1,
+            canRateUsers: true
           });
         }
         return;
@@ -106,6 +112,11 @@ export const usePlanRestrictions = () => {
       if (error) throw error;
 
       if (plan) {
+        // Set plan-specific limits based on plan name
+        const isBasicPlan = plan.name === 'Plan Básico';
+        const isProfessionalPlan = plan.name === 'Plan Profesional' || plan.name === 'Profesional Mensual';
+        const isPremiumPlan = plan.name === 'Plan Premium';
+
         setPlanLimits({
           maxContactRequests: plan.max_contact_requests,
           maxWorkPhotos: plan.max_work_photos,
@@ -116,7 +127,9 @@ export const usePlanRestrictions = () => {
           canReceiveMessages: plan.can_receive_messages,
           canSendFiles: plan.can_send_files,
           maxMonthlyBookings: plan.max_monthly_bookings,
-          calendarIntegration: plan.calendar_integration
+          calendarIntegration: plan.calendar_integration,
+          maxAvailabilitySlots: isBasicPlan ? 5 : -1,
+          canRateUsers: !isBasicPlan
         });
       }
 

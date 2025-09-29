@@ -1,343 +1,356 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Calendar, Clock, Plus, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { PlanRestrictionsAlert } from './PlanRestrictionsAlert';
+import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { format, addDays, startOfWeek, endOfWeek, isToday, isSameDay, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { 
+  Clock, 
+  Plus, 
+  Trash2, 
+  Calendar as CalendarIcon,
+  Settings
+} from "lucide-react";
 
-interface TimeSlot {
-  id: string;
-  date: string;
+interface AvailabilitySlot {
+  id?: string;
+  day_of_week: number;
   start_time: string;
   end_time: string;
   is_available: boolean;
-  status: 'available' | 'busy' | 'blocked';
-  note?: string;
+  slot_duration_minutes: number;
+  max_bookings_per_slot: number;
 }
 
-interface AvailabilitySettings {
-  monday: { enabled: boolean; start: string; end: string };
-  tuesday: { enabled: boolean; start: string; end: string };
-  wednesday: { enabled: boolean; start: string; end: string };
-  thursday: { enabled: boolean; start: string; end: string };
-  friday: { enabled: boolean; start: string; end: string };
-  saturday: { enabled: boolean; start: string; end: string };
-  sunday: { enabled: boolean; start: string; end: string };
-}
+const DAYS_OF_WEEK = [
+  { value: 0, label: 'Domingo' },
+  { value: 1, label: 'Lunes' },
+  { value: 2, label: 'Martes' },
+  { value: 3, label: 'Miércoles' },
+  { value: 4, label: 'Jueves' },
+  { value: 5, label: 'Viernes' },
+  { value: 6, label: 'Sábado' }
+];
 
 export const AvailabilityCalendar = () => {
-  const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [availability, setAvailability] = useState<AvailabilitySettings>({
-    monday: { enabled: true, start: '09:00', end: '18:00' },
-    tuesday: { enabled: true, start: '09:00', end: '18:00' },
-    wednesday: { enabled: true, start: '09:00', end: '18:00' },
-    thursday: { enabled: true, start: '09:00', end: '18:00' },
-    friday: { enabled: true, start: '09:00', end: '18:00' },
-    saturday: { enabled: false, start: '09:00', end: '14:00' },
-    sunday: { enabled: false, start: '09:00', end: '14:00' }
+  const { user } = useAuth();
+  const { planLimits } = usePlanRestrictions();
+  const [availabilitySlots, setAvailabilitySlots] = useState<AvailabilitySlot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
+
+  const [newSlot, setNewSlot] = useState<AvailabilitySlot>({
+    day_of_week: 1,
+    start_time: '09:00',
+    end_time: '17:00',
+    is_available: true,
+    slot_duration_minutes: 60,
+    max_bookings_per_slot: 1
   });
 
-  const weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
-  const getWeekDays = (date: Date) => {
-    const start = startOfWeek(date, { weekStartsOn: 1 }); // Start on Monday
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  };
-
-  const generateTimeSlots = () => {
-    const days = getWeekDays(currentWeek);
-    const slots: TimeSlot[] = [];
-
-    days.forEach((day, dayIndex) => {
-      const dayKey = weekDays[dayIndex === 6 ? 0 : dayIndex + 1] as keyof AvailabilitySettings;
-      const daySettings = availability[dayKey];
-
-      if (daySettings.enabled) {
-        // Generate hourly slots for the day
-        const startHour = parseInt(daySettings.start.split(':')[0]);
-        const endHour = parseInt(daySettings.end.split(':')[0]);
-
-        for (let hour = startHour; hour < endHour; hour++) {
-          const timeString = `${hour.toString().padStart(2, '0')}:00`;
-          const endTimeString = `${(hour + 1).toString().padStart(2, '0')}:00`;
-          
-          slots.push({
-            id: `${format(day, 'yyyy-MM-dd')}-${timeString}`,
-            date: format(day, 'yyyy-MM-dd'),
-            start_time: timeString,
-            end_time: endTimeString,
-            is_available: true,
-            status: 'available'
-          });
-        }
-      }
-    });
-
-    setTimeSlots(slots);
-  };
+  useEffect(() => {
+    fetchProfessionalData();
+  }, [user]);
 
   useEffect(() => {
-    generateTimeSlots();
-  }, [currentWeek, availability]);
+    if (professionalId) {
+      fetchAvailabilitySlots();
+    }
+  }, [professionalId]);
 
-  const toggleSlotStatus = (slotId: string) => {
-    setTimeSlots(prev => prev.map(slot => {
-      if (slot.id === slotId) {
-        const newStatus = slot.status === 'available' ? 'busy' : 
-                         slot.status === 'busy' ? 'blocked' : 'available';
-        return { ...slot, status: newStatus, is_available: newStatus === 'available' };
+  const fetchProfessionalData = async () => {
+    if (!user) return;
+
+    try {
+      const { data: professional } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (professional) {
+        setProfessionalId(professional.id);
       }
-      return slot;
-    }));
-  };
-
-  const updateDaySettings = (day: keyof AvailabilitySettings, field: 'enabled' | 'start' | 'end', value: boolean | string) => {
-    setAvailability(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [field]: value
-      }
-    }));
-  };
-
-  const getStatusColor = (status: TimeSlot['status']) => {
-    switch (status) {
-      case 'available': return 'bg-green-100 text-green-800 border-green-200';
-      case 'busy': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'blocked': return 'bg-red-100 text-red-800 border-red-200';
+    } catch (error) {
+      console.error('Error fetching professional data:', error);
     }
   };
 
-  const getStatusIcon = (status: TimeSlot['status']) => {
-    switch (status) {
-      case 'available': return <CheckCircle className="h-3 w-3" />;
-      case 'busy': return <Clock className="h-3 w-3" />;
-      case 'blocked': return <X className="h-3 w-3" />;
+  const fetchAvailabilitySlots = async () => {
+    if (!professionalId) return;
+
+    try {
+      setLoading(true);
+      const { data: slots, error } = await supabase
+        .from('availability_slots')
+        .select('*')
+        .eq('professional_id', professionalId)
+        .order('day_of_week', { ascending: true })
+        .order('start_time', { ascending: true });
+
+      if (error) throw error;
+      setAvailabilitySlots(slots || []);
+    } catch (error) {
+      console.error('Error fetching availability slots:', error);
+      toast.error('Error al cargar horarios disponibles');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const saveAvailability = () => {
-    // In a real app, this would save to the database
-    toast.success('Disponibilidad guardada correctamente');
-    setIsSettingsOpen(false);
+  const handleAddSlot = async () => {
+    if (!professionalId) return;
+
+    // Check plan restrictions for advanced availability features
+    if (!planLimits.calendarIntegration && availabilitySlots.length >= 5) {
+      toast.error('Tu plan actual solo permite 5 horarios básicos. Actualiza para más opciones.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('availability_slots')
+        .insert({
+          ...newSlot,
+          professional_id: professionalId
+        });
+
+      if (error) throw error;
+
+      toast.success('Horario agregado exitosamente');
+      fetchAvailabilitySlots();
+      
+      // Reset form
+      setNewSlot({
+        day_of_week: 1,
+        start_time: '09:00',
+        end_time: '17:00',
+        is_available: true,
+        slot_duration_minutes: 60,
+        max_bookings_per_slot: 1
+      });
+    } catch (error) {
+      console.error('Error adding availability slot:', error);
+      toast.error('Error al agregar horario');
+    }
   };
+
+  const handleDeleteSlot = async (slotId: string) => {
+    try {
+      const { error } = await supabase
+        .from('availability_slots')
+        .delete()
+        .eq('id', slotId);
+
+      if (error) throw error;
+
+      toast.success('Horario eliminado exitosamente');
+      fetchAvailabilitySlots();
+    } catch (error) {
+      console.error('Error deleting slot:', error);
+      toast.error('Error al eliminar horario');
+    }
+  };
+
+  const handleToggleSlotAvailability = async (slotId: string, isAvailable: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('availability_slots')
+        .update({ is_available: isAvailable })
+        .eq('id', slotId);
+
+      if (error) throw error;
+
+      toast.success('Disponibilidad actualizada');
+      fetchAvailabilitySlots();
+    } catch (error) {
+      console.error('Error updating slot availability:', error);
+      toast.error('Error al actualizar disponibilidad');
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">Cargando horarios disponibles...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Calendario de Disponibilidad
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Gestiona tu disponibilidad y horarios de trabajo
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  Configurar Horarios
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Configurar Horarios de Trabajo</DialogTitle>
-                  <DialogDescription>
-                    Define tus horarios de trabajo para cada día de la semana
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="grid gap-4 py-4">
-                  {Object.entries(availability).map(([day, settings], index) => (
-                    <div key={day} className="grid grid-cols-4 items-center gap-4 p-3 border rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={settings.enabled}
-                          onCheckedChange={(checked) => updateDaySettings(day as keyof AvailabilitySettings, 'enabled', checked)}
-                        />
-                        <Label className="font-medium">{dayNames[index]}</Label>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <Label className="text-xs">Desde</Label>
-                        <Select 
-                          value={settings.start} 
-                          onValueChange={(value) => updateDaySettings(day as keyof AvailabilitySettings, 'start', value)}
-                          disabled={!settings.enabled}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 24 }, (_, i) => (
-                              <SelectItem key={i} value={`${i.toString().padStart(2, '0')}:00`}>
-                                {`${i.toString().padStart(2, '0')}:00`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <Label className="text-xs">Hasta</Label>
-                        <Select 
-                          value={settings.end} 
-                          onValueChange={(value) => updateDaySettings(day as keyof AvailabilitySettings, 'end', value)}
-                          disabled={!settings.enabled}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 24 }, (_, i) => (
-                              <SelectItem key={i} value={`${i.toString().padStart(2, '0')}:00`}>
-                                {`${i.toString().padStart(2, '0')}:00`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarIcon className="w-5 h-5" />
+            Gestión de Disponibilidad Avanzada
+          </CardTitle>
+          <CardDescription>
+            Configura tus horarios disponibles de forma detallada
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {!planLimits.calendarIntegration && (
+            <PlanRestrictionsAlert 
+              featureType="advanced_availability"
+              currentUsage={availabilitySlots.length}
+            />
+          )}
 
-                      <Badge variant={settings.enabled ? 'default' : 'secondary'}>
-                        {settings.enabled ? 'Activo' : 'Inactivo'}
-                      </Badge>
-                    </div>
+          {/* Agregar nuevo horario */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border rounded-lg">
+            <div>
+              <Label htmlFor="day">Día de la semana</Label>
+              <Select 
+                value={newSlot.day_of_week.toString()} 
+                onValueChange={(value) => setNewSlot({...newSlot, day_of_week: parseInt(value)})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar día" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DAYS_OF_WEEK.map(day => (
+                    <SelectItem key={day.value} value={day.value.toString()}>
+                      {day.label}
+                    </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="start_time">Hora inicio</Label>
+              <Input
+                type="time"
+                value={newSlot.start_time}
+                onChange={(e) => setNewSlot({...newSlot, start_time: e.target.value})}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="end_time">Hora fin</Label>
+              <Input
+                type="time"
+                value={newSlot.end_time}
+                onChange={(e) => setNewSlot({...newSlot, end_time: e.target.value})}
+              />
+            </div>
+
+            {planLimits.calendarIntegration && (
+              <>
+                <div>
+                  <Label htmlFor="duration">Duración (min)</Label>
+                  <Select 
+                    value={newSlot.slot_duration_minutes.toString()}
+                    onValueChange={(value) => setNewSlot({...newSlot, slot_duration_minutes: parseInt(value)})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 minutos</SelectItem>
+                      <SelectItem value="60">1 hora</SelectItem>
+                      <SelectItem value="90">1.5 horas</SelectItem>
+                      <SelectItem value="120">2 horas</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsSettingsOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={saveAvailability}>
-                    Guardar Configuración
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        {/* Week Navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <Button 
-            variant="outline" 
-            onClick={() => setCurrentWeek(prev => addDays(prev, -7))}
-          >
-            ← Semana Anterior
-          </Button>
-          <h3 className="text-lg font-semibold">
-            Semana del {format(startOfWeek(currentWeek, { weekStartsOn: 1 }), 'dd MMM', { locale: es })} - {format(endOfWeek(currentWeek, { weekStartsOn: 1 }), 'dd MMM yyyy', { locale: es })}
-          </h3>
-          <Button 
-            variant="outline" 
-            onClick={() => setCurrentWeek(prev => addDays(prev, 7))}
-          >
-            Semana Siguiente →
-          </Button>
-        </div>
+                <div>
+                  <Label htmlFor="max_bookings">Máx. reservas simultáneas</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={newSlot.max_bookings_per_slot}
+                    onChange={(e) => setNewSlot({...newSlot, max_bookings_per_slot: parseInt(e.target.value)})}
+                  />
+                </div>
+              </>
+            )}
 
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-2">
-          {/* Day Headers */}
-          {getWeekDays(currentWeek).map((day, index) => (
-            <div key={index} className="text-center p-3 font-medium border-b">
-              <div className="text-sm text-muted-foreground">
-                {dayNames[(index + 1) % 7]}
-              </div>
-              <div className={`text-lg ${isToday(day) ? 'text-primary font-bold' : ''}`}>
-                {format(day, 'd')}
-              </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={newSlot.is_available}
+                onCheckedChange={(checked) => setNewSlot({...newSlot, is_available: checked})}
+              />
+              <Label>Disponible</Label>
             </div>
-          ))}
 
-          {/* Time Slots */}
-          {getWeekDays(currentWeek).map((day, dayIndex) => (
-            <div key={dayIndex} className="min-h-[300px] border-r last:border-r-0">
-              <div className="space-y-1 p-1">
-                {timeSlots
-                  .filter(slot => isSameDay(parseISO(slot.date), day))
-                  .map((slot) => (
-                    <div
-                      key={slot.id}
-                      className={`p-2 rounded text-xs cursor-pointer transition-colors border ${getStatusColor(slot.status)} hover:shadow-sm`}
-                      onClick={() => toggleSlotStatus(slot.id)}
-                    >
+            <div className="md:col-span-2 lg:col-span-3">
+              <Button onClick={handleAddSlot} className="w-full">
+                <Plus className="w-4 h-4 mr-2" />
+                Agregar Horario
+              </Button>
+            </div>
+          </div>
+
+          {/* Lista de horarios existentes */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Horarios Configurados</h3>
+            {availabilitySlots.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No tienes horarios configurados aún
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {availabilitySlots.map((slot) => (
+                  <Card key={slot.id}>
+                    <CardContent className="p-4">
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">{slot.start_time}</span>
-                        {getStatusIcon(slot.status)}
+                        <div className="flex items-center gap-4">
+                          <Badge variant="outline">
+                            {DAYS_OF_WEEK.find(d => d.value === slot.day_of_week)?.label}
+                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            <span>{slot.start_time} - {slot.end_time}</span>
+                          </div>
+                          {planLimits.calendarIntegration && (
+                            <>
+                              <Badge variant="secondary">
+                                {slot.slot_duration_minutes}min
+                              </Badge>
+                              <Badge variant="secondary">
+                                Máx: {slot.max_bookings_per_slot}
+                              </Badge>
+                            </>
+                          )}
+                          <Badge variant={slot.is_available ? "default" : "destructive"}>
+                            {slot.is_available ? "Disponible" : "No disponible"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={slot.is_available}
+                            onCheckedChange={(checked) => handleToggleSlotAvailability(slot.id!, checked)}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteSlot(slot.id!)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-xs opacity-75 mt-1">
-                        {slot.status === 'available' && 'Disponible'}
-                        {slot.status === 'busy' && 'Ocupado'}
-                        {slot.status === 'blocked' && 'Bloqueado'}
-                      </div>
-                    </div>
-                  ))}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center justify-center gap-6 mt-6 p-4 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-            <span className="text-sm">Disponible</span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-orange-100 border border-orange-200 rounded"></div>
-            <span className="text-sm">Ocupado</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
-            <span className="text-sm">Bloqueado</span>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Haz clic en un horario para cambiar su estado
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex gap-2 mt-4">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setTimeSlots(prev => prev.map(slot => ({ ...slot, status: 'available', is_available: true })))}
-          >
-            Marcar Todo Disponible
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setTimeSlots(prev => prev.map(slot => ({ ...slot, status: 'busy', is_available: false })))}
-          >
-            Marcar Todo Ocupado
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setCurrentWeek(new Date())}
-          >
-            Ir a Semana Actual
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
