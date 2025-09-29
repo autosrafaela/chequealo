@@ -89,13 +89,17 @@ const UserDashboard = () => {
     phone: '',
     profession: '',
     location: '',
-    description: ''
+    description: '',
+    dni: ''
   });
   const [creatingProfessional, setCreatingProfessional] = useState(false);
+  const [professionCategories, setProfessionCategories] = useState<any[]>([]);
+  const [serviceCategories, setServiceCategories] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchUserData();
+      fetchProfessionCategories();
     } else {
       setLoading(false);
     }
@@ -176,6 +180,31 @@ const UserDashboard = () => {
       toast.error('Error al cargar datos del usuario');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProfessionCategories = async () => {
+    try {
+      const { data: categories, error: catError } = await supabase
+        .from('profession_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (catError) throw catError;
+
+      const { data: services, error: servError } = await supabase
+        .from('service_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('profession_category_id, display_order', { ascending: true });
+
+      if (servError) throw servError;
+
+      setProfessionCategories(categories || []);
+      setServiceCategories(services || []);
+    } catch (error) {
+      console.error('Error fetching profession categories:', error);
     }
   };
 
@@ -384,17 +413,53 @@ const UserDashboard = () => {
         return;
       }
 
+      // Validate DNI if provided
+      if (professionalData.dni.trim()) {
+        // Check if DNI already exists
+        const { data: existingDni, error: dniError } = await supabase
+          .from('professionals')
+          .select('id, full_name')
+          .eq('dni', professionalData.dni.trim())
+          .maybeSingle();
+
+        if (dniError && dniError.code !== 'PGRST116') {
+          throw dniError;
+        }
+
+        if (existingDni) {
+          toast.error(`Ya existe un profesional registrado con este DNI: ${existingDni.full_name}`);
+          return;
+        }
+      }
+
+      // Check if user already has a professional profile
+      const { data: existingProfessional, error: checkError } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      if (existingProfessional) {
+        toast.error('Ya tienes un perfil profesional creado');
+        return;
+      }
+
       // Create professional profile
       const { error } = await supabase
         .from('professionals')
         .insert({
           user_id: user.id,
-          full_name: professionalData.full_name,
-          email: professionalData.email,
-          phone: professionalData.phone,
+          full_name: professionalData.full_name.trim(),
+          email: professionalData.email.trim(),
+          phone: professionalData.phone.trim() || null,
           profession: professionalData.profession,
-          location: professionalData.location,
-          description: professionalData.description
+          location: professionalData.location.trim() || null,
+          description: professionalData.description.trim() || null,
+          dni: professionalData.dni.trim() || null
         });
 
       if (error) throw error;
@@ -410,7 +475,8 @@ const UserDashboard = () => {
         phone: '',
         profession: '',
         location: '',
-        description: ''
+        description: '',
+        dni: ''
       });
 
       fetchUserData();
@@ -427,7 +493,8 @@ const UserDashboard = () => {
     setProfessionalData(prev => ({
       ...prev,
       full_name: userProfile?.full_name || fullName || '',
-      email: user?.email || ''
+      email: user?.email || '',
+      dni: ''
     }));
     setShowProfessionalForm(true);
   };
@@ -930,30 +997,61 @@ const UserDashboard = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="prof-profession">Profesión *</Label>
-                  <Select
-                    value={professionalData.profession}
-                    onValueChange={(value) => setProfessionalData(prev => ({
+                  <Label htmlFor="prof-dni">DNI</Label>
+                  <Input
+                    id="prof-dni"
+                    value={professionalData.dni}
+                    onChange={(e) => setProfessionalData(prev => ({
                       ...prev,
-                      profession: value
+                      dni: e.target.value
                     }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tu profesión" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="plomero">Plomero</SelectItem>
-                      <SelectItem value="electricista">Electricista</SelectItem>
-                      <SelectItem value="jardinero">Jardinero</SelectItem>
-                      <SelectItem value="mecanico">Mecánico</SelectItem>
-                      <SelectItem value="limpieza">Limpieza</SelectItem>
-                      <SelectItem value="nutricionista">Nutricionista</SelectItem>
-                      <SelectItem value="veterinario">Veterinario</SelectItem>
-                      <SelectItem value="dermatologo">Dermatólogo</SelectItem>
-                      <SelectItem value="otro">Otro</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    placeholder="12345678"
+                    maxLength={8}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    El DNI ayuda a evitar cuentas duplicadas
+                  </p>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="prof-profession">Profesión *</Label>
+                <Select
+                  value={professionalData.profession}
+                  onValueChange={(value) => setProfessionalData(prev => ({
+                    ...prev,
+                    profession: value
+                  }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona tu profesión" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {professionCategories.map((category) => {
+                      const categoryServices = serviceCategories.filter(
+                        service => service.profession_category_id === category.id
+                      );
+                      
+                      return (
+                        <div key={category.id}>
+                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50">
+                            {category.icon} {category.name}
+                          </div>
+                          {categoryServices.map((service) => (
+                            <SelectItem 
+                              key={service.id} 
+                              value={service.name}
+                              className="pl-6"
+                            >
+                              {service.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      );
+                    })}
+                    <SelectItem value="Otro">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <LocationAutocomplete
