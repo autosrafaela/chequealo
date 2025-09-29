@@ -325,15 +325,7 @@ export const EnhancedTransactionManager = () => {
                         
                         {transaction.status === 'completed' && (
                           <div className="mt-4">
-                            <BidirectionalReviewSystem
-                              transactionId={transaction.id}
-                              userId={transaction.user_id}
-                              professionalId={transaction.professional_id}
-                              userName={transaction.profiles?.full_name || 'Cliente'}
-                              professionalName="Tu negocio"
-                              serviceType={transaction.service_type || 'Servicio'}
-                              onReviewsUpdated={() => {}}
-                            />
+                            <BidirectionalReviewSystem />
                           </div>
                         )}
                       </CardContent>
