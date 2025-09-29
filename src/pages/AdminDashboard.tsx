@@ -159,6 +159,19 @@ const AdminDashboard = () => {
       const trialSubscriptions = subscriptionsData?.filter(s => s.status === 'trial').length || 0;
       const expiredSubscriptions = subscriptionsData?.filter(s => s.status === 'expired').length || 0;
 
+      console.log('[AdminDashboard] Final stats being set:', {
+        totalUsers,
+        totalProfessionals,
+        pendingVerifications,
+        totalReviews,
+        totalContactRequests,
+        averageRating,
+        totalSubscriptions,
+        activeSubscriptions,
+        trialSubscriptions,
+        expiredSubscriptions
+      });
+      
       setStats({
         totalUsers,
         totalProfessionals,
