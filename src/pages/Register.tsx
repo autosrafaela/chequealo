@@ -48,7 +48,7 @@ const Register = () => {
     confirmPassword: '',
     description: '',
     location: '',
-    phone: '',
+    phone: '+549',
     dni: urlDni || '',
     acceptTerms: false
   });
@@ -515,7 +515,7 @@ const Register = () => {
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="+54 3492 123456"
+                      placeholder="+549 3492 123456 (sin 0 ni 15)"
                       className="h-12 border-gray-200 focus:border-primary"
                       value={formData.phone}
                       onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}

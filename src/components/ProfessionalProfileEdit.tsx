@@ -26,7 +26,7 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
   
   const [profileForm, setProfileForm] = useState({
     description: professionalData?.description || '',
-    phone: professionalData?.phone || '',
+    phone: professionalData?.phone || '+549',
     email: professionalData?.email || '',
     location: professionalData?.location || ''
   });
@@ -224,7 +224,7 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
               <Label htmlFor="phone">Teléfono</Label>
               <Input
                 id="phone"
-                placeholder="+54 9 3492 123456"
+                placeholder="+549 3492 123456 (sin 0 ni 15)"
                 value={profileForm.phone}
                 onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
               />
