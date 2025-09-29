@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 import { toast } from 'sonner';
@@ -26,7 +27,10 @@ import {
   Star,
   ExternalLink,
   Briefcase,
-  Plus
+  Plus,
+  Key,
+  Download,
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -95,6 +99,15 @@ const UserDashboard = () => {
   const [creatingProfessional, setCreatingProfessional] = useState(false);
   const [professionCategories, setProfessionCategories] = useState<any[]>([]);
   const [serviceCategories, setServiceCategories] = useState<any[]>([]);
+
+  // States for account actions
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -497,6 +510,123 @@ const UserDashboard = () => {
       dni: ''
     }));
     setShowProfessionalForm(true);
+  };
+
+  // Account actions functions
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error('Por favor completa ambos campos');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success('Contraseña cambiada exitosamente');
+      setShowPasswordDialog(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast.error('Error al cambiar la contraseña');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    if (!user) return;
+
+    try {
+      setExportingData(true);
+
+      // Collect all user data
+      const userData = {
+        profile: userProfile,
+        contactRequests: contactRequests,
+        exportDate: new Date().toISOString(),
+        userId: user.id,
+        email: user.email
+      };
+
+      // Get additional data
+      const [favoritesData, transactionsData, reviewsData] = await Promise.all([
+        supabase.from('favorites').select('*').eq('user_id', user.id),
+        supabase.from('transactions').select('*').eq('user_id', user.id),
+        supabase.from('reviews').select('*').eq('user_id', user.id)
+      ]);
+
+      if (favoritesData.data) userData['favorites'] = favoritesData.data;
+      if (transactionsData.data) userData['transactions'] = transactionsData.data;
+      if (reviewsData.data) userData['reviews'] = reviewsData.data;
+
+      // Create and download JSON file
+      const dataStr = JSON.stringify(userData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `datos-chequealo-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      toast.success('Datos exportados exitosamente');
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      toast.error('Error al exportar datos');
+    } finally {
+      setExportingData(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    try {
+      setDeletingAccount(true);
+
+      // Call edge function to delete account
+      const { error } = await supabase.functions.invoke('delete-my-account', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success('Cuenta eliminada exitosamente');
+      
+      // Sign out user
+      await supabase.auth.signOut();
+      
+      // Redirect to home
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Error al eliminar la cuenta. Contacta soporte si el problema persiste.');
+    } finally {
+      setDeletingAccount(false);
+      setShowDeleteDialog(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -915,25 +1045,29 @@ const UserDashboard = () => {
                     <Button 
                       variant="outline" 
                       className="w-full justify-start"
-                      onClick={() => toast.info('Funcionalidad próximamente')}
+                      onClick={() => setShowPasswordDialog(true)}
                     >
-                      Cambiar Contraseña (Próximamente)
+                      <Key className="h-4 w-4 mr-2" />
+                      Cambiar Contraseña
                     </Button>
                     
                     <Button 
                       variant="outline" 
                       className="w-full justify-start"
-                      onClick={() => toast.info('Funcionalidad próximamente')}
+                      onClick={handleExportData}
+                      disabled={exportingData}
                     >
-                      Exportar Datos (Próximamente)
+                      <Download className="h-4 w-4 mr-2" />
+                      {exportingData ? 'Exportando...' : 'Exportar Datos'}
                     </Button>
                     
                     <Button 
                       variant="destructive" 
                       className="w-full justify-start"
-                      onClick={() => toast.error('Para eliminar tu cuenta, contacta soporte')}
+                      onClick={() => setShowDeleteDialog(true)}
                     >
-                      Eliminar Cuenta (Próximamente)
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Eliminar Cuenta
                     </Button>
                   </div>
                 </div>
@@ -1097,6 +1231,77 @@ const UserDashboard = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Change Password Dialog */}
+        <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cambiar Contraseña</DialogTitle>
+              <DialogDescription>
+                Ingresa tu nueva contraseña. Debe tener al menos 6 caracteres.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="new-password">Nueva Contraseña</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Nueva contraseña"
+                />
+              </div>
+              <div>
+                <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirma tu nueva contraseña"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleChangePassword} disabled={changingPassword}>
+                  {changingPassword ? 'Cambiando...' : 'Cambiar Contraseña'}
+                </Button>
+                <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Account Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás seguro de eliminar tu cuenta?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. Se eliminarán permanentemente:
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Tu perfil de usuario</li>
+                  <li>Todas tus solicitudes de contacto</li>
+                  <li>Tus favoritos</li>
+                  <li>Tus reseñas y calificaciones</li>
+                  <li>Si eres profesional: tu perfil profesional, servicios y fotos de trabajo</li>
+                </ul>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deletingAccount ? 'Eliminando...' : 'Sí, eliminar mi cuenta'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
