@@ -14,6 +14,7 @@ import { ServicesManager } from '@/components/ServicesManager';
 import { WorkPhotosManager } from '@/components/WorkPhotosManager';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
+import { ProfessionManager } from '@/components/ProfessionManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -541,6 +542,13 @@ const ProfessionalDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Gestor de Profesiones */}
+              <ProfessionManager
+                professionalData={professional}
+                onUpdate={fetchDashboardData}
+                isOwner={true}
+              />
 
               {/* Editor de Perfil directo */}
               <Card>
