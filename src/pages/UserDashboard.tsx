@@ -180,10 +180,123 @@ const UserDashboard = () => {
   };
 
   const handleUpdateProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found');
+      return;
+    }
+
+    // Validate required fields
+    if (!fullName.trim()) {
+      toast.error('El nombre completo es obligatorio');
+      return;
+    }
 
     try {
       setUpdating(true);
+      console.log('Starting profile update for user:', user.id);
+      console.log('Update data:', { fullName, username, bio, location });
+
+      // First check if profile exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing profile:', checkError);
+        throw checkError;
+      }
+
+      console.log('Existing profile:', existingProfile);
+
+      if (existingProfile) {
+        // Update existing profile
+        console.log('Updating existing profile');
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: fullName.trim(),
+            username: username.trim() || null,
+            bio: bio.trim() || null,
+            location: location.trim() || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        // Create new profile
+        console.log('Creating new profile');
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            full_name: fullName.trim(),
+            username: username.trim() || null,
+            bio: bio.trim() || null,
+            location: location.trim() || null
+          });
+
+        if (error) throw error;
+      }
+
+      console.log('Profile update successful');
+      toast.success('Perfil actualizado correctamente');
+      fetchUserData();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error(`Error al actualizar perfil: ${error.message || 'Error desconocido'}`);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) {
+      console.log('No file selected or no user');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen debe ser menor a 5MB');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen');
+      return;
+    }
+
+    try {
+      setUploadingPhoto(true);
+      console.log('Starting photo upload for user:', user.id);
+      
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+      
+      console.log('Uploading file:', fileName);
+      const { data, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload successful:', data);
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      console.log('Public URL:', publicUrl);
 
       // First check if profile exists
       const { data: existingProfile } = await supabase
@@ -192,83 +305,43 @@ const UserDashboard = () => {
         .eq('user_id', user.id)
         .maybeSingle();
 
+      let updateError;
       if (existingProfile) {
         // Update existing profile
         const { error } = await supabase
           .from('profiles')
           .update({
-            full_name: fullName,
-            username: username,
-            bio: bio,
-            location: location,
+            avatar_url: publicUrl,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id);
-
-        if (error) throw error;
+        updateError = error;
       } else {
-        // Create new profile
+        // Create new profile with avatar
         const { error } = await supabase
           .from('profiles')
           .insert({
             user_id: user.id,
-            full_name: fullName,
-            username: username,
-            bio: bio,
-            location: location
+            avatar_url: publicUrl,
+            full_name: fullName || '',
+            username: username || '',
+            bio: bio || '',
+            location: location || ''
           });
-
-        if (error) throw error;
+        updateError = error;
       }
 
-      toast.success('Perfil actualizado correctamente');
-      fetchUserData();
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Error al actualizar perfil');
-    } finally {
-      setUpdating(false);
-    }
-  };
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        throw updateError;
+      }
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
-
-    try {
-      setUploadingPhoto(true);
-      
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
-      
-      const { data, error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      // Update profile with new avatar URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          avatar_url: publicUrl,
-          updated_at: new Date().toISOString()
-        });
-
-      if (updateError) throw updateError;
-
+      console.log('Profile updated successfully');
       toast.success('Foto de perfil actualizada');
       fetchUserData();
     } catch (error) {
       console.error('Error uploading photo:', error);
-      toast.error('Error al subir foto de perfil');
+      toast.error(`Error al subir foto de perfil: ${error.message || 'Error desconocido'}`);
     } finally {
       setUploadingPhoto(false);
     }
