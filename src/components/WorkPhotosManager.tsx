@@ -36,8 +36,9 @@ export const WorkPhotosManager = () => {
   const [uploading, setUploading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPhoto, setEditingPhoto] = useState<WorkPhoto | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [multipleFormData, setMultipleFormData] = useState<{ [index: number]: PhotoFormData }>({});
   const [formData, setFormData] = useState<PhotoFormData>({
     caption: '',
     work_type: '',
@@ -52,14 +53,31 @@ export const WorkPhotosManager = () => {
   }, [user]);
 
   useEffect(() => {
-    if (selectedFile) {
-      const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
+    if (selectedFiles && selectedFiles.length > 0) {
+      const urls: string[] = [];
+      const newFormData: { [index: number]: PhotoFormData } = {};
+      
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        urls.push(URL.createObjectURL(file));
+        newFormData[i] = {
+          caption: '',
+          work_type: '',
+          is_featured: false
+        };
+      }
+      
+      setPreviewUrls(urls);
+      setMultipleFormData(newFormData);
+      
+      return () => {
+        urls.forEach(url => URL.revokeObjectURL(url));
+      };
     } else {
-      setPreviewUrl(null);
+      setPreviewUrls([]);
+      setMultipleFormData({});
     }
-  }, [selectedFile]);
+  }, [selectedFiles]);
 
   const fetchProfessionalAndPhotos = async () => {
     try {
@@ -98,9 +116,10 @@ export const WorkPhotosManager = () => {
       work_type: '',
       is_featured: false
     });
+    setMultipleFormData({});
     setEditingPhoto(null);
-    setSelectedFile(null);
-    setPreviewUrl(null);
+    setSelectedFiles(null);
+    setPreviewUrls([]);
   };
 
   const handleEdit = (photo: WorkPhoto) => {
@@ -138,55 +157,119 @@ export const WorkPhotosManager = () => {
       return;
     }
 
-    if (!editingPhoto && !selectedFile) {
-      toast.error('Selecciona una imagen');
+    // Handle editing existing photo (single photo logic)
+    if (editingPhoto) {
+      if (!selectedFiles || selectedFiles.length === 0) {
+        // Update existing photo without changing image
+        try {
+          setUploading(true);
+          
+          const { error } = await supabase
+            .from('work_photos')
+            .update({
+              caption: formData.caption.trim() || null,
+              work_type: formData.work_type || null,
+              is_featured: formData.is_featured
+            })
+            .eq('id', editingPhoto.id);
+
+          if (error) throw error;
+          toast.success('Foto actualizada correctamente');
+          setIsDialogOpen(false);
+          resetForm();
+          fetchProfessionalAndPhotos();
+        } catch (error) {
+          console.error('Error updating photo:', error);
+          toast.error('Error al actualizar la foto');
+        } finally {
+          setUploading(false);
+        }
+        return;
+      } else {
+        // Update existing photo with new image
+        try {
+          setUploading(true);
+          
+          const imageUrl = await uploadImage(selectedFiles[0]);
+          
+          const { error } = await supabase
+            .from('work_photos')
+            .update({
+              image_url: imageUrl,
+              caption: formData.caption.trim() || null,
+              work_type: formData.work_type || null,
+              is_featured: formData.is_featured
+            })
+            .eq('id', editingPhoto.id);
+
+          if (error) throw error;
+          toast.success('Foto actualizada correctamente');
+          setIsDialogOpen(false);
+          resetForm();
+          fetchProfessionalAndPhotos();
+        } catch (error) {
+          console.error('Error updating photo:', error);
+          toast.error('Error al actualizar la foto');
+        } finally {
+          setUploading(false);
+        }
+        return;
+      }
+    }
+
+    // Handle uploading multiple new photos
+    if (!selectedFiles || selectedFiles.length === 0) {
+      toast.error('Selecciona al menos una imagen');
       return;
     }
 
     try {
       setUploading(true);
+      const results = [];
       
-      let imageUrl = editingPhoto?.image_url || '';
-      
-      // Upload new image if selected
-      if (selectedFile) {
-        imageUrl = await uploadImage(selectedFile);
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const photoData = multipleFormData[i] || { caption: '', work_type: '', is_featured: false };
+        
+        try {
+          const imageUrl = await uploadImage(file);
+          
+          const { error } = await supabase
+            .from('work_photos')
+            .insert({
+              professional_id: professionalId,
+              image_url: imageUrl,
+              caption: photoData.caption.trim() || null,
+              work_type: photoData.work_type || null,
+              is_featured: photoData.is_featured,
+              uploaded_by: 'professional'
+            });
+
+          if (error) throw error;
+          results.push({ success: true, file: file.name });
+        } catch (error) {
+          console.error(`Error uploading ${file.name}:`, error);
+          results.push({ success: false, file: file.name, error });
+        }
       }
 
-      const photoData = {
-        professional_id: professionalId,
-        image_url: imageUrl,
-        caption: formData.caption.trim() || null,
-        work_type: formData.work_type || null,
-        is_featured: formData.is_featured,
-        uploaded_by: 'professional'
-      };
-
-      if (editingPhoto) {
-        // Update existing photo
-        const { error } = await supabase
-          .from('work_photos')
-          .update(photoData)
-          .eq('id', editingPhoto.id);
-
-        if (error) throw error;
-        toast.success('Foto actualizada correctamente');
-      } else {
-        // Create new photo
-        const { error } = await supabase
-          .from('work_photos')
-          .insert(photoData);
-
-        if (error) throw error;
-        toast.success('Foto subida correctamente');
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.filter(r => !r.success).length;
+      
+      if (successCount > 0) {
+        toast.success(`${successCount} foto${successCount > 1 ? 's' : ''} subida${successCount > 1 ? 's' : ''} correctamente`);
+      }
+      
+      if (failureCount > 0) {
+        toast.error(`Error al subir ${failureCount} foto${failureCount > 1 ? 's' : ''}`);
       }
 
       setIsDialogOpen(false);
       resetForm();
       fetchProfessionalAndPhotos();
     } catch (error) {
-      console.error('Error saving photo:', error);
-      toast.error('Error al guardar la foto');
+      console.error('Error saving photos:', error);
+      toast.error('Error al guardar las fotos');
     } finally {
       setUploading(false);
     }
@@ -278,16 +361,16 @@ export const WorkPhotosManager = () => {
                 Subir Foto
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[525px]">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
               <form onSubmit={handleSubmit}>
                 <DialogHeader>
                   <DialogTitle>
-                    {editingPhoto ? 'Editar Foto' : 'Subir Nueva Foto'}
+                    {editingPhoto ? 'Editar Foto' : 'Subir Fotos'}
                   </DialogTitle>
                   <DialogDescription>
                     {editingPhoto 
                       ? 'Modifica la información de la foto' 
-                      : 'Agrega una foto de tu trabajo al portfolio'
+                      : 'Agrega múltiples fotos de tus trabajos al portfolio'
                     }
                   </DialogDescription>
                 </DialogHeader>
@@ -295,109 +378,172 @@ export const WorkPhotosManager = () => {
                 <div className="grid gap-4 py-4">
                   {!editingPhoto && (
                     <div className="space-y-2">
-                      <Label htmlFor="image">Subir desde tu dispositivo *</Label>
+                      <Label htmlFor="images">Subir desde tu dispositivo *</Label>
                       <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
                         <Input
-                          id="image"
+                          id="images"
                           type="file"
                           accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
                           capture="environment"
-                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                          multiple
+                          onChange={(e) => setSelectedFiles(e.target.files)}
                           required={!editingPhoto}
                           className="sr-only"
                         />
-                        <Label htmlFor="image" className="cursor-pointer flex flex-col items-center gap-2">
+                        <Label htmlFor="images" className="cursor-pointer flex flex-col items-center gap-2">
                           <Upload className="h-8 w-8 text-muted-foreground" />
-                          <span className="text-sm font-medium">Click para seleccionar imagen</span>
-                          <span className="text-xs text-muted-foreground">JPG, PNG, WEBP (máx. 10MB)</span>
+                          <span className="text-sm font-medium">Click para seleccionar imágenes</span>
+                          <span className="text-xs text-muted-foreground">JPG, PNG, WEBP (máx. 10MB c/u) - Selección múltiple</span>
                         </Label>
                       </div>
-                      {previewUrl && (
-                        <div className="mt-3">
-                          <p className="text-sm font-medium mb-2">Vista previa:</p>
-                          <img 
-                            src={previewUrl} 
-                            alt="Preview" 
-                            className="w-full h-32 object-cover rounded-md border"
-                          />
+                      
+                      {previewUrls.length > 0 && (
+                        <div className="mt-4 space-y-4">
+                          <p className="text-sm font-medium">Vista previa de {previewUrls.length} imagen{previewUrls.length > 1 ? 'es' : ''}:</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                            {previewUrls.map((url, index) => (
+                              <div key={index} className="border rounded-lg p-3 space-y-3">
+                                <img 
+                                  src={url} 
+                                  alt={`Preview ${index + 1}`} 
+                                  className="w-full h-32 object-cover rounded-md"
+                                />
+                                
+                                <div className="space-y-2">
+                                  <div>
+                                    <Label htmlFor={`work_type_${index}`} className="text-xs">Tipo de Trabajo</Label>
+                                    <Select 
+                                      value={multipleFormData[index]?.work_type || ''} 
+                                      onValueChange={(value) => setMultipleFormData(prev => ({
+                                        ...prev,
+                                        [index]: { ...prev[index], work_type: value }
+                                      }))}
+                                    >
+                                      <SelectTrigger className="h-8">
+                                        <SelectValue placeholder="Seleccionar tipo" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {workTypes.map((type) => (
+                                          <SelectItem key={type} value={type}>
+                                            {type}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  
+                                  <div>
+                                    <Label htmlFor={`caption_${index}`} className="text-xs">Descripción</Label>
+                                    <Textarea
+                                      id={`caption_${index}`}
+                                      value={multipleFormData[index]?.caption || ''}
+                                      onChange={(e) => setMultipleFormData(prev => ({
+                                        ...prev,
+                                        [index]: { ...prev[index], caption: e.target.value }
+                                      }))}
+                                      placeholder="Describe el trabajo..."
+                                      rows={2}
+                                      className="text-xs"
+                                    />
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    <Switch
+                                      id={`featured_${index}`}
+                                      checked={multipleFormData[index]?.is_featured || false}
+                                      onCheckedChange={(checked) => setMultipleFormData(prev => ({
+                                        ...prev,
+                                        [index]: { ...prev[index], is_featured: checked }
+                                      }))}
+                                    />
+                                    <Label htmlFor={`featured_${index}`} className="text-xs">Destacada</Label>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
                   )}
 
                   {editingPhoto && (
-                    <div className="space-y-2">
-                      <Label>Imagen Actual</Label>
-                      <img 
-                        src={editingPhoto.image_url} 
-                        alt="Current" 
-                        className="w-full h-32 object-cover rounded-md"
-                      />
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="new-image">Cambiar Imagen (opcional)</Label>
-                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
-                          <Input
-                            id="new-image"
-                            type="file"
-                            accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
-                            capture="environment"
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                            className="sr-only"
-                          />
-                          <Label htmlFor="new-image" className="cursor-pointer flex flex-col items-center gap-2">
-                            <Upload className="h-6 w-6 text-muted-foreground" />
-                            <span className="text-sm">Seleccionar nueva imagen</span>
-                          </Label>
-                        </div>
-                        {previewUrl && (
-                          <div className="mt-3">
-                            <p className="text-sm font-medium mb-2">Nueva imagen:</p>
-                            <img 
-                              src={previewUrl} 
-                              alt="New preview" 
-                              className="w-full h-32 object-cover rounded-md border"
+                        <Label>Imagen Actual</Label>
+                        <img 
+                          src={editingPhoto.image_url} 
+                          alt="Current" 
+                          className="w-full h-32 object-cover rounded-md"
+                        />
+                        <div className="space-y-2">
+                          <Label htmlFor="new-image">Cambiar Imagen (opcional)</Label>
+                          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
+                            <Input
+                              id="new-image"
+                              type="file"
+                              accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
+                              capture="environment"
+                              onChange={(e) => setSelectedFiles(e.target.files)}
+                              className="sr-only"
                             />
+                            <Label htmlFor="new-image" className="cursor-pointer flex flex-col items-center gap-2">
+                              <Upload className="h-6 w-6 text-muted-foreground" />
+                              <span className="text-sm">Seleccionar nueva imagen</span>
+                            </Label>
                           </div>
-                        )}
+                          {previewUrls.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-sm font-medium mb-2">Nueva imagen:</p>
+                              <img 
+                                src={previewUrls[0]} 
+                                alt="New preview" 
+                                className="w-full h-32 object-cover rounded-md border"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="work_type">Tipo de Trabajo</Label>
+                          <Select value={formData.work_type} onValueChange={(value) => setFormData(prev => ({ ...prev, work_type: value }))}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona el tipo de trabajo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {workTypes.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                  {type}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="caption">Descripción</Label>
+                          <Textarea
+                            id="caption"
+                            value={formData.caption}
+                            onChange={(e) => setFormData(prev => ({ ...prev, caption: e.target.value }))}
+                            placeholder="Describe el trabajo realizado..."
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="is_featured"
+                            checked={formData.is_featured}
+                            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
+                          />
+                          <Label htmlFor="is_featured">Foto destacada</Label>
+                        </div>
                       </div>
                     </div>
                   )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="work_type">Tipo de Trabajo</Label>
-                    <Select value={formData.work_type} onValueChange={(value) => setFormData(prev => ({ ...prev, work_type: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona el tipo de trabajo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {workTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="caption">Descripción</Label>
-                    <Textarea
-                      id="caption"
-                      value={formData.caption}
-                      onChange={(e) => setFormData(prev => ({ ...prev, caption: e.target.value }))}
-                      placeholder="Describe el trabajo realizado..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is_featured"
-                      checked={formData.is_featured}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_featured: checked }))}
-                    />
-                    <Label htmlFor="is_featured">Foto destacada</Label>
-                  </div>
                 </div>
 
                 <DialogFooter>
@@ -405,7 +551,7 @@ export const WorkPhotosManager = () => {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={uploading}>
-                    {uploading ? 'Subiendo...' : (editingPhoto ? 'Actualizar' : 'Subir Foto')}
+                    {uploading ? 'Subiendo...' : (editingPhoto ? 'Actualizar' : `Subir ${previewUrls.length || 0} Foto${previewUrls.length !== 1 ? 's' : ''}`)}
                   </Button>
                 </DialogFooter>
               </form>
