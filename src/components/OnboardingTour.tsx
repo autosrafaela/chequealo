@@ -68,7 +68,9 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) =>
     const tourCompleted = localStorage.getItem('onboarding-completed');
     const isNewUser = user && !tourCompleted;
     
-    if (isNewUser && !hasSeenTour) {
+    // Temporarily disable auto-showing tour to avoid blocking the interface
+    // Only show if explicitly requested
+    if (false && isNewUser && !hasSeenTour) {
       // Delay showing the tour slightly to allow page to load
       setTimeout(() => {
         setIsVisible(true);

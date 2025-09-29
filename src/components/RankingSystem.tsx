@@ -226,13 +226,21 @@ export const RankingSystem: React.FC<RankingSystemProps> = ({
   const renderRankingEntry = (entry: RankingEntry, isProfessional = false) => (
     <div
       key={entry.id}
-      className={`flex items-center gap-4 p-4 rounded-lg transition-colors hover:bg-muted/50 ${
-        entry.user_id === user?.id ? 'bg-primary/5 ring-1 ring-primary/20' : ''
+      className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-md border bg-gradient-to-r ${
+        entry.user_id === user?.id 
+          ? 'from-primary/10 via-primary/5 to-primary/10 border-primary/30 shadow-shadow-glow' 
+          : 'from-background to-muted/20 border-border/30 hover:from-muted/30 hover:to-muted/10'
       }`}
     >
       {/* Ranking Position */}
-      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-        getRankBadgeColor(entry.ranking_position || 0)
+      <div className={`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg shadow-lg border-2 ${
+        entry.ranking_position === 1 
+          ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white border-yellow-500 shadow-yellow-500/30' 
+          : entry.ranking_position === 2 
+          ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white border-gray-400 shadow-gray-400/30'
+          : entry.ranking_position === 3 
+          ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white border-amber-500 shadow-amber-500/30'
+          : 'bg-gradient-to-br from-muted to-muted-foreground/20 text-foreground border-border'
       }`}>
         {entry.ranking_position && entry.ranking_position <= 3 
           ? getRankIcon(entry.ranking_position)
@@ -241,9 +249,9 @@ export const RankingSystem: React.FC<RankingSystemProps> = ({
       </div>
 
       {/* Avatar */}
-      <Avatar className="h-12 w-12">
-        <AvatarImage src={entry.avatar_url} />
-        <AvatarFallback>
+      <Avatar className="h-14 w-14 ring-2 ring-border shadow-md">
+        <AvatarImage src={entry.avatar_url} className="object-cover" />
+        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold text-lg">
           {entry.name.charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
@@ -295,14 +303,14 @@ export const RankingSystem: React.FC<RankingSystemProps> = ({
 
       {/* Score */}
       <div className="text-right">
-        <div className="font-bold text-lg text-primary">
+        <div className="font-bold text-2xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
           {isProfessional ? (
             entry.score?.toFixed(1)
           ) : (
             entry.total_points.toLocaleString()
           )}
         </div>
-        <div className="text-xs text-muted-foreground">
+        <div className="text-sm text-muted-foreground font-medium">
           {isProfessional ? 'Score' : 'puntos'}
         </div>
       </div>
@@ -332,44 +340,57 @@ export const RankingSystem: React.FC<RankingSystemProps> = ({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          Rankings
+    <Card className="w-full shadow-card border-border/50 bg-gradient-to-br from-card to-card/80">
+      <CardHeader className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-b border-border/50">
+        <CardTitle className="flex items-center gap-3 text-xl font-bold">
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+            <TrendingUp className="h-5 w-5 text-primary" />
+          </div>
+          <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            Rankings
+          </span>
         </CardTitle>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-6">
         {type === 'both' ? (
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'users' | 'professionals')}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="users" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-lg">
+              <TabsTrigger 
+                value="users" 
+                className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md transition-all"
+              >
                 <Users className="h-4 w-4" />
                 Usuarios
               </TabsTrigger>
-              <TabsTrigger value="professionals" className="flex items-center gap-2">
+              <TabsTrigger 
+                value="professionals" 
+                className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md transition-all"
+              >
                 <Briefcase className="h-4 w-4" />  
                 Profesionales
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="users" className="space-y-2 mt-6">
+            <TabsContent value="users" className="space-y-4 mt-6">
               {/* Current User Position */}
               {currentUserRank && currentUserRank.ranking_position && currentUserRank.ranking_position > limit && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Tu posición:</h4>
+                <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20">
+                  <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Tu posición actual:
+                  </h4>
                   {renderRankingEntry(currentUserRank)}
                 </div>
               )}
 
               {/* Top Rankings */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {userRankings.map(entry => renderRankingEntry(entry))}
               </div>
             </TabsContent>
 
-            <TabsContent value="professionals" className="space-y-2 mt-6">
+            <TabsContent value="professionals" className="space-y-3 mt-6">
               {professionalRankings.map(entry => renderRankingEntry(entry, true))}
             </TabsContent>
           </Tabs>
