@@ -1,11 +1,11 @@
 import React from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Crown, AlertTriangle, Zap } from "lucide-react";
+import { Crown, AlertTriangle, Zap, Camera, Lock, Mail } from "lucide-react";
 import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 
 interface PlanRestrictionsAlertProps {
-  featureType: 'contacts' | 'photos' | 'analytics' | 'support' | 'advanced_availability' | 'bidirectional_reviews';
+  featureType: 'contacts' | 'photos' | 'analytics' | 'support' | 'advanced_availability' | 'bidirectional_reviews' | 'video_uploads' | 'before_after_gallery' | 'digital_certificates' | 'proximity_search' | 'interactive_map';
   currentUsage?: number;
   onUpgrade?: () => void;
 }
@@ -60,6 +60,41 @@ export const PlanRestrictionsAlert: React.FC<PlanRestrictionsAlertProps> = ({
           description: 'Tu plan actual permite calificar hasta 10 clientes. Actualiza para calificaciones ilimitadas.',
           icon: <Crown className="h-4 w-4" />,
           upgradeText: 'Actualizar Plan'
+        };
+      case 'video_uploads':
+        return {
+          title: 'Videos No Disponibles',
+          description: 'La subida de videos no está incluida en tu plan actual.',
+          icon: <Camera className="h-4 w-4" />,
+          upgradeText: 'Actualizar para subir videos'
+        };
+      case 'before_after_gallery':
+        return {
+          title: 'Galería Antes/Después No Disponible',
+          description: 'Las comparaciones antes/después no están incluidas en tu plan.',
+          icon: <Camera className="h-4 w-4" />,
+          upgradeText: 'Actualizar para galería antes/después'
+        };
+      case 'digital_certificates':
+        return {
+          title: 'Certificaciones Digitales No Disponibles',
+          description: 'La gestión de certificaciones no está incluida en tu plan.',
+          icon: <Lock className="h-4 w-4" />,
+          upgradeText: 'Actualizar para certificaciones'
+        };
+      case 'proximity_search':
+        return {
+          title: 'Búsqueda por Proximidad No Disponible',
+          description: 'La búsqueda por ubicación no está incluida en tu plan.',
+          icon: <Lock className="h-4 w-4" />,
+          upgradeText: 'Actualizar para búsqueda por proximidad'
+        };
+      case 'interactive_map':
+        return {
+          title: 'Mapa Interactivo No Disponible',
+          description: 'El mapa interactivo no está incluido en tu plan.',
+          icon: <Lock className="h-4 w-4" />,
+          upgradeText: 'Actualizar para mapa interactivo'
         };
       default:
         return {

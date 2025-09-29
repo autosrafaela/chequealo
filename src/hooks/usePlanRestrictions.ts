@@ -16,6 +16,17 @@ interface PlanLimits {
   calendarIntegration: boolean;
   maxAvailabilitySlots: number;
   canRateUsers: boolean;
+  // Nuevas funcionalidades - Portfolio Mejorado
+  canUploadVideos: boolean;
+  canCreateBeforeAfter: boolean;
+  canUploadCertificates: boolean;
+  maxVideosPerPortfolio: number;
+  maxCertificates: number;
+  // Nuevas funcionalidades - Geolocalización
+  canUseProximitySearch: boolean;
+  canUseInteractiveMap: boolean;
+  canVerifyLocation: boolean;
+  proximitySearchRadius: number; // en km
 }
 
 interface ExtendedSubscription {
@@ -56,7 +67,18 @@ export const usePlanRestrictions = () => {
     maxMonthlyBookings: -1,
     calendarIntegration: false,
     maxAvailabilitySlots: 5,
-    canRateUsers: false
+    canRateUsers: false,
+    // Portfolio defaults
+    canUploadVideos: false,
+    canCreateBeforeAfter: false,
+    canUploadCertificates: false,
+    maxVideosPerPortfolio: 0,
+    maxCertificates: 0,
+    // Geolocalización defaults
+    canUseProximitySearch: false,
+    canUseInteractiveMap: false,
+    canVerifyLocation: false,
+    proximitySearchRadius: 5,
   });
   const [loading, setLoading] = useState(true);
 
@@ -93,7 +115,18 @@ export const usePlanRestrictions = () => {
             maxMonthlyBookings: professionalPlan.max_monthly_bookings,
             calendarIntegration: professionalPlan.calendar_integration,
             maxAvailabilitySlots: -1,
-            canRateUsers: true
+            canRateUsers: true,
+            // Portfolio features - Trial gets professional features
+            canUploadVideos: true,
+            canCreateBeforeAfter: false,
+            canUploadCertificates: false,
+            maxVideosPerPortfolio: 10,
+            maxCertificates: 0,
+            // Geolocalización features - Trial gets basic features
+            canUseProximitySearch: true,
+            canUseInteractiveMap: false,
+            canVerifyLocation: false,
+            proximitySearchRadius: 50,
           });
         }
         return;
@@ -117,6 +150,9 @@ export const usePlanRestrictions = () => {
         const isProfessionalPlan = plan.name === 'Plan Profesional' || plan.name === 'Profesional Mensual';
         const isPremiumPlan = plan.name === 'Plan Premium';
 
+        // Extract features from plan
+        const features = Array.isArray(plan.features) ? plan.features : [];
+        
         setPlanLimits({
           maxContactRequests: plan.max_contact_requests,
           maxWorkPhotos: plan.max_work_photos,
@@ -129,7 +165,18 @@ export const usePlanRestrictions = () => {
           maxMonthlyBookings: plan.max_monthly_bookings,
           calendarIntegration: plan.calendar_integration,
           maxAvailabilitySlots: isBasicPlan ? 5 : -1,
-          canRateUsers: !isBasicPlan
+          canRateUsers: !isBasicPlan,
+          // Portfolio features based on plan
+          canUploadVideos: features.includes('video_uploads'),
+          canCreateBeforeAfter: features.includes('before_after_gallery'),
+          canUploadCertificates: features.includes('digital_certificates'),
+          maxVideosPerPortfolio: isPremiumPlan ? -1 : (isProfessionalPlan ? 10 : 0),
+          maxCertificates: isPremiumPlan ? -1 : (isProfessionalPlan ? 5 : 0),
+          // Geolocalización features based on plan
+          canUseProximitySearch: features.includes('proximity_search') || features.includes('advanced_geolocation'),
+          canUseInteractiveMap: features.includes('interactive_map'),
+          canVerifyLocation: features.includes('advanced_geolocation'),
+          proximitySearchRadius: isPremiumPlan ? 100 : (isProfessionalPlan ? 50 : 5),
         });
       }
 

@@ -160,6 +160,45 @@ export type Database = {
           },
         ]
       }
+      certifications: {
+        Row: {
+          certificate_name: string
+          certificate_url: string
+          created_at: string
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string
+          professional_id: string
+          updated_at: string
+          verification_status: string | null
+        }
+        Insert: {
+          certificate_name: string
+          certificate_url: string
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization: string
+          professional_id: string
+          updated_at?: string
+          verification_status?: string | null
+        }
+        Update: {
+          certificate_name?: string
+          certificate_url?: string
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string
+          professional_id?: string
+          updated_at?: string
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
       contact_access_logs: {
         Row: {
           access_type: string
@@ -598,7 +637,11 @@ export type Database = {
           image_url: string | null
           is_blocked: boolean
           is_verified: boolean
+          latitude: number | null
           location: string | null
+          location_updated_at: string | null
+          location_verified: boolean | null
+          longitude: number | null
           phone: string | null
           profession: string
           rating: number | null
@@ -618,7 +661,11 @@ export type Database = {
           image_url?: string | null
           is_blocked?: boolean
           is_verified?: boolean
+          latitude?: number | null
           location?: string | null
+          location_updated_at?: string | null
+          location_verified?: boolean | null
+          longitude?: number | null
           phone?: string | null
           profession: string
           rating?: number | null
@@ -638,7 +685,11 @@ export type Database = {
           image_url?: string | null
           is_blocked?: boolean
           is_verified?: boolean
+          latitude?: number | null
           location?: string | null
+          location_updated_at?: string | null
+          location_verified?: boolean | null
+          longitude?: number | null
           phone?: string | null
           profession?: string
           rating?: number | null
@@ -1167,33 +1218,48 @@ export type Database = {
       }
       work_photos: {
         Row: {
+          after_image_url: string | null
+          before_image_url: string | null
           caption: string | null
           created_at: string
           id: string
           image_url: string
+          is_before_after: boolean | null
           is_featured: boolean
+          media_type: string | null
           professional_id: string
           uploaded_by: string
+          video_url: string | null
           work_type: string | null
         }
         Insert: {
+          after_image_url?: string | null
+          before_image_url?: string | null
           caption?: string | null
           created_at?: string
           id?: string
           image_url: string
+          is_before_after?: boolean | null
           is_featured?: boolean
+          media_type?: string | null
           professional_id: string
           uploaded_by?: string
+          video_url?: string | null
           work_type?: string | null
         }
         Update: {
+          after_image_url?: string | null
+          before_image_url?: string | null
           caption?: string | null
           created_at?: string
           id?: string
           image_url?: string
+          is_before_after?: boolean | null
           is_featured?: boolean
+          media_type?: string | null
           professional_id?: string
           uploaded_by?: string
+          video_url?: string | null
           work_type?: string | null
         }
         Relationships: [
