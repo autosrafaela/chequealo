@@ -17,12 +17,14 @@ interface Subscription {
   user_id: string;
   professional_id: string;
   plan_id: string;
+  selected_plan_id?: string;
   status: string;
   trial_start_date: string;
   trial_end_date: string;
   payment_reminder_sent: boolean;
   payment_data_required_date: string;
   next_billing_date?: string;
+  plan_selection_deadline?: string;
   subscription_plans: SubscriptionPlan;
 }
 
@@ -51,12 +53,12 @@ export const useSubscription = () => {
         return;
       }
 
-      // Get subscription
+      // Get subscription with proper plan relation
       const { data, error } = await supabase
         .from('subscriptions')
         .select(`
           *,
-          subscription_plans!inner(*)
+          subscription_plans!plan_id(*)
         `)
         .eq('professional_id', professional.id)
         .order('created_at', { ascending: false })
@@ -76,7 +78,7 @@ export const useSubscription = () => {
     }
   };
 
-  const createPaymentPreference = async () => {
+  const createPaymentPreference = async (selectedPlanId?: string) => {
     if (!subscription) return null;
 
     try {
@@ -85,6 +87,7 @@ export const useSubscription = () => {
       const { data, error } = await supabase.functions.invoke('create-payment-preference', {
         body: {
           subscriptionId: subscription.id,
+          selectedPlanId: selectedPlanId,
           returnUrl: `${window.location.origin}/dashboard?payment=success`
         }
       });
@@ -104,6 +107,30 @@ export const useSubscription = () => {
       return null;
     } finally {
       setCreating(false);
+    }
+  };
+
+  const updateSelectedPlan = async (planId: string) => {
+    if (!subscription) return false;
+
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ selected_plan_id: planId })
+        .eq('id', subscription.id);
+
+      if (error) throw error;
+
+      await fetchSubscription();
+      return true;
+    } catch (error) {
+      console.error('Error updating selected plan:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el plan seleccionado.",
+        variant: "destructive"
+      });
+      return false;
     }
   };
 
@@ -151,6 +178,7 @@ export const useSubscription = () => {
     creating,
     fetchSubscription,
     createPaymentPreference,
+    updateSelectedPlan,
     getSubscriptionStatus,
     getDaysRemaining
   };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,11 @@ import {
   CheckCircle, 
   AlertCircle, 
   XCircle,
-  Calendar
+  Calendar,
+  Settings
 } from "lucide-react";
 import { useSubscription } from '@/hooks/useSubscription';
+import { PlanSelectionModal } from './PlanSelectionModal';
 
 export const SubscriptionPanel = () => {
   const { 
@@ -22,14 +24,21 @@ export const SubscriptionPanel = () => {
     getSubscriptionStatus, 
     getDaysRemaining 
   } = useSubscription();
+  
+  const [showPlanSelection, setShowPlanSelection] = useState(false);
 
-  const handlePayment = async () => {
-    const preference = await createPaymentPreference();
+  const handlePayment = async (selectedPlanId?: string) => {
+    const preference = await createPaymentPreference(selectedPlanId);
     
     if (preference && preference.initPoint) {
       // Redirect to MercadoPago checkout
       window.location.href = preference.initPoint;
     }
+  };
+
+  const handlePlanSelected = (planId: string) => {
+    // Plan has been saved, now user can choose to pay immediately or later
+    setShowPlanSelection(false);
   };
 
   if (loading) {
@@ -191,32 +200,46 @@ export const SubscriptionPanel = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="bg-muted p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">{subscription.subscription_plans.name}</span>
-                  <span className="text-lg font-bold">
-                    ${subscription.subscription_plans.price.toLocaleString()} {subscription.subscription_plans.currency}
-                  </span>
+              <div className="space-y-4">
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">
+                      {subscription.selected_plan_id ? 'Plan Seleccionado' : subscription.subscription_plans.name}
+                    </span>
+                    <span className="text-lg font-bold">
+                      ${subscription.subscription_plans.price.toLocaleString()} {subscription.subscription_plans.currency}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">Facturación mensual</p>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">Facturación mensual</p>
-              </div>
-              
-              <Button 
-                onClick={handlePayment}
-                disabled={creating}
-                size="lg" 
-                className="w-full"
-              >
-                {creating ? (
-                  <>Procesando...</>
-                ) : (
-                  <>
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Pagar con MercadoPago
-                  </>
-                )}
-              </Button>
+                
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setShowPlanSelection(true)}
+                    className="w-full"
+                    disabled={creating}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    {subscription.selected_plan_id ? 'Cambiar Plan' : 'Seleccionar Plan'}
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handlePayment(subscription.selected_plan_id)}
+                    disabled={creating}
+                    size="lg" 
+                    className="w-full"
+                  >
+                    {creating ? (
+                      <>Procesando...</>
+                    ) : (
+                      <>
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Pagar con MercadoPago
+                      </>
+                    )}
+                  </Button>
+                </div>
               
               <p className="text-xs text-muted-foreground text-center">
                 Al completar el pago, aceptás nuestros términos de servicio. 
@@ -261,6 +284,14 @@ export const SubscriptionPanel = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Plan Selection Modal */}
+      <PlanSelectionModal
+        isOpen={showPlanSelection}
+        onClose={() => setShowPlanSelection(false)}
+        onPlanConfirmed={handlePlanSelected}
+        currentPlanId={subscription?.selected_plan_id || subscription?.plan_id}
+      />
     </div>
   );
 };

@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface PaymentPreferenceRequest {
   subscriptionId: string;
+  selectedPlanId?: string;
   returnUrl?: string;
 }
 
@@ -36,7 +37,7 @@ serve(async (req) => {
       throw new Error('Invalid authentication');
     }
 
-    const { subscriptionId, returnUrl }: PaymentPreferenceRequest = await req.json();
+    const { subscriptionId, selectedPlanId, returnUrl }: PaymentPreferenceRequest = await req.json();
 
     // Get subscription details
     const { data: subscription, error: subError } = await supabaseClient
@@ -54,6 +55,30 @@ serve(async (req) => {
       throw new Error('Subscription not found');
     }
 
+    // Determine which plan to use for pricing
+    let planToUse = subscription.subscription_plans;
+    
+    // If a specific plan is selected, fetch it and update subscription
+    if (selectedPlanId) {
+      const { data: selectedPlan, error: planError } = await supabaseClient
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', selectedPlanId)
+        .single();
+
+      if (planError || !selectedPlan) {
+        throw new Error('Selected plan not found');
+      }
+      
+      planToUse = selectedPlan;
+      
+      // Update the subscription's selected plan
+      await supabaseClient
+        .from('subscriptions')
+        .update({ selected_plan_id: selectedPlanId })
+        .eq('id', subscriptionId);
+    }
+
     // Create MercadoPago preference
     const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
     if (!accessToken) {
@@ -63,11 +88,11 @@ serve(async (req) => {
     const preference = {
       items: [
         {
-          title: `Suscripción ${subscription.subscription_plans.name}`,
+          title: `Suscripción ${planToUse.name}`,
           description: `Suscripción mensual para ${subscription.professionals.full_name}`,
           quantity: 1,
-          currency_id: subscription.subscription_plans.currency,
-          unit_price: parseFloat(subscription.subscription_plans.price)
+          currency_id: planToUse.currency,
+          unit_price: parseFloat(planToUse.price)
         }
       ],
       payer: {
@@ -112,8 +137,8 @@ serve(async (req) => {
       .insert({
         subscription_id: subscriptionId,
         user_id: user.id,
-        amount: subscription.subscription_plans.price,
-        currency: subscription.subscription_plans.currency,
+        amount: planToUse.price,
+        currency: planToUse.currency,
         status: 'pending',
         mercadopago_preference_id: mpData.id
       });

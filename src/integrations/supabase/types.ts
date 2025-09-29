@@ -606,36 +606,54 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          advanced_analytics: boolean | null
           billing_interval: string
           created_at: string
           currency: string
+          featured_listing: boolean | null
+          features: Json | null
           grace_period_days: number
           id: string
           is_active: boolean
+          max_contact_requests: number | null
+          max_work_photos: number | null
           name: string
           price: number
+          priority_support: boolean | null
           updated_at: string
         }
         Insert: {
+          advanced_analytics?: boolean | null
           billing_interval?: string
           created_at?: string
           currency?: string
+          featured_listing?: boolean | null
+          features?: Json | null
           grace_period_days?: number
           id?: string
           is_active?: boolean
+          max_contact_requests?: number | null
+          max_work_photos?: number | null
           name: string
           price: number
+          priority_support?: boolean | null
           updated_at?: string
         }
         Update: {
+          advanced_analytics?: boolean | null
           billing_interval?: string
           created_at?: string
           currency?: string
+          featured_listing?: boolean | null
+          features?: Json | null
           grace_period_days?: number
           id?: string
           is_active?: boolean
+          max_contact_requests?: number | null
+          max_work_photos?: number | null
           name?: string
           price?: number
+          priority_support?: boolean | null
           updated_at?: string
         }
         Relationships: []
@@ -649,7 +667,9 @@ export type Database = {
           payment_data_required_date: string
           payment_reminder_sent: boolean
           plan_id: string
+          plan_selection_deadline: string | null
           professional_id: string
+          selected_plan_id: string | null
           status: string
           trial_end_date: string
           trial_start_date: string
@@ -664,7 +684,9 @@ export type Database = {
           payment_data_required_date?: string
           payment_reminder_sent?: boolean
           plan_id: string
+          plan_selection_deadline?: string | null
           professional_id: string
+          selected_plan_id?: string | null
           status?: string
           trial_end_date?: string
           trial_start_date?: string
@@ -679,7 +701,9 @@ export type Database = {
           payment_data_required_date?: string
           payment_reminder_sent?: boolean
           plan_id?: string
+          plan_selection_deadline?: string | null
           professional_id?: string
+          selected_plan_id?: string | null
           status?: string
           trial_end_date?: string
           trial_start_date?: string
@@ -690,6 +714,13 @@ export type Database = {
           {
             foreignKeyName: "subscriptions_plan_id_fkey"
             columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_selected_plan_id_fkey"
+            columns: ["selected_plan_id"]
             isOneToOne: false
             referencedRelation: "subscription_plans"
             referencedColumns: ["id"]

@@ -1,21 +1,75 @@
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Star, Zap, Shield, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Check, Star, Zap, Shield, TrendingUp, Crown, Users, BarChart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Pricing = () => {
-  const features = [
-    "Perfil profesional completo",
-    "Galería ilimitada de trabajos",
-    "Recepción de contactos sin límite",
-    "Sistema de reseñas y calificaciones",
-    "Notificaciones en tiempo real",
-    "Estadísticas de rendimiento",
-    "Soporte técnico prioritario",
-    "Verificación de identidad",
-    "Visibilidad en búsquedas",
-    "Panel de control avanzado"
+  const plans = [
+    {
+      id: "basic",
+      name: "Plan Básico",
+      price: 9990,
+      originalPrice: null,
+      description: "Ideal para profesionales que empiezan",
+      icon: <Users className="h-8 w-8 text-blue-500" />,
+      popular: false,
+      features: [
+        "Perfil profesional básico",
+        "Hasta 50 contactos por mes",
+        "Galería de hasta 10 fotos",
+        "Sistema básico de reseñas",
+        "Soporte estándar por email",
+        "Estadísticas básicas"
+      ],
+      limitations: [
+        "Sin notificaciones en tiempo real",
+        "Sin verificación de identidad",
+        "Sin promoción en búsquedas"
+      ]
+    },
+    {
+      id: "professional",
+      name: "Plan Profesional",
+      price: 19990,
+      originalPrice: null,
+      description: "El más elegido por profesionales establecidos",
+      icon: <Star className="h-8 w-8 text-primary" />,
+      popular: true,
+      features: [
+        "Perfil profesional completo",
+        "Contactos ilimitados",
+        "Galería ilimitada de trabajos",
+        "Sistema completo de reseñas",
+        "Notificaciones en tiempo real",
+        "Estadísticas detalladas",
+        "Soporte prioritario",
+        "Verificación de identidad",
+        "Visibilidad optimizada en búsquedas"
+      ],
+      limitations: []
+    },
+    {
+      id: "premium",
+      name: "Plan Premium",
+      price: 39990,
+      originalPrice: null,
+      description: "Para profesionales que buscan máxima visibilidad",
+      icon: <Crown className="h-8 w-8 text-yellow-500" />,
+      popular: false,
+      features: [
+        "Todo del Plan Profesional",
+        "Perfil destacado en búsquedas",
+        "Badge Premium visible",
+        "Analíticas avanzadas y reportes",
+        "Promoción prioritaria",
+        "Soporte 24/7 personalizado",
+        "Acceso beta a nuevas funciones",
+        "Gestor de cuenta dedicado"
+      ],
+      limitations: []
+    }
   ];
 
   const benefits = [
@@ -55,55 +109,74 @@ const Pricing = () => {
       {/* Pricing Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             
-            {/* Current Plan */}
-            <div className="text-center mb-16">
-              <Card className="relative max-w-2xl mx-auto border-2 border-primary">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-primary text-primary-foreground px-6 py-2 rounded-full text-sm font-medium">
-                    Plan Actual
-                  </span>
-                </div>
-                
-                <CardHeader className="text-center pt-8">
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Star className="h-8 w-8 text-primary" />
-                  </div>
-                  <CardTitle className="text-3xl">Profesional Mensual</CardTitle>
-                  <CardDescription className="text-lg">
-                    Todo lo que necesitás para hacer crecer tu negocio
-                  </CardDescription>
-                  <div className="text-center py-6">
-                    <div className="text-5xl font-bold text-foreground mb-2">
-                      $19.990
-                      <span className="text-lg font-normal text-muted-foreground">/mes</span>
+            {/* Plan Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+              {plans.map((plan, index) => (
+                <Card 
+                  key={plan.id} 
+                  className={`relative transition-all hover:shadow-lg ${
+                    plan.popular 
+                      ? 'border-2 border-primary shadow-lg scale-105' 
+                      : 'border hover:border-primary/50'
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-primary text-primary-foreground px-4 py-1">
+                        Más Popular
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Después de 90 días gratuitos
-                    </p>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {features.map((feature, index) => (
-                      <div key={index} className="flex items-center space-x-3">
-                        <Check className="h-5 w-5 text-success flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
+                  )}
+                  
+                  <CardHeader className="text-center pt-8">
+                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      {plan.icon}
+                    </div>
+                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                    <CardDescription className="text-base">
+                      {plan.description}
+                    </CardDescription>
+                    <div className="text-center py-6">
+                      <div className="text-4xl font-bold text-foreground mb-2">
+                        ${plan.price.toLocaleString()}
+                        <span className="text-lg font-normal text-muted-foreground">/mes</span>
                       </div>
-                    ))}
-                  </div>
+                      <p className="text-sm text-muted-foreground">
+                        Después de 90 días gratuitos
+                      </p>
+                    </div>
+                  </CardHeader>
 
-                  <div className="pt-6 text-center">
-                    <Link to="/register">
-                      <Button size="lg" className="w-full md:w-auto px-8">
-                        Comenzar Período Gratuito
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-3">
+                      {plan.features.map((feature, featureIndex) => (
+                        <div key={featureIndex} className="flex items-start space-x-3">
+                          <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-6">
+                      <Link to="/register">
+                        <Button 
+                          size="lg" 
+                          className={`w-full ${
+                            plan.popular 
+                              ? 'bg-primary hover:bg-primary/90' 
+                              : 'variant-outline'
+                          }`}
+                          variant={plan.popular ? 'default' : 'outline'}
+                        >
+                          Comenzar Período Gratuito
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
             {/* Trial Period Info */}
