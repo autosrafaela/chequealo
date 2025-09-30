@@ -732,6 +732,7 @@ export type Database = {
           dni: string | null
           email: string
           full_name: string
+          has_free_access: boolean
           id: string
           image_url: string | null
           is_blocked: boolean
@@ -756,6 +757,7 @@ export type Database = {
           dni?: string | null
           email: string
           full_name: string
+          has_free_access?: boolean
           id?: string
           image_url?: string | null
           is_blocked?: boolean
@@ -780,6 +782,7 @@ export type Database = {
           dni?: string | null
           email?: string
           full_name?: string
+          has_free_access?: boolean
           id?: string
           image_url?: string | null
           is_blocked?: boolean

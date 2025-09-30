@@ -92,6 +92,42 @@ export const usePlanRestrictions = () => {
     try {
       setLoading(true);
       
+      // Check if professional has free access granted by admin
+      const { data: professional } = await supabase
+        .from('professionals')
+        .select('has_free_access')
+        .eq('user_id', user?.id)
+        .single();
+
+      // If professional has free access, grant unlimited everything
+      if (professional?.has_free_access) {
+        setPlanLimits({
+          maxContactRequests: -1,
+          maxWorkPhotos: -1,
+          prioritySupport: true,
+          advancedAnalytics: true,
+          featuredListing: true,
+          canAccessAdvancedFeatures: true,
+          canReceiveMessages: true,
+          canSendFiles: true,
+          maxMonthlyBookings: -1,
+          calendarIntegration: true,
+          maxAvailabilitySlots: -1,
+          canRateUsers: true,
+          canUploadVideos: true,
+          canCreateBeforeAfter: true,
+          canUploadCertificates: true,
+          maxVideosPerPortfolio: -1,
+          maxCertificates: -1,
+          canUseProximitySearch: true,
+          canUseInteractiveMap: true,
+          canVerifyLocation: true,
+          proximitySearchRadius: 100,
+        });
+        setLoading(false);
+        return;
+      }
+      
       const status = getSubscriptionStatus();
       
       // During trial period, user gets full Professional plan features

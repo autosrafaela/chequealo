@@ -34,8 +34,10 @@ import {
   TrendingUp,
   Ban,
   Trash2,
-  Search
+  Search,
+  Gift
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Navigate } from 'react-router-dom';
 
 interface AdminStats {
@@ -289,6 +291,25 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error deleting professional:', error);
       toast.error('Error al eliminar profesional: ' + (error.message || 'Error desconocido'));
+    }
+  };
+
+  const handleToggleFreeAccess = async (professional: any) => {
+    try {
+      const newFreeAccessState = !professional.has_free_access;
+      
+      const { error } = await supabase
+        .from('professionals')
+        .update({ has_free_access: newFreeAccessState })
+        .eq('id', professional.id);
+
+      if (error) throw error;
+
+      toast.success(`Acceso gratuito ${newFreeAccessState ? 'otorgado' : 'removido'} correctamente`);
+      fetchAdminData();
+    } catch (error) {
+      console.error('Error toggling free access:', error);
+      toast.error('Error al cambiar acceso gratuito');
     }
   };
 
@@ -608,6 +629,12 @@ const AdminDashboard = () => {
                               Bloqueado
                             </Badge>
                           )}
+                          {professional.has_free_access && (
+                            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs">
+                              <Gift className="h-3 w-3 mr-1" />
+                              Acceso Gratuito Total
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {professional.profession} • {professional.location}
@@ -615,6 +642,16 @@ const AdminDashboard = () => {
                         <p className="text-sm text-muted-foreground">
                           {professional.email}
                         </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Label htmlFor={`free-access-${professional.id}`} className="text-xs text-muted-foreground cursor-pointer">
+                            Acceso 100% Gratuito:
+                          </Label>
+                          <Switch
+                            id={`free-access-${professional.id}`}
+                            checked={professional.has_free_access || false}
+                            onCheckedChange={() => handleToggleFreeAccess(professional)}
+                          />
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button asChild variant="outline" size="sm">
