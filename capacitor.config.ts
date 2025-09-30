@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'chequealo',
   webDir: 'dist',
   server: {
-    url: 'https://f6bb3e03-6006-482e-858f-9a265175f27d.lovableproject.com?forceHideBadge=true',
+    url: 'https://chequealo.ar',
     cleartext: true
   },
   plugins: {
