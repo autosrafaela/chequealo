@@ -112,6 +112,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) =>
         const searchElement = document.querySelector('.hero-search-bar input');
         searchElement?.scrollIntoView({ behavior: 'smooth' });
         (searchElement as HTMLInputElement)?.focus();
+        handleNext();
         break;
       case 'profile':
         // Navigate to profile or show profile menu

@@ -28,8 +28,8 @@ const Hero = () => {
           </p>
 
           {/* Intelligent Search Bar */}
-          <div className="mb-8 max-w-2xl mx-auto px-4 sm:px-0">
-            <IntelligentSearch 
+          <div className="hero-search-bar mb-8 max-w-2xl mx-auto px-4 sm:px-0">
+            <IntelligentSearch
               placeholder="Describí tu problema... Ej: 'mi aire acondicionado no enfría bien'"
               className="w-full"
             />
