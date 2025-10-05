@@ -150,86 +150,81 @@ export const useAISearch = () => {
     // Common problem-to-service mappings - orden importa, más específicos primero
     const problemMappings: Record<string, string> = {
       // Aire acondicionado - específico
-      'aire acondicionado': 'técnico aire acondicionado refrigeración',
-      'aire no funciona': 'técnico aire acondicionado refrigeración',
-      'aire no enfría': 'técnico aire acondicionado refrigeración',
-      'aire no anda': 'técnico aire acondicionado refrigeración',
-      'aire roto': 'técnico aire acondicionado reparación',
-      'split': 'técnico aire acondicionado refrigeración',
+      'aire acondicionado': 'aire acondicionado',
+      'aire no funciona': 'aire acondicionado',
+      'aire no enfría': 'aire acondicionado',
+      'aire no anda': 'aire acondicionado',
+      'aire roto': 'aire acondicionado',
+      'split': 'aire acondicionado',
       
       // Problemas generales
-      'no enfría': 'técnico refrigeración',
-      'no calienta': 'técnico calefacción termotanque',
-      'no funciona bien': 'técnico reparación',
-      'no funciona': 'técnico reparación',
-      'no anda': 'técnico reparación',
+      'no enfría': 'refrigeración',
+      'no calienta': 'calefacción',
+      'no funciona bien': 'reparación',
+      'no funciona': 'reparación',
+      'no anda': 'reparación',
       
       // Electricidad
       'luz': 'electricista',
       'electricidad': 'electricista',
       'cable': 'electricista',
       'corte de luz': 'electricista',
-      'no enciende': 'electricista reparación',
+      'no enciende': 'electricista',
       
       // Plomería
-      'gotea': 'plomero filtración caño',
+      'gotea': 'plomero',
       'canilla': 'plomero',
       'caño': 'plomero',
       'agua': 'plomero',
-      'inodoro': 'plomero sanitarista',
-      'baño': 'plomero sanitarista',
+      'inodoro': 'plomero',
+      'baño': 'plomero',
       
       // General
-      'ruido extraño': 'técnico reparación mantenimiento',
-      'se rompió': 'reparación técnico',
-      'roto': 'reparación técnico',
-      'instalación': 'instalador técnico',
-      'instalar': 'instalador técnico',
-      'mantenimiento': 'técnico mantenimiento',
-      'limpieza': 'servicio limpieza',
-      'limpiar': 'servicio limpieza',
-      'pintar': 'pintor pintura',
+      'ruido extraño': 'reparación',
+      'se rompió': 'reparación',
+      'roto': 'reparación',
+      'instalación': 'instalador',
+      'instalar': 'instalador',
+      'mantenimiento': 'mantenimiento',
+      'limpieza': 'limpieza',
+      'limpiar': 'limpieza',
+      'pintar': 'pintor',
       'pintura': 'pintor',
-      'arreglar': 'reparación técnico',
+      'arreglar': 'reparación',
       
       // Automotor
-      'auto': 'mecánico automotor',
-      'coche': 'mecánico automotor',
-      'vehículo': 'mecánico automotor',
-      'motor': 'mecánico'
+      'auto': 'mecánico',
+      'coche': 'mecánico',
+      'vehículo': 'mecánico',
+      'motor': 'mecánico',
+      'mecánico': 'mecánico',
+      'revisión': 'mecánico'
     };
 
-    // Location extraction
-    const locationKeywords = [
-      'en casa', 'a domicilio', 'en oficina', 'en local',
-      'zona norte', 'zona sur', 'centro', 'barrio'
-    ];
-
-    // Urgency detection
-    const urgencyKeywords = [
-      'urgente', 'rápido', 'hoy', 'ya', 'emergencia', 'ahora'
-    ];
-
-    let enhancedQuery = query;
-
-    // Find problem mappings
+    // Find the best matching service/profession
+    let bestMatch = '';
+    let longestMatch = 0;
+    
     for (const [problem, service] of Object.entries(problemMappings)) {
-      if (lowercaseQuery.includes(problem)) {
-        enhancedQuery = service + ' ' + enhancedQuery;
-        break;
+      if (lowercaseQuery.includes(problem) && problem.length > longestMatch) {
+        bestMatch = service;
+        longestMatch = problem.length;
       }
     }
 
-    // Add urgency flag
-    const isUrgent = urgencyKeywords.some(keyword => 
-      lowercaseQuery.includes(keyword)
-    );
-    
-    if (isUrgent) {
-      enhancedQuery = 'urgente ' + enhancedQuery;
+    // If we found a match, return just that service term
+    if (bestMatch) {
+      return bestMatch;
     }
 
-    return enhancedQuery;
+    // Otherwise, extract key nouns from the query
+    const words = query.toLowerCase().split(/\s+/);
+    const keyWords = words.filter(word => 
+      word.length > 3 && 
+      !['para', 'con', 'sin', 'del', 'que', 'esta', 'este', 'esta', 'ese', 'esa'].includes(word)
+    );
+
+    return keyWords.slice(0, 2).join(' ') || query;
   };
 
   return {
