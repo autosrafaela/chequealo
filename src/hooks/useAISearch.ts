@@ -147,20 +147,56 @@ export const useAISearch = () => {
   const parseQueryLocally = (query: string): string => {
     const lowercaseQuery = query.toLowerCase();
     
-    // Common problem-to-service mappings
+    // Common problem-to-service mappings - orden importa, más específicos primero
     const problemMappings: Record<string, string> = {
-      'no enfría': 'técnico aire acondicionado refrigeración',
+      // Aire acondicionado - específico
+      'aire acondicionado': 'técnico aire acondicionado refrigeración',
+      'aire no funciona': 'técnico aire acondicionado refrigeración',
+      'aire no enfría': 'técnico aire acondicionado refrigeración',
+      'aire no anda': 'técnico aire acondicionado refrigeración',
+      'aire roto': 'técnico aire acondicionado reparación',
+      'split': 'técnico aire acondicionado refrigeración',
+      
+      // Problemas generales
+      'no enfría': 'técnico refrigeración',
       'no calienta': 'técnico calefacción termotanque',
-      'gotea': 'plomero filtración caño',
-      'no enciende': 'electricista reparación',
-      'ruido extraño': 'técnico reparación mantenimiento',
+      'no funciona bien': 'técnico reparación',
       'no funciona': 'técnico reparación',
+      'no anda': 'técnico reparación',
+      
+      // Electricidad
+      'luz': 'electricista',
+      'electricidad': 'electricista',
+      'cable': 'electricista',
+      'corte de luz': 'electricista',
+      'no enciende': 'electricista reparación',
+      
+      // Plomería
+      'gotea': 'plomero filtración caño',
+      'canilla': 'plomero',
+      'caño': 'plomero',
+      'agua': 'plomero',
+      'inodoro': 'plomero sanitarista',
+      'baño': 'plomero sanitarista',
+      
+      // General
+      'ruido extraño': 'técnico reparación mantenimiento',
       'se rompió': 'reparación técnico',
+      'roto': 'reparación técnico',
       'instalación': 'instalador técnico',
+      'instalar': 'instalador técnico',
       'mantenimiento': 'técnico mantenimiento',
       'limpieza': 'servicio limpieza',
+      'limpiar': 'servicio limpieza',
       'pintar': 'pintor pintura',
-      'arreglar': 'reparación técnico'
+      'pintura': 'pintor',
+      'arreglar': 'reparación técnico',
+      
+      // Automotor
+      'auto': 'mecánico automotor',
+      'coche': 'mecánico automotor',
+      'vehículo': 'mecánico automotor',
+      'motor': 'mecánico'
     };
 
     // Location extraction

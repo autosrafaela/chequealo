@@ -44,7 +44,8 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
   
   const { 
     searchWithAI, 
-    generateSuggestions, 
+    generateSuggestions,
+    intelligentSearch,
     isLoading: aiLoading 
   } = useAISearch();
 
@@ -125,13 +126,14 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
     localStorage.setItem('recent-searches', JSON.stringify(updatedRecent));
 
     try {
-      // Use AI to enhance the search if it's natural language
+      // Always use intelligent search to enhance the query
       let finalQuery = query;
-      if (query.length > 20 && /[¿?]/.test(query)) {
-        const aiEnhanced = await searchWithAI(query);
-        if (aiEnhanced) {
-          finalQuery = aiEnhanced;
-        }
+      
+      // Try intelligent search enhancement (uses AI + local parsing)
+      const enhanced = await intelligentSearch(query);
+      if (enhanced && enhanced !== query) {
+        finalQuery = enhanced;
+        console.log('Query mejorada:', { original: query, enhanced: finalQuery });
       }
 
       // Navigate to search results
