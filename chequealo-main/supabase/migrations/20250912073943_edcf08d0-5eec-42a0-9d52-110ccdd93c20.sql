@@ -1,0 +1,68 @@
+-- Clean up existing sample data first
+DELETE FROM public.work_photos WHERE professional_id LIKE '123e4567-e89b-12d3-a456-42661417%';
+DELETE FROM public.review_responses WHERE professional_id LIKE '123e4567-e89b-12d3-a456-42661417%';
+DELETE FROM public.reviews WHERE professional_id LIKE '123e4567-e89b-12d3-a456-42661417%';
+DELETE FROM public.professional_services WHERE professional_id LIKE '123e4567-e89b-12d3-a456-42661417%';
+DELETE FROM public.verification_requests WHERE professional_id LIKE '123e4567-e89b-12d3-a456-42661417%';
+DELETE FROM public.professionals WHERE id LIKE '123e4567-e89b-12d3-a456-42661417%';
+
+-- Insert 20 complete professionals with services, reviews and work photos
+INSERT INTO public.professionals (id, user_id, full_name, profession, location, description, phone, email, rating, review_count, is_verified, availability) VALUES
+('a1234567-e89b-12d3-a456-426614174001', '11111111-1111-1111-1111-111111111111', 'Ana Rodríguez', 'Contadora Pública', 'Rafaela, Santa Fe', 'Especialista en balances, liquidación de impuestos y asesoría contable integral. Más de 10 años de experiencia atendiendo PyMEs y emprendedores. Matriculada en el Consejo Profesional de Ciencias Económicas.', '+54 3492 123456', 'ana.rodriguez@email.com', 4.8, 15, true, 'Disponible hoy'),
+('a1234567-e89b-12d3-a456-426614174002', '22222222-2222-2222-2222-222222222222', 'José Martínez', 'Plomero / Gasista', 'Rafaela, Santa Fe', 'Reparaciones de plomería, instalaciones sanitarias y gas domiciliario. Servicio de emergencias 24hs. Matriculado y con habilitación municipal. Presupuestos sin cargo.', '+54 3492 234567', 'jose.martinez@email.com', 4.2, 8, true, 'Disponible mañana'),
+('a1234567-e89b-12d3-a456-426614174003', '33333333-3333-3333-3333-333333333333', 'Laura Gómez', 'Electricista Domiciliaria', 'Rafaela, Santa Fe', 'Instalaciones eléctricas seguras y certificadas. Especialista en tableros eléctricos, iluminación LED y automatización del hogar. Urgencias 24hs. Garantía en todos los trabajos.', '+54 3492 345678', 'laura.gomez@email.com', 5.0, 12, true, 'Disponible ahora'),
+('a1234567-e89b-12d3-a456-426614174004', '44444444-4444-4444-4444-444444444444', 'Carlos Fernández', 'Mecánico Automotriz', 'Rafaela, Santa Fe', 'Reparación integral de vehículos, especialista en inyección electrónica y transmisiones automáticas. Taller completamente equipado con scanner y herramientas de última generación.', '+54 3492 456789', 'carlos.fernandez@email.com', 4.5, 23, false, 'Disponible esta semana'),
+('a1234567-e89b-12d3-a456-426614174005', '55555555-5555-5555-5555-555555555555', 'María López', 'Abogada', 'Rafaela, Santa Fe', 'Asesoramiento legal en derecho civil, comercial y laboral. Especialista en contratos, divorcios y mediaciones. Consultas presenciales y virtuales. Matrícula vigente en Colegio de Abogados.', '+54 3492 567890', 'maria.lopez@email.com', 4.7, 18, true, 'Disponible próxima semana'),
+('a1234567-e89b-12d3-a456-426614174006', '66666666-6666-6666-6666-666666666666', 'Maximiliano Bustamante', 'Gestor del Automotor / Mandatario', 'Rafaela, Santa Fe', 'Trámites registrales: transferencias, informes de dominio, inscripciones iniciales y duplicados. Gestor matriculado con amplia experiencia en Registro Seccional Rafaela.', '+54 3492 678901', 'max.bustamante@email.com', 4.3, 7, true, 'Disponible hoy'),
+('a1234567-e89b-12d3-a456-426614174007', '77777777-7777-7777-7777-777777777777', 'Sofía Herrera', 'Psicóloga Clínica', 'Santa Fe, Santa Fe', 'Atención psicológica individual y familiar. Especialista en terapia cognitivo-conductual y trastornos de ansiedad. Modalidad presencial y online. Matrícula MP 1234.', '+54 342 789012', 'sofia.herrera@email.com', 4.9, 32, true, 'Disponible próxima semana'),
+('a1234567-e89b-12d3-a456-426614174008', '88888888-8888-8888-8888-888888888888', 'Roberto Silva', 'Médico Veterinario', 'Esperanza, Santa Fe', 'Atención clínica y quirúrgica de pequeños animales. Vacunación, desparasitación, cirugías y emergencias. Consultorio equipado con rayos X y laboratorio propio.', '+54 3496 890123', 'roberto.silva@email.com', 4.6, 28, true, 'Disponible mañana'),
+('a1234567-e89b-12d3-a456-426614174009', '99999999-9999-9999-9999-999999999999', 'Carolina Paz', 'Kinesióloga / Fisioterapeuta', 'Rafaela, Santa Fe', 'Rehabilitación traumatológica, neurológica y respiratoria. Especialista en RPG y deportología. Atención domiciliaria y en consultorio. Obras sociales y prepagas.', '+54 3492 901234', 'carolina.paz@email.com', 4.8, 19, true, 'Disponible esta semana'),
+('a1234567-e89b-12d3-a456-426614174010', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Diego Morales', 'Odontólogo', 'Rafaela, Santa Fe', 'Odontología general y estética. Implantes, ortodoncia y blanqueamientos. Consultorio moderno con tecnología digital. Planes de financiación disponibles.', '+54 3492 012345', 'diego.morales@email.com', 4.4, 16, true, 'Disponible hoy'),
+('a1234567-e89b-12d3-a456-426614174011', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Valeria Castro', 'Arquitecta', 'Santa Fe, Santa Fe', 'Diseño arquitectónico residencial y comercial. Especialista en arquitectura sustentable y eficiencia energética. Dirección de obra y gestión de permisos municipales.', '+54 342 123456', 'valeria.castro@email.com', 4.7, 11, true, 'Disponible próxima semana'),
+('a1234567-e89b-12d3-a456-426614174012', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Fernando Ruiz', 'Profesor de Música', 'Rafaela, Santa Fe', 'Clases de guitarra, piano y canto para todas las edades. Método personalizado adaptado a cada alumno. Preparación para exámenes y recitales. Clases presenciales y online.', '+54 3492 234567', 'fernando.ruiz@email.com', 4.9, 24, false, 'Disponible esta semana'),
+('a1234567-e89b-12d3-a456-426614174013', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Gabriela Vega', 'Licenciada en Nutrición', 'Sunchales, Santa Fe', 'Planes nutricionales personalizados para adultos y niños. Especialista en nutrición deportiva y trastornos alimentarios. Seguimiento integral con análisis de composición corporal.', '+54 3493 345678', 'gabriela.vega@email.com', 4.6, 22, true, 'Disponible mañana'),
+('a1234567-e89b-12d3-a456-426614174014', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Pablo Mendoza', 'Carpintero / Ebanista', 'Rafaela, Santa Fe', 'Muebles a medida en madera maciza y melamina. Especialista en cocinas, placards y bibliotecas. Restauración de muebles antiguos. 15 años de experiencia y garantía en todos los trabajos.', '+54 3492 456789', 'pablo.mendoza@email.com', 4.8, 31, true, 'Disponible próxima semana'),
+('a1234567-e89b-12d3-a456-426614174015', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'Luciana Torres', 'Empleada Doméstica / Servicio de Limpieza', 'Rafaela, Santa Fe', 'Servicio de limpieza doméstica y de oficinas. Limpieza profunda, mantenimiento regular y limpieza post-obra. Personal capacitado, productos ecológicos y equipamiento profesional.', '+54 3492 567890', 'luciana.torres@email.com', 4.7, 35, true, 'Disponible ahora'),
+('a1234567-e89b-12d3-a456-426614174016', '10101010-1010-1010-1010-101010101010', 'Andrés Flores', 'Jardinero / Paisajista', 'Rafaela, Santa Fe', 'Diseño y mantenimiento de jardines y espacios verdes. Poda de árboles, instalación de riego automático y fumigaciones. Especialista en plantas nativas y jardines sustentables.', '+54 3492 678901', 'andres.flores@email.com', 4.5, 17, false, 'Disponible esta semana'),
+('a1234567-e89b-12d3-a456-426614174017', '20202020-2020-2020-2020-202020202020', 'Natalia Sosa', 'Profesora de Inglés', 'Santa Fe, Santa Fe', 'Clases de inglés para niños, adolescentes y adultos. Preparación para exámenes internacionales (Cambridge, TOEFL). Método comunicativo con énfasis en conversación.', '+54 342 789012', 'natalia.sosa@email.com', 4.8, 20, true, 'Disponible hoy'),
+('a1234567-e89b-12d3-a456-426614174018', '30303030-3030-3030-3030-303030303030', 'Raúl Pereyra', 'Pintor', 'Rafaela, Santa Fe', 'Pintura de casas, departamentos y comercios. Especialista en técnicas decorativas, empapelado y revestimientos texturados. Presupuestos gratuitos y materiales de primera calidad.', '+54 3492 890123', 'raul.pereyra@email.com', 4.3, 13, false, 'Disponible mañana'),
+('a1234567-e89b-12d3-a456-426614174019', '40404040-4040-4040-4040-404040404040', 'Claudia Giménez', 'Contadora Pública', 'Esperanza, Santa Fe', 'Servicios contables integrales para empresas y monotributistas. Liquidación de sueldos, IVA y Ganancias. Asesoramiento en planeamiento tributario y financiero.', '+54 3496 901234', 'claudia.gimenez@email.com', 4.9, 26, true, 'Disponible próxima semana'),
+('a1234567-e89b-12d3-a456-426614174020', '50505050-5050-5050-5050-505050505050', 'Martín Acosta', 'Entrenador Personal', 'Rafaela, Santa Fe', 'Entrenamiento personalizado y funcional. Especialista en pérdida de peso, tonificación muscular y rehabilitación deportiva. Clases individuales y grupales, en gimnasio o domicilio.', '+54 3492 012345', 'martin.acosta@email.com', 4.6, 29, true, 'Disponible esta semana');
+
+-- Insert services for each professional
+INSERT INTO public.professional_services (professional_id, service_name, description, price_from, price_to, price_unit) VALUES
+-- Ana Rodríguez - Contadora
+('a1234567-e89b-12d3-a456-426614174001', 'Balance General', 'Confección de balance general anual para PyMES', 25000, 50000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174001', 'Liquidación de IVA', 'Liquidación mensual de IVA', 8000, 15000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174001', 'Asesoramiento Tributario', 'Consultoría en temas impositivos', 5000, 10000, 'ARS'),
+
+-- José Martínez - Plomero
+('a1234567-e89b-12d3-a456-426614174002', 'Destapación de Cloacas', 'Servicio de destapación con máquina espiraladora', 8000, 15000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174002', 'Reparación de Canillas', 'Reparación y cambio de canillas y griferías', 3000, 8000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174002', 'Instalación de Termotanque', 'Instalación completa de termotanque a gas', 15000, 25000, 'ARS'),
+
+-- Continue with more services for other professionals...
+('a1234567-e89b-12d3-a456-426614174003', 'Instalación Eléctrica Completa', 'Instalación eléctrica para vivienda nueva', 80000, 150000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174003', 'Reparación de Tablero', 'Reparación y modernización de tableros eléctricos', 20000, 40000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174004', 'Service Completo', 'Service completo con cambio de aceite y filtros', 15000, 30000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174005', 'Asesoramiento Legal', 'Consulta jurídica por hora', 8000, 12000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174007', 'Terapia Individual', 'Sesión de terapia psicológica individual', 8000, 12000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174008', 'Consulta Veterinaria', 'Consulta clínica general', 5000, 8000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174009', 'Sesión de Kinesiología', 'Sesión individual de rehabilitación', 6000, 10000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174012', 'Clases de Guitarra', 'Clase individual de guitarra (1 hora)', 4000, 6000, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174015', 'Limpieza Doméstica', 'Limpieza completa de casa por m²', 800, 1200, 'ARS'),
+('a1234567-e89b-12d3-a456-426614174020', 'Entrenamiento Personal', 'Sesión individual de entrenamiento', 6000, 10000, 'ARS');
+
+-- Insert sample reviews
+INSERT INTO public.reviews (professional_id, user_id, rating, comment, service_provided) VALUES
+('a1234567-e89b-12d3-a456-426614174001', '11111111-1111-1111-1111-111111111101', 5, 'Excelente profesional, muy detallada en su trabajo. Me ayudó mucho con los impuestos de mi empresa.', 'Balance General'),
+('a1234567-e89b-12d3-a456-426614174001', '11111111-1111-1111-1111-111111111102', 5, 'Ana es súper responsable y siempre cumple con los plazos. La recomiendo 100%.', 'Liquidación de IVA'),
+('a1234567-e89b-12d3-a456-426614174003', '11111111-1111-1111-1111-111111111106', 5, 'Laura es una genia! Solucionó un problema eléctrico que otros no pudieron. Súper recomendable.', 'Reparación de Tablero'),
+('a1234567-e89b-12d3-a456-426614174007', '11111111-1111-1111-1111-111111111108', 5, 'Sofía me ayudó muchísimo con mis problemas de ansiedad. Excelente profesional.', 'Terapia Individual'),
+('a1234567-e89b-12d3-a456-426614174015', '11111111-1111-1111-1111-111111111110', 5, 'Luciana y su equipo son fantásticos. Siempre dejan la casa impecable.', 'Limpieza Doméstica');
+
+-- Insert work photos
+INSERT INTO public.work_photos (professional_id, image_url, caption, work_type, uploaded_by) VALUES
+('a1234567-e89b-12d3-a456-426614174003', '/placeholder.svg', 'Instalación de tablero eléctrico residencial', 'Instalación Eléctrica', 'professional'),
+('a1234567-e89b-12d3-a456-426614174014', '/placeholder.svg', 'Cocina en melamina con detalles en madera', 'Muebles de Cocina', 'professional'),
+('a1234567-e89b-12d3-a456-426614174015', '/placeholder.svg', 'Limpieza post-obra departamento', 'Limpieza Post-Obra', 'professional');
