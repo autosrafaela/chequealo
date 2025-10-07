@@ -260,26 +260,37 @@ export const SubscriptionPanel = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Próximo pago:</span>
-                <span className="font-medium">
-                  {subscription.next_billing_date 
-                    ? new Date(subscription.next_billing_date).toLocaleDateString('es-AR')
-                    : 'Fecha pendiente'
-                  }
-                </span>
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Próximo pago:</span>
+                  <span className="font-medium">
+                    {subscription.next_billing_date 
+                      ? new Date(subscription.next_billing_date).toLocaleDateString('es-AR')
+                      : 'Fecha pendiente'
+                    }
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Método de pago:</span>
+                  <span className="font-medium">MercadoPago</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Estado:</span>
+                  <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                    Activa
+                  </Badge>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Método de pago:</span>
-                <span className="font-medium">MercadoPago</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Estado:</span>
-                <Badge variant="default" className="bg-green-600 hover:bg-green-700">
-                  Activa
-                </Badge>
-              </div>
+              
+              <Button 
+                variant="outline"
+                onClick={() => setShowPlanSelection(true)}
+                className="w-full"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Cambiar Plan
+              </Button>
             </div>
           </CardContent>
         </Card>
