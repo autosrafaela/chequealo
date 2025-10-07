@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,7 @@ import {
 
 const Register = () => {
   const navigate = useNavigate();
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -39,6 +39,27 @@ const Register = () => {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if user is already authenticated (after OAuth)
+  useEffect(() => {
+    if (user && !loading) {
+      // Check if user has a professional profile
+      supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            // Has professional profile, go to dashboard
+            navigate('/dashboard', { replace: true });
+          } else {
+            // New OAuth user without profile - stay on register to complete setup
+            toast.success('¡Bienvenido! Por favor completa tu perfil');
+          }
+        });
+    }
+  }, [user, loading, navigate]);
   
   // Form data - prefill from URL parameters
   const [formData, setFormData] = useState({
@@ -130,7 +151,7 @@ const Register = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/register`,
+          redirectTo: `${window.location.origin}/auth`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -155,7 +176,7 @@ const Register = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: `${window.location.origin}/register`,
+          redirectTo: `${window.location.origin}/auth`,
         }
       });
       
