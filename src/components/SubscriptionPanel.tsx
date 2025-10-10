@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,15 @@ export const SubscriptionPanel = () => {
   } = useSubscription();
   
   const [showPlanSelection, setShowPlanSelection] = useState(false);
+
+  // Auto-abrir el selector de plan cuando corresponde
+  useEffect(() => {
+    if (loading || !subscription) return;
+    const st = getSubscriptionStatus();
+    if ((st === 'expired' || st === 'payment_required') && !subscription.selected_plan_id) {
+      setShowPlanSelection(true);
+    }
+  }, [loading, subscription]);
 
   const handlePayment = async (selectedPlanId?: string) => {
     const preference = await createPaymentPreference(selectedPlanId);
@@ -323,7 +332,11 @@ export const SubscriptionPanel = () => {
                   
                   <Button 
                     onClick={() => handlePayment(subscription.selected_plan_id)}
-                    disabled={creating}
+                    disabled={
+                      creating || (
+                        !subscription.selected_plan_id && ['payment_required','expired'].includes(getSubscriptionStatus())
+                      )
+                    }
                     size="lg" 
                     className="w-full"
                   >

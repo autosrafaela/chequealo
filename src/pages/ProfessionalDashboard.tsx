@@ -63,6 +63,13 @@ const ProfessionalDashboard = () => {
     }
   }, [user]);
 
+  // Abrir la pestaña correcta si viene en la URL (?tab=subscription)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab) setActiveTab(tab);
+  }, []);
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
