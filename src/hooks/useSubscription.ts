@@ -86,11 +86,11 @@ export const useSubscription = () => {
     try {
       setCreating(true);
 
-      const { data, error } = await supabase.functions.invoke('create-payment-preference', {
+      // Use new billing-subscribe endpoint
+      const { data, error } = await supabase.functions.invoke('billing-subscribe', {
         body: {
-          subscriptionId: subscription.id,
-          selectedPlanId: selectedPlanId,
-          returnUrl: `${window.location.origin}/dashboard?payment=success`
+          plan_id: selectedPlanId || subscription.selected_plan_id || subscription.plan_id,
+          return_url: `${window.location.origin}/dashboard?payment=success`
         }
       });
 
@@ -98,12 +98,26 @@ export const useSubscription = () => {
         throw error;
       }
 
-      return data;
+      // If in trial/mock mode, refresh subscription data
+      if (data.mode === 'trial') {
+        await fetchSubscription();
+        toast({
+          title: "¡Prueba Iniciada!",
+          description: `Tenés ${data.trial_days} días de acceso completo.`,
+        });
+        return { mode: 'trial' };
+      }
+
+      // Return checkout URL for real payment
+      return {
+        initPoint: data.init_point || data.checkout_url,
+        checkoutUrl: data.checkout_url
+      };
     } catch (error: any) {
       console.error('Error creating payment preference:', error);
       toast({
         title: "Error",
-        description: "No se pudo crear la preferencia de pago. Intentá nuevamente.",
+        description: error.message || "No se pudo procesar la suscripción. Intentá nuevamente.",
         variant: "destructive"
       });
       return null;

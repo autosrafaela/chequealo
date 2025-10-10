@@ -18,6 +18,8 @@ interface Plan {
   priority_support: boolean;
   advanced_analytics: boolean;
   featured_listing: boolean;
+  is_recommended?: boolean;
+  sort_order?: number;
 }
 
 interface PlanSelectorProps {
@@ -45,7 +47,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
         .from('subscription_plans')
         .select('*')
         .eq('is_active', true)
-        .order('price', { ascending: true });
+        .order('sort_order', { ascending: true });
 
       if (error) throw error;
       setPlans(data || []);
@@ -89,10 +91,10 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {plans.map((plan, index) => {
           const isSelected = selectedPlan === plan.id;
-          const isPopular = plan.name.includes('Profesional');
+          const isPopular = plan.is_recommended || plan.name.includes('Profesional');
           
           return (
             <Card 

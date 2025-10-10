@@ -1140,12 +1140,14 @@ export type Database = {
           grace_period_days: number
           id: string
           is_active: boolean
+          is_recommended: boolean | null
           max_contact_requests: number | null
           max_monthly_bookings: number | null
           max_work_photos: number | null
           name: string
           price: number
           priority_support: boolean | null
+          sort_order: number | null
           updated_at: string
         }
         Insert: {
@@ -1159,14 +1161,16 @@ export type Database = {
           featured_listing?: boolean | null
           features?: Json | null
           grace_period_days?: number
-          id?: string
+          id: string
           is_active?: boolean
+          is_recommended?: boolean | null
           max_contact_requests?: number | null
           max_monthly_bookings?: number | null
           max_work_photos?: number | null
           name: string
           price: number
           priority_support?: boolean | null
+          sort_order?: number | null
           updated_at?: string
         }
         Update: {
@@ -1182,12 +1186,14 @@ export type Database = {
           grace_period_days?: number
           id?: string
           is_active?: boolean
+          is_recommended?: boolean | null
           max_contact_requests?: number | null
           max_monthly_bookings?: number | null
           max_work_photos?: number | null
           name?: string
           price?: number
           priority_support?: boolean | null
+          sort_order?: number | null
           updated_at?: string
         }
         Relationships: []

@@ -77,3 +77,18 @@ verify_jwt = false
 
 [functions.send-push-notification]
 verify_jwt = true
+
+[functions.billing-get-plans]
+verify_jwt = false
+
+[functions.billing-get-subscription]
+verify_jwt = true
+
+[functions.billing-subscribe]
+verify_jwt = true
+
+[functions.billing-portal]
+verify_jwt = true
+
+[functions.billing-cancel]
+verify_jwt = true

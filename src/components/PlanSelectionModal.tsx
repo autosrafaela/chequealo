@@ -60,8 +60,15 @@ export const PlanSelectionModal: React.FC<PlanSelectionModalProps> = ({
       await updateSelectedPlan(selectedPlan);
       const preference = await createPaymentPreference(selectedPlan);
       
-      if (preference && preference.initPoint) {
-        window.location.href = preference.initPoint;
+      // If in trial mode (no checkout URL), just close modal
+      if (preference && preference.mode === 'trial') {
+        onClose();
+        return;
+      }
+      
+      // If checkout URL, redirect
+      if (preference && (preference.initPoint || preference.checkoutUrl)) {
+        window.location.href = preference.initPoint || preference.checkoutUrl;
       }
     } catch (error) {
       console.error('Error processing payment:', error);

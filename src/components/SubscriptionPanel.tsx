@@ -368,7 +368,17 @@ export const SubscriptionPanel = () => {
                         setInlineSaving(true);
                         await updateSelectedPlan(planId);
                         const pref = await createPaymentPreference(planId);
-                        if (pref && pref.initPoint) window.location.href = pref.initPoint;
+                        
+                        // If in trial mode (no checkout URL), just show success
+                        if (pref && pref.mode === 'trial') {
+                          // Already shown by createPaymentPreference
+                          return;
+                        }
+                        
+                        // If checkout URL, redirect
+                        if (pref && (pref.initPoint || pref.checkoutUrl)) {
+                          window.location.href = pref.initPoint || pref.checkoutUrl;
+                        }
                       } catch (e) {
                         console.error(e); toast.error('Error al procesar el pago');
                       } finally { setInlineSaving(false); }
