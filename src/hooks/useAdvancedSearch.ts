@@ -53,7 +53,10 @@ export const useAdvancedSearch = () => {
   const searchProfessionals = async (query: string = searchQuery, currentFilters: SearchFiltersType = filters) => {
     setLoading(true);
     try {
-      let baseQuery = supabase
+      console.log('🔍 Buscando:', { query, filters: currentFilters });
+      
+      // Paso 1: Preparar query base para professionals
+      let professionalsQuery = supabase
         .from('professionals')
         .select(`
           id,
@@ -69,98 +72,189 @@ export const useAdvancedSearch = () => {
         `)
         .eq('is_blocked', false);
 
-      // If there's a search query, we need to handle it differently
-      let searchResults: any[] = [];
-      
-      if (query.trim()) {
-        const searchTerm = query.trim().toLowerCase();
-        
-        // Search in profession first (most relevant)
-        const { data: professionResults } = await baseQuery
-          .ilike('profession', `%${searchTerm}%`);
-        
-        // Search in full name
-        const { data: nameResults } = await baseQuery
-          .ilike('full_name', `%${searchTerm}%`);
-        
-        // Search in description
-        const { data: descriptionResults } = await baseQuery
-          .ilike('description', `%${searchTerm}%`);
-        
-        // Combine results and remove duplicates
-        const allResults = [
-          ...(professionResults || []),
-          ...(nameResults || []),
-          ...(descriptionResults || [])
-        ];
-        
-        // Remove duplicates by id
-        const uniqueResults = allResults.filter((item, index, self) => 
-          index === self.findIndex(t => t.id === item.id)
-        );
-        
-        searchResults = uniqueResults;
-      } else {
-        // No search query, get all professionals
-        const { data } = await baseQuery;
-        searchResults = data || [];
-      }
+      // Paso 2: Preparar query para servicios profesionales
+      let servicesQuery = supabase
+        .from('professional_services')
+        .select('professional_id, service_name, description')
+        .eq('is_active', true);
 
-      // Apply additional filters
-      let filteredResults = searchResults;
-      
-      if (currentFilters.profession) {
-        filteredResults = filteredResults.filter(item => 
-          item.profession.toLowerCase().includes(currentFilters.profession!.toLowerCase())
-        );
-      }
-      if (currentFilters.location) {
-        filteredResults = filteredResults.filter(item => 
-          item.location?.toLowerCase().includes(currentFilters.location!.toLowerCase())
-        );
-      }
-      if (currentFilters.rating) {
-        filteredResults = filteredResults.filter(item => 
-          (item.rating || 0) >= currentFilters.rating!
-        );
-      }
-      if (currentFilters.verified !== undefined) {
-        filteredResults = filteredResults.filter(item => 
-          item.is_verified === currentFilters.verified
-        );
-      }
-      if (currentFilters.availability) {
-        filteredResults = filteredResults.filter(item => 
-          item.availability === currentFilters.availability
-        );
-      }
-
-      // Apply sorting
-      if (currentFilters.sortBy) {
-        const ascending = currentFilters.sortOrder === 'asc';
-        filteredResults.sort((a, b) => {
-          let aValue, bValue;
+      // Paso 3: Aplicar búsqueda inteligente por palabras clave
+      if (query && query.trim() !== '') {
+        const searchTerms = query.toLowerCase().trim();
+        
+        // Dividir en palabras individuales para búsqueda más flexible
+        const keywords = searchTerms.split(/\s+/).filter(word => word.length > 2);
+        
+        console.log('📝 Palabras clave extraídas:', keywords);
+        
+        if (keywords.length > 0) {
+          // Buscar cada palabra clave en professionals
+          const profConditions = keywords.map(keyword => 
+            `full_name.ilike.%${keyword}%,profession.ilike.%${keyword}%,location.ilike.%${keyword}%,description.ilike.%${keyword}%`
+          ).join(',');
           
-          if (currentFilters.sortBy === 'rating') {
-            aValue = a.rating || 0;
-            bValue = b.rating || 0;
-          } else if (currentFilters.sortBy === 'reviews') {
-            aValue = a.review_count || 0;
-            bValue = b.review_count || 0;
-          } else {
-            aValue = a.rating || 0;
-            bValue = b.rating || 0;
+          professionalsQuery = professionalsQuery.or(profConditions);
+          
+          // Buscar en servicios
+          const serviceConditions = keywords.map(keyword =>
+            `service_name.ilike.%${keyword}%,description.ilike.%${keyword}%`
+          ).join(',');
+          
+          servicesQuery = servicesQuery.or(serviceConditions);
+        }
+      }
+
+      // Paso 4: Aplicar filtro de profesión
+      if (currentFilters.profession && currentFilters.profession !== 'all') {
+        professionalsQuery = professionalsQuery.ilike('profession', `%${currentFilters.profession}%`);
+      }
+
+      // Paso 5: Aplicar filtro de ubicación
+      if (currentFilters.location && currentFilters.location !== 'all') {
+        professionalsQuery = professionalsQuery.ilike('location', `%${currentFilters.location}%`);
+      }
+
+      // Paso 6: Ejecutar ambas queries en paralelo
+      const [professionalsResult, servicesResult] = await Promise.all([
+        professionalsQuery,
+        servicesQuery
+      ]);
+
+      if (professionalsResult.error) {
+        console.error('❌ Error en búsqueda:', professionalsResult.error);
+        throw professionalsResult.error;
+      }
+
+      console.log('✅ Profesionales encontrados:', professionalsResult.data?.length || 0);
+      console.log('✅ Servicios coincidentes:', servicesResult.data?.length || 0);
+
+      let professionalsData = professionalsResult.data || [];
+      
+      // Paso 7: Agregar profesionales que tienen servicios coincidentes
+      if (servicesResult.data && servicesResult.data.length > 0) {
+        const servicesProfIds = new Set(servicesResult.data.map(s => s.professional_id));
+        
+        // Buscar profesionales adicionales por IDs de servicios
+        if (servicesProfIds.size > 0) {
+          const additionalProfsQuery = supabase
+            .from('professionals')
+            .select(`
+              id,
+              full_name,
+              profession,
+              location,
+              description,
+              rating,
+              review_count,
+              image_url,
+              is_verified,
+              availability
+            `)
+            .eq('is_blocked', false)
+            .in('id', Array.from(servicesProfIds));
+          
+          const { data: additionalProfs } = await additionalProfsQuery;
+          
+          if (additionalProfs) {
+            // Combinar resultados, evitando duplicados
+            const existingIds = new Set(professionalsData.map(p => p.id));
+            const newProfs = additionalProfs.filter(p => !existingIds.has(p.id));
+            professionalsData = [...professionalsData, ...newProfs];
+            
+            console.log('➕ Profesionales adicionales por servicios:', newProfs.length);
           }
-          
-          return ascending ? aValue - bValue : bValue - aValue;
-        });
-      } else {
-        // Default sorting by rating desc
-        filteredResults.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        }
       }
 
-      // Map data to Professional interface
-      const mappedData: Professional[] = filteredResults.map(item => ({
+      // Paso 8: Sistema de scoring para relevancia
+      const scoredData = professionalsData.map(prof => {
+        let score = 0;
+        
+        if (query && query.trim() !== '') {
+          const searchTerms = query.toLowerCase().trim();
+          const keywords = searchTerms.split(/\s+/).filter(word => word.length > 2);
+          
+          keywords.forEach(keyword => {
+            // Puntuar coincidencias - más específico = más puntos
+            if (prof.profession?.toLowerCase() === keyword) score += 20; // Coincidencia exacta
+            else if (prof.profession?.toLowerCase().includes(keyword)) score += 10;
+            
+            if (prof.full_name?.toLowerCase().includes(keyword)) score += 5;
+            if (prof.description?.toLowerCase().includes(keyword)) score += 3;
+            if (prof.location?.toLowerCase().includes(keyword)) score += 2;
+          });
+          
+          // Bonus por verificación y calidad
+          if (prof.is_verified) score += 8;
+          if (prof.rating && prof.rating >= 4.5) score += 5;
+          if (prof.rating && prof.rating >= 4.0) score += 3;
+          if (prof.review_count && prof.review_count > 10) score += 4;
+          if (prof.review_count && prof.review_count > 5) score += 2;
+          
+          // Verificar si tiene servicios relacionados (BONUS GRANDE)
+          if (servicesResult.data) {
+            const hasMatchingService = servicesResult.data.some(s => {
+              if (s.professional_id !== prof.id) return false;
+              return keywords.some(keyword => 
+                s.service_name?.toLowerCase().includes(keyword) ||
+                s.description?.toLowerCase().includes(keyword)
+              );
+            });
+            if (hasMatchingService) score += 20; // Alto bonus por servicios coincidentes
+          }
+        } else {
+          // Sin búsqueda específica, puntuar por calidad general
+          if (prof.is_verified) score += 5;
+          if (prof.rating) score += prof.rating * 2;
+          if (prof.review_count) score += Math.min(prof.review_count, 10);
+        }
+        
+        return { ...prof, relevanceScore: score };
+      });
+
+      let filteredData = scoredData;
+
+      // Paso 9: Aplicar filtros adicionales
+      if (currentFilters.rating) {
+        filteredData = filteredData.filter(p => 
+          (p.rating || 0) >= currentFilters.rating!
+        );
+      }
+
+      if (currentFilters.verified !== undefined) {
+        filteredData = filteredData.filter(p => p.is_verified === currentFilters.verified);
+      }
+
+      if (currentFilters.availability && currentFilters.availability !== 'all') {
+        filteredData = filteredData.filter(p => 
+          p.availability === currentFilters.availability
+        );
+      }
+
+      // Paso 10: Ordenar por relevancia o criterio seleccionado
+      filteredData.sort((a, b) => {
+        if (currentFilters.sortBy === 'rating') {
+          return (b.rating || 0) - (a.rating || 0);
+        } else if (currentFilters.sortBy === 'reviews') {
+          return (b.review_count || 0) - (a.review_count || 0);
+        } else {
+          // Por defecto, ordenar por relevancia si hay búsqueda
+          if (query && query.trim() !== '') {
+            return (b.relevanceScore || 0) - (a.relevanceScore || 0);
+          }
+          // Sin búsqueda, ordenar por rating
+          return (b.rating || 0) - (a.rating || 0);
+        }
+      });
+
+      console.log('🎯 Resultados finales con scoring:', filteredData.slice(0, 5).map(p => ({
+        name: p.full_name,
+        profession: p.profession,
+        score: p.relevanceScore
+      })));
+
+      // Paso 11: Mapear a interfaz Professional
+      const mappedData: Professional[] = filteredData.map(item => ({
         id: item.id,
         full_name: item.full_name,
         profession: item.profession,
@@ -175,7 +269,7 @@ export const useAdvancedSearch = () => {
 
       setProfessionals(mappedData);
     } catch (error) {
-      console.error('Error searching professionals:', error);
+      console.error('❌ Error en búsqueda de profesionales:', error);
       setProfessionals([]);
     } finally {
       setLoading(false);

@@ -147,83 +147,173 @@ export const useAISearch = () => {
   const parseQueryLocally = (query: string): string => {
     const lowercaseQuery = query.toLowerCase();
     
-    // Common problem-to-service mappings - orden importa, más específicos primero
+    // Expandir mapeos con sinónimos y frases más específicas
     const problemMappings: Record<string, string> = {
-      // Aire acondicionado - específico
-      'aire acondicionado': 'aire acondicionado',
-      'aire no funciona': 'aire acondicionado',
-      'aire no enfría': 'aire acondicionado',
-      'aire no anda': 'aire acondicionado',
-      'aire roto': 'aire acondicionado',
-      'split': 'aire acondicionado',
+      // Plomería - MUY ESPECÍFICO PRIMERO
+      'plomero para arreglar canilla que gotea': 'plomero',
+      'plomero para arreglar canilla': 'plomero',
+      'arreglar canilla que gotea': 'plomero',
+      'arreglar canilla': 'plomero',
+      'canilla que gotea': 'plomero',
+      'canilla gotea': 'plomero',
+      'grifería': 'plomero',
+      'grifo': 'plomero',
+      'llave de agua': 'plomero',
+      'fuga de agua': 'plomero',
+      'pérdida de agua': 'plomero',
+      'destape': 'plomero',
+      'cañería': 'plomero',
+      'caño roto': 'plomero',
+      'inodoro tapado': 'plomero',
+      'baño tapado': 'plomero',
+      'ducha': 'plomero',
+      'tanque de agua': 'plomero',
+      'calefón': 'plomero',
+      'termotanque': 'plomero',
+      'gasista': 'plomero',
+      'gas': 'plomero',
+      'plomero': 'plomero',
+      'plomería': 'plomero',
+      'fontanero': 'plomero',
+      'sanitarista': 'plomero',
       
-      // Problemas generales
-      'no enfría': 'refrigeración',
-      'no calienta': 'calefacción',
-      'no funciona bien': 'reparación',
-      'no funciona': 'reparación',
-      'no anda': 'reparación',
-      
-      // Electricidad
-      'luz': 'electricista',
-      'electricidad': 'electricista',
-      'cable': 'electricista',
+      // Electricista - ESPECÍFICO
+      'electricista para instalar aire acondicionado': 'electricista',
+      'electricista para instalar aire': 'electricista',
+      'instalar aire acondicionado': 'electricista',
+      'instalación aire acondicionado': 'electricista',
+      'instalación eléctrica': 'electricista',
+      'arreglar luz': 'electricista',
+      'no hay luz': 'electricista',
       'corte de luz': 'electricista',
-      'no enciende': 'electricista',
+      'tablero eléctrico': 'electricista',
+      'disyuntor': 'electricista',
+      'térmica': 'electricista',
+      'enchufe': 'electricista',
+      'toma corriente': 'electricista',
+      'cable pelado': 'electricista',
+      'cortocircuito': 'electricista',
+      'interruptor': 'electricista',
+      'lampara': 'electricista',
+      'luminaria': 'electricista',
+      'ventilador de techo': 'electricista',
+      'electricista': 'electricista',
+      'electricidad': 'electricista',
+      'electrico': 'electricista',
       
-      // Plomería
-      'gotea': 'plomero',
-      'canilla': 'plomero',
-      'caño': 'plomero',
-      'agua': 'plomero',
-      'inodoro': 'plomero',
-      'baño': 'plomero',
+      // Aire acondicionado
+      'aire acondicionado': 'técnico en refrigeración',
+      'aire no funciona': 'técnico en refrigeración',
+      'aire no enfría': 'técnico en refrigeración',
+      'aire no anda': 'técnico en refrigeración',
+      'aire roto': 'técnico en refrigeración',
+      'split': 'técnico en refrigeración',
+      'instalación split': 'técnico en refrigeración',
+      'service aire': 'técnico en refrigeración',
+      'mantenimiento aire': 'técnico en refrigeración',
+      'carga de gas': 'técnico en refrigeración',
+      'refrigeración': 'técnico en refrigeración',
+      'climatización': 'técnico en refrigeración',
       
-      // General
-      'ruido extraño': 'reparación',
-      'se rompió': 'reparación',
-      'roto': 'reparación',
-      'instalación': 'instalador',
-      'instalar': 'instalador',
-      'mantenimiento': 'mantenimiento',
+      // Mecánico - ESPECÍFICO
+      'mecánico para revisión general del auto': 'mecánico',
+      'mecánico para revisión del auto': 'mecánico',
+      'mecánico para revisión': 'mecánico',
+      'revisión general del auto': 'mecánico',
+      'revisión del auto': 'mecánico',
+      'service de auto': 'mecánico',
+      'cambio de aceite': 'mecánico',
+      'frenos': 'mecánico',
+      'embrague': 'mecánico',
+      'suspensión': 'mecánico',
+      'alineación': 'mecánico',
+      'balanceo': 'mecánico',
+      'motor': 'mecánico',
+      'auto no arranca': 'mecánico',
+      'auto no anda': 'mecánico',
+      'ruido en el auto': 'mecánico',
+      'ruido en el motor': 'mecánico',
+      'taller mecánico': 'mecánico',
+      'mecánico': 'mecánico',
+      'mecánica': 'mecánico',
+      'gomería': 'mecánico',
+      'neumáticos': 'mecánico',
+      'coche': 'mecánico',
+      'auto': 'mecánico',
+      'vehículo': 'mecánico',
+      
+      // Limpieza - ESPECÍFICO
+      'limpieza profunda de casa': 'limpieza',
+      'limpieza profunda': 'limpieza',
+      'limpieza de casa': 'limpieza',
+      'limpieza a fondo': 'limpieza',
+      'limpieza general': 'limpieza',
+      'limpiar casa': 'limpieza',
+      'servicio de limpieza': 'limpieza',
+      'empleada doméstica': 'limpieza',
+      'mucama': 'limpieza',
+      'limpieza de oficina': 'limpieza',
+      'limpieza de departamento': 'limpieza',
       'limpieza': 'limpieza',
       'limpiar': 'limpieza',
-      'pintar': 'pintor',
-      'pintura': 'pintor',
-      'arreglar': 'reparación',
       
-      // Automotor
-      'auto': 'mecánico',
-      'coche': 'mecánico',
-      'vehículo': 'mecánico',
-      'motor': 'mecánico',
-      'mecánico': 'mecánico',
-      'revisión': 'mecánico'
+      // Otros servicios comunes
+      'pintor': 'pintor',
+      'pintura': 'pintor',
+      'pintar casa': 'pintor',
+      'pintar pared': 'pintor',
+      'carpintero': 'carpintero',
+      'carpintería': 'carpintero',
+      'muebles': 'carpintero',
+      'albañil': 'albañil',
+      'albañilería': 'albañil',
+      'construcción': 'albañil',
+      'jardinero': 'jardinero',
+      'jardín': 'jardinero',
+      'cortar pasto': 'jardinero',
+      'poda': 'jardinero',
+      'cerrajero': 'cerrajero',
+      'cerradura': 'cerrajero',
+      'llave': 'cerrajero',
+      'mudanza': 'mudanzas',
+      'mudar': 'mudanzas',
+      'fletes': 'mudanzas',
+      'técnico': 'técnico',
+      'reparación': 'técnico',
+      'arreglar': 'técnico',
+      'instalador': 'instalador',
+      'instalar': 'instalador',
+      'instalación': 'instalador',
+      'mantenimiento': 'mantenimiento',
     };
 
-    // Find the best matching service/profession
-    let bestMatch = '';
-    let longestMatch = 0;
+    // Buscar coincidencias, priorizando las más largas (más específicas)
+    const matches: Array<{service: string, length: number}> = [];
     
     for (const [problem, service] of Object.entries(problemMappings)) {
-      if (lowercaseQuery.includes(problem) && problem.length > longestMatch) {
-        bestMatch = service;
-        longestMatch = problem.length;
+      if (lowercaseQuery.includes(problem)) {
+        matches.push({ service, length: problem.length });
       }
     }
-
-    // If we found a match, return just that service term
-    if (bestMatch) {
-      return bestMatch;
+    
+    // Ordenar por longitud descendente (más específico primero)
+    matches.sort((a, b) => b.length - a.length);
+    
+    // Si encontramos coincidencias, retornar la más específica
+    if (matches.length > 0) {
+      return matches[0].service;
     }
 
-    // Otherwise, extract key nouns from the query
+    // Si no hay coincidencias directas, extraer palabras clave
+    const stopWords = ['para', 'con', 'sin', 'del', 'que', 'esta', 'este', 'esa', 'ese', 
+                       'los', 'las', 'una', 'uno', 'por', 'como', 'necesito', 'busco', 
+                       'quiero', 'urgente', 'rápido'];
     const words = query.toLowerCase().split(/\s+/);
     const keyWords = words.filter(word => 
-      word.length > 3 && 
-      !['para', 'con', 'sin', 'del', 'que', 'esta', 'este', 'esta', 'ese', 'esa'].includes(word)
+      word.length > 3 && !stopWords.includes(word)
     );
 
+    // Retornar las 2 palabras clave más relevantes o la query original
     return keyWords.slice(0, 2).join(' ') || query;
   };
 
