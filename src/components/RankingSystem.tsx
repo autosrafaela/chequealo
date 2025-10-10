@@ -142,8 +142,9 @@ export const RankingSystem: React.FC<RankingSystemProps> = ({
 
       // Load professional rankings
       if (type === 'professionals' || type === 'both') {
+        // SECURITY: Using professionals_public_safe for public rankings
         const { data: professionalStats, error: professionalStatsError } = await supabase
-          .from('professionals')
+          .from('professionals_public_safe')
           .select(`
             id,
             user_id,

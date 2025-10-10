@@ -83,6 +83,8 @@ export const ProximitySearch: React.FC<ProximitySearchProps> = ({ onResultsChang
 
     setLoading(true);
     try {
+      // SECURITY: Query professionals table but exclude sensitive fields (email, phone, dni)
+      // Note: latitude/longitude are needed for proximity calculations
       let query = supabase
         .from('professionals')
         .select(`

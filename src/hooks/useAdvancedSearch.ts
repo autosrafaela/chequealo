@@ -56,8 +56,9 @@ export const useAdvancedSearch = () => {
       console.log('🔍 Buscando:', { query, filters: currentFilters });
       
       // Paso 1: Preparar query base para professionals
+      // SECURITY: Using professionals_public_safe view to exclude sensitive data (email, phone, DNI)
       let professionalsQuery = supabase
-        .from('professionals')
+        .from('professionals_public_safe')
         .select(`
           id,
           full_name,
@@ -69,8 +70,7 @@ export const useAdvancedSearch = () => {
           image_url,
           is_verified,
           availability
-        `)
-        .eq('is_blocked', false);
+        `);
 
       // Paso 2: Preparar query para servicios profesionales
       let servicesQuery = supabase
@@ -136,8 +136,9 @@ export const useAdvancedSearch = () => {
         
         // Buscar profesionales adicionales por IDs de servicios
         if (servicesProfIds.size > 0) {
+          // SECURITY: Using professionals_public_safe view for additional professionals
           const additionalProfsQuery = supabase
-            .from('professionals')
+            .from('professionals_public_safe')
             .select(`
               id,
               full_name,
@@ -150,7 +151,6 @@ export const useAdvancedSearch = () => {
               is_verified,
               availability
             `)
-            .eq('is_blocked', false)
             .in('id', Array.from(servicesProfIds));
           
           const { data: additionalProfs } = await additionalProfsQuery;

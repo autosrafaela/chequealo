@@ -32,9 +32,9 @@ const ServiceCategories = () => {
   const loadAllProfessions = async () => {
     try {
       setLoading(true);
-      // Load professions
+      // SECURITY: Using professionals_public_safe for profession list
       const { data: profs, error: profsError } = await supabase
-        .from('professionals')
+        .from('professionals_public_safe')
         .select('profession')
         .order('profession');
       if (profsError) throw profsError;

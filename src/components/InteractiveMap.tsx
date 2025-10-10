@@ -50,6 +50,8 @@ export const InteractiveMap: React.FC = () => {
 
     setLoading(true);
     try {
+      // SECURITY: Query professionals table but exclude sensitive fields (email, phone, dni)
+      // Note: latitude/longitude are needed for map functionality
       let query = supabase
         .from('professionals')
         .select(`

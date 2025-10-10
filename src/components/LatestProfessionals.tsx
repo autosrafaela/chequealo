@@ -25,10 +25,10 @@ export const LatestProfessionals = () => {
   useEffect(() => {
     const fetchLatestProfessionals = async () => {
       try {
+        // SECURITY: Using professionals_public_safe view to exclude sensitive data
         const { data, error } = await supabase
-          .from('professionals_public')
+          .from('professionals_public_safe')
           .select('*')
-          .eq('is_blocked', false)
           .order('created_at', { ascending: false })
           .limit(12);
 
