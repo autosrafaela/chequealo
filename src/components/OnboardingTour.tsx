@@ -104,23 +104,9 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) =>
   };
 
   const handleAction = () => {
-    const step = onboardingSteps[currentStep];
-    
-    switch (step.id) {
-      case 'search':
-        // Focus on search bar or scroll to it
-        const searchElement = document.querySelector('.hero-search-bar input');
-        searchElement?.scrollIntoView({ behavior: 'smooth' });
-        (searchElement as HTMLInputElement)?.focus();
-        handleNext();
-        break;
-      case 'profile':
-        // Navigate to profile or show profile menu
-        window.location.href = '/user/dashboard';
-        break;
-      default:
-        handleNext();
-    }
+    // Simplemente avanzar al siguiente paso sin interactuar con el DOM
+    // para evitar problemas de navegación
+    handleNext();
   };
 
   if (!isVisible || !user) return null;
