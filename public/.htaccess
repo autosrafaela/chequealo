@@ -5,6 +5,10 @@ Options -MultiViews
   RewriteEngine On
   RewriteBase /
 
+  # Canonical: force non-www to avoid OAuth state mismatch across origins
+  RewriteCond %{HTTP_HOST} ^www\.chequealo\.ar$ [NC]
+  RewriteRule ^(.*)$ https://chequealo.ar/$1 [L,R=301]
+
   # Serve files if they exist
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
