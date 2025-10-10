@@ -182,6 +182,34 @@ const ProfessionalDashboard = () => {
           <p className="text-muted-foreground">
             Gestiona tu perfil, solicitudes y estadísticas
           </p>
+          
+          {/* User Dashboard Banner */}
+          <Card className="mt-4 bg-gradient-to-r from-blue-50 to-blue-100/50 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-200/50 p-2 rounded-lg">
+                    <Users className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Dashboard de Usuario</p>
+                    <p className="text-sm text-muted-foreground">
+                      Accedé a tus solicitudes y favoritos como usuario
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => window.location.href = '/user-dashboard'}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  Ver Dashboard Usuario
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Stats */}

@@ -689,6 +689,36 @@ const UserDashboard = () => {
               </p>
             </div>
           </div>
+          
+          {/* Professional Account Banner */}
+          {isProfessional && (
+            <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/20 p-2 rounded-lg">
+                      <Briefcase className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">También sos Profesional</p>
+                      <p className="text-sm text-muted-foreground">
+                        Gestioná tu perfil profesional y solicitudes de clientes
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => window.location.href = '/dashboard'}
+                    variant="default"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    Ver Dashboard Profesional
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Stats Cards */}
