@@ -45,6 +45,16 @@ export const PWAFeatures: React.FC<PWAFeaturesProps> = ({ onInstallPrompt }) => 
     // Check if running on mobile device
     if (Capacitor.isNativePlatform()) {
       await initializePushNotifications();
+    } else {
+      // Check web notification status
+      if ('Notification' in window) {
+        const permission = Notification.permission;
+        const savedPushEnabled = localStorage.getItem('push_enabled') === 'true';
+        
+        if (permission === 'granted' && savedPushEnabled) {
+          setPushEnabled(true);
+        }
+      }
     }
 
     // Check if app is installed
@@ -177,22 +187,73 @@ export const PWAFeatures: React.FC<PWAFeaturesProps> = ({ onInstallPrompt }) => 
   };
 
   const togglePushNotifications = async () => {
-    if (!Capacitor.isNativePlatform()) {
-      toast.info('Las notificaciones push están disponibles en la app móvil');
+    try {
+      if (pushEnabled) {
+        // Disable notifications
+        setPushEnabled(false);
+        localStorage.setItem('push_enabled', 'false');
+        toast.success('Notificaciones desactivadas');
+      } else {
+        // Enable notifications
+        if (Capacitor.isNativePlatform()) {
+          // Use Capacitor for native platforms
+          await initializePushNotifications();
+        } else {
+          // Use Web Push API for browser
+          await initializeWebPushNotifications();
+        }
+        toast.success('Notificaciones activadas');
+      }
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+      toast.error('Error al cambiar configuración de notificaciones');
+    }
+  };
+
+  const initializeWebPushNotifications = async () => {
+    if (!('Notification' in window)) {
+      toast.error('Este navegador no soporta notificaciones');
+      return;
+    }
+
+    if (!('serviceWorker' in navigator)) {
+      toast.error('Este navegador no soporta Service Workers');
       return;
     }
 
     try {
-      if (pushEnabled) {
-        // Disable notifications (you might want to update server-side settings)
-        setPushEnabled(false);
-        toast.success('Notificaciones desactivadas');
+      const permission = await Notification.requestPermission();
+      
+      if (permission === 'granted') {
+        setPushEnabled(true);
+        localStorage.setItem('push_enabled', 'true');
+        
+        // Register service worker for push notifications
+        const registration = await navigator.serviceWorker.ready;
+        
+        // Check if already subscribed
+        const existingSubscription = await registration.pushManager.getSubscription();
+        
+        if (!existingSubscription) {
+          // Subscribe to push notifications
+          // Note: In production, you'd need to use your VAPID public key
+          console.log('Web push notifications enabled');
+          
+          // Test notification
+          new Notification('Notificaciones activadas', {
+            body: 'Ahora recibirás notificaciones de Chequealo',
+            icon: '/icon-192.png',
+            badge: '/favicon.png'
+          });
+        }
+      } else if (permission === 'denied') {
+        toast.error('Permisos de notificaciones denegados. Actívalos en la configuración del navegador.');
       } else {
-        await initializePushNotifications();
-        toast.success('Notificaciones activadas');
+        toast.info('Permisos de notificaciones no otorgados');
       }
     } catch (error) {
-      toast.error('Error al cambiar configuración de notificaciones');
+      console.error('Error initializing web push:', error);
+      toast.error('Error al configurar notificaciones web');
     }
   };
 
