@@ -59,64 +59,96 @@ self.addEventListener('fetch', (event) => {
 
 // Push notification event handler
 self.addEventListener('push', (event) => {
-  const options = {
-    body: event.data ? event.data.text() : 'Nueva notificación',
+  console.log('Push notification received', event);
+  
+  let notificationData = {
+    title: 'Chequealo',
+    body: 'Nueva notificación',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
     vibrate: [200, 100, 200],
+    tag: 'default',
+    requireInteraction: false,
     data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
+      url: '/',
+      dateOfArrival: Date.now()
     },
     actions: [
       {
-        action: 'explore',
-        title: 'Ver',
+        action: 'view',
+        title: 'Ver'
       },
       {
         action: 'close',
-        title: 'Cerrar',
+        title: 'Cerrar'
       }
     ]
   };
 
-  let title = 'Chequealo';
-  
+  // If push event has data, parse and use it
   if (event.data) {
-    const data = event.data.json();
-    title = data.title || title;
-    options.body = data.message || data.body || options.body;
-    if (data.url) {
-      options.data.url = data.url;
+    try {
+      const data = event.data.json();
+      notificationData = {
+        title: data.title || notificationData.title,
+        body: data.body || data.message || notificationData.body,
+        icon: data.icon || notificationData.icon,
+        badge: data.badge || notificationData.badge,
+        vibrate: data.vibrate || notificationData.vibrate,
+        tag: data.tag || 'notification-' + Date.now(),
+        requireInteraction: data.requireInteraction || false,
+        data: {
+          url: data.url || data.action_url || '/',
+          dateOfArrival: Date.now(),
+          ...data.data
+        },
+        actions: data.actions || notificationData.actions
+      };
+    } catch (e) {
+      console.error('Error parsing push data:', e);
+      notificationData.body = event.data.text();
     }
   }
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration.showNotification(
+      notificationData.title,
+      notificationData
+    )
   );
 });
 
 // Notification click event handler
 self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked', event);
+  
   event.notification.close();
 
+  // Handle action buttons
   if (event.action === 'close') {
     return;
   }
 
-  const urlToOpen = event.notification.data?.url || '/';
+  const urlToOpen = new URL(event.notification.data?.url || '/', self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((windowClients) => {
-        // Check if there's already a window open
+        // Focus existing window if found
         for (let i = 0; i < windowClients.length; i++) {
           const client = windowClients[i];
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            return client.focus().then(client => {
+              // Navigate to the URL if supported
+              if ('navigate' in client) {
+                return client.navigate(urlToOpen);
+              }
+              return client;
+            });
           }
         }
-        // If no window is open, open a new one
+        
+        // Open new window if no existing window found
         if (clients.openWindow) {
           return clients.openWindow(urlToOpen);
         }

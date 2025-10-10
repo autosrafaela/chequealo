@@ -41,6 +41,7 @@ import { Navigate } from 'react-router-dom';
 import FavoritesPanel from '@/components/FavoritesPanel';
 import { UserTransactionReviews } from '@/components/UserTransactionReviews';
 import PWAFeatures from '@/components/PWAFeatures';
+import PushNotificationToggle from '@/components/PushNotificationToggle';
 
 interface UserProfile {
   id: string;
@@ -1057,13 +1058,16 @@ const UserDashboard = () => {
           </TabsContent>
 
           <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuración de Cuenta</CardTitle>
-                <CardDescription>
-                  Gestiona la configuración y privacidad de tu cuenta
-                </CardDescription>
-              </CardHeader>
+            <div className="space-y-6">
+              <PushNotificationToggle />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Configuración de Cuenta</CardTitle>
+                  <CardDescription>
+                    Gestiona la configuración y privacidad de tu cuenta
+                  </CardDescription>
+                </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Información de Cuenta</h3>
@@ -1124,6 +1128,7 @@ const UserDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
         </Tabs>
 

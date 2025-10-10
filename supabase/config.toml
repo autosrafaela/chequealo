@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.send-custom-auth-email]
 verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = true

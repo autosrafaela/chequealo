@@ -1,5 +1,32 @@
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Send push notification to users
+ */
+const sendPushNotification = async (
+  userIds: string[],
+  title: string,
+  message: string,
+  actionUrl?: string
+) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    await supabase.functions.invoke('send-push-notification', {
+      body: {
+        userIds,
+        title,
+        body: message,
+        url: actionUrl,
+        icon: '/icon-192.png'
+      }
+    });
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+  }
+};
+
 export interface CreateNotificationProps {
   userId: string;
   title: string;
@@ -33,6 +60,12 @@ export const createNotification = async ({
       .single();
 
     if (error) throw error;
+    
+    // Send push notification
+    if (data) {
+      await sendPushNotification([userId], title, message, actionUrl);
+    }
+    
     return { data, error: null };
   } catch (error) {
     console.error('Error creating notification:', error);
@@ -182,6 +215,12 @@ export const createBulkNotifications = async (
       .select();
 
     if (error) throw error;
+    
+    // Send push notifications to all users
+    if (data && data.length > 0) {
+      await sendPushNotification(userIds, title, message, actionUrl);
+    }
+    
     return { data, error: null };
   } catch (error) {
     console.error('Error creating bulk notifications:', error);
