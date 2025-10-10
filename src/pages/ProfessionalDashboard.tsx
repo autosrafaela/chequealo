@@ -227,54 +227,45 @@ const ProfessionalDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card 
-            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
-            onClick={() => {
-              window.location.href = `/professional/${professional.id}#reviews`;
-            }}
-          >
+          <Card className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Reseñas
-                  </p>
-                  <p className="text-2xl font-bold">{stats.totalReviews}</p>
+              <Link to={`/professional/${professional.id}#reviews`} className="block">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Reseñas
+                    </p>
+                    <p className="text-2xl font-bold">{stats.totalReviews}</p>
+                  </div>
+                  <Users className="h-8 w-8 text-green-500" />
                 </div>
-                <Users className="h-8 w-8 text-green-500" />
-              </div>
+              </Link>
             </CardContent>
           </Card>
 
-          <Card 
-            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
-            onClick={() => {
-              window.location.href = `/professional/${professional.id}#reviews`;
-            }}
-          >
+          <Card className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Rating Promedio
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <p className="text-2xl font-bold">{stats.averageRating}</p>
-                    <Star className="h-5 w-5 text-yellow-400 fill-current" />
+              <Link to={`/professional/${professional.id}#reviews`} className="block">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Rating Promedio
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-2xl font-bold">{stats.averageRating}</p>
+                      <Star className="h-5 w-5 text-yellow-400 fill-current" />
+                    </div>
                   </div>
+                  <TrendingUp className="h-8 w-8 text-yellow-500" />
                 </div>
-                <TrendingUp className="h-8 w-8 text-yellow-500" />
-              </div>
+              </Link>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card 
-            className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
-            onClick={() => window.location.href = `/professional/${professional.id}`}
-          >
+          <Card className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -286,7 +277,7 @@ const ProfessionalDashboard = () => {
                 <Eye className="h-8 w-8 text-primary" />
               </div>
               <Button asChild className="w-full mt-4" variant="outline">
-                <Link to={`/professional/${professional.id}`}>
+                <Link to={`/professional/${professional?.id || ''}`}>
                   Ver Perfil Público
                 </Link>
               </Button>

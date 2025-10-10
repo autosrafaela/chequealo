@@ -22,7 +22,9 @@ export const SubscriptionPanel = () => {
     creating, 
     createPaymentPreference, 
     getSubscriptionStatus, 
-    getDaysRemaining 
+    getDaysRemaining,
+    hasFullAccessDuringTrial,
+    getPlanFeatures
   } = useSubscription();
   
   const [showPlanSelection, setShowPlanSelection] = useState(false);
@@ -68,6 +70,8 @@ export const SubscriptionPanel = () => {
 
   const status = getSubscriptionStatus();
   const daysRemaining = getDaysRemaining();
+  const planFeatures = getPlanFeatures();
+  const hasFullAccess = hasFullAccessDuringTrial();
 
   const getStatusInfo = () => {
     switch (status) {
@@ -143,11 +147,18 @@ export const SubscriptionPanel = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Plan</p>
-              <p className="text-lg font-semibold">{subscription.subscription_plans.name}</p>
+              <p className="text-sm font-medium text-muted-foreground">Plan Actual</p>
+              <p className="text-lg font-semibold">
+                {hasFullAccess ? 'Plan Full (Trial)' : subscription.subscription_plans.name}
+              </p>
+              {hasFullAccess && (
+                <Badge variant="secondary" className="text-xs">Acceso completo durante prueba</Badge>
+              )}
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Precio</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {hasFullAccess ? 'Precio después del trial' : 'Precio'}
+              </p>
               <p className="text-lg font-semibold">
                 ${subscription.subscription_plans.price.toLocaleString()} {subscription.subscription_plans.currency}
               </p>
@@ -157,6 +168,26 @@ export const SubscriptionPanel = () => {
               <p className="text-lg font-semibold">{subscription.subscription_plans.grace_period_days} días</p>
             </div>
           </div>
+          
+          {hasFullAccess && (
+            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Acceso Completo Durante el Trial
+              </h4>
+              <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                <li>✓ Solicitudes de contacto ilimitadas</li>
+                <li>✓ Fotos de trabajos ilimitadas</li>
+                <li>✓ Reservas mensuales ilimitadas</li>
+                <li>✓ Mensajes y envío de archivos</li>
+                <li>✓ Perfil destacado y analíticas avanzadas</li>
+                <li>✓ Soporte prioritario e integración de calendario</li>
+              </ul>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                Después del período de prueba, tendrás acceso según el plan que elijas.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -187,16 +218,18 @@ export const SubscriptionPanel = () => {
         </Alert>
       )}
 
-      {/* Payment Action */}
-      {(status === 'payment_reminder' || status === 'payment_required' || status === 'expired') && (
+      {/* Plan Selection Available Anytime */}
+      {(status === 'trial' || status === 'payment_reminder' || status === 'payment_required' || status === 'expired') && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5" />
-              Completar Suscripción
+              <Settings className="w-5 h-5" />
+              {status === 'trial' || status === 'payment_reminder' ? 'Elegir Plan para después del Trial' : 'Completar Suscripción'}
             </CardTitle>
             <CardDescription>
-              Procesamos tu pago de forma segura a través de MercadoPago.
+              {status === 'trial' || status === 'payment_reminder' 
+                ? 'Elegí ahora el plan que quieras usar cuando termine tu período de prueba. Podés pagar ahora o más tarde.'
+                : 'Seleccioná un plan y completá tu pago para continuar recibiendo solicitudes.'}
             </CardDescription>
           </CardHeader>
           <CardContent>

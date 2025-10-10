@@ -46,7 +46,7 @@ export const useSubscription = () => {
         .from('professionals')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!professional) {
         setSubscription(null);
@@ -63,7 +63,7 @@ export const useSubscription = () => {
         .eq('professional_id', professional.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching subscription:', error);
@@ -168,6 +168,39 @@ export const useSubscription = () => {
     return Math.max(0, diffDays);
   };
 
+  // During trial period, professionals have access to FULL plan features
+  const hasFullAccessDuringTrial = () => {
+    if (!subscription) return false;
+    
+    const status = getSubscriptionStatus();
+    // During trial, payment_reminder, and payment_required states, they have FULL access
+    return ['trial', 'payment_reminder', 'payment_required'].includes(status);
+  };
+
+  // After trial expires without payment, downgrade to basic plan
+  const getPlanFeatures = () => {
+    if (!subscription) return null;
+
+    // During trial period (including reminder and required states), give FULL access
+    if (hasFullAccessDuringTrial()) {
+      return {
+        name: 'Plan Full (Período de Prueba)',
+        max_contact_requests: -1, // Unlimited
+        max_work_photos: -1, // Unlimited
+        max_monthly_bookings: -1, // Unlimited
+        can_receive_messages: true,
+        can_send_files: true,
+        featured_listing: true,
+        advanced_analytics: true,
+        priority_support: true,
+        calendar_integration: true
+      };
+    }
+
+    // After trial expires, use selected plan or default to basic
+    return subscription.subscription_plans;
+  };
+
   useEffect(() => {
     fetchSubscription();
   }, [user]);
@@ -180,6 +213,8 @@ export const useSubscription = () => {
     createPaymentPreference,
     updateSelectedPlan,
     getSubscriptionStatus,
-    getDaysRemaining
+    getDaysRemaining,
+    hasFullAccessDuringTrial,
+    getPlanFeatures
   };
 };

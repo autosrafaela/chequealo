@@ -130,41 +130,35 @@ export const usePlanRestrictions = () => {
       
       const status = getSubscriptionStatus();
       
-      // During trial period, user gets full Professional plan features
-      if (status === 'trial') {
-        const { data: professionalPlan } = await supabase
-          .from('subscription_plans')
-          .select('*')
-          .eq('name', 'Plan Profesional')
-          .single();
-
-        if (professionalPlan) {
-          setPlanLimits({
-            maxContactRequests: professionalPlan.max_contact_requests,
-            maxWorkPhotos: professionalPlan.max_work_photos,
-            prioritySupport: professionalPlan.priority_support,
-            advancedAnalytics: professionalPlan.advanced_analytics,
-            featuredListing: professionalPlan.featured_listing,
-            canAccessAdvancedFeatures: true,
-            canReceiveMessages: professionalPlan.can_receive_messages,
-            canSendFiles: professionalPlan.can_send_files,
-            maxMonthlyBookings: professionalPlan.max_monthly_bookings,
-            calendarIntegration: professionalPlan.calendar_integration,
-            maxAvailabilitySlots: -1,
-            canRateUsers: true,
-            // Portfolio features - Trial gets professional features
-            canUploadVideos: true,
-            canCreateBeforeAfter: false,
-            canUploadCertificates: false,
-            maxVideosPerPortfolio: 10,
-            maxCertificates: 0,
-            // Geolocalización features - Trial gets basic features
-            canUseProximitySearch: true,
-            canUseInteractiveMap: false,
-            canVerifyLocation: false,
-            proximitySearchRadius: 50,
-          });
-        }
+      // During trial period (including payment_reminder and payment_required), 
+      // user gets FULL access to ALL features
+      if (status === 'trial' || status === 'payment_reminder' || status === 'payment_required') {
+        setPlanLimits({
+          maxContactRequests: -1, // Unlimited
+          maxWorkPhotos: -1, // Unlimited
+          prioritySupport: true,
+          advancedAnalytics: true,
+          featuredListing: true,
+          canAccessAdvancedFeatures: true,
+          canReceiveMessages: true,
+          canSendFiles: true,
+          maxMonthlyBookings: -1, // Unlimited
+          calendarIntegration: true,
+          maxAvailabilitySlots: -1, // Unlimited
+          canRateUsers: true,
+          // Full Portfolio features during trial
+          canUploadVideos: true,
+          canCreateBeforeAfter: true,
+          canUploadCertificates: true,
+          maxVideosPerPortfolio: -1, // Unlimited
+          maxCertificates: -1, // Unlimited
+          // Full Geolocalización features during trial
+          canUseProximitySearch: true,
+          canUseInteractiveMap: true,
+          canVerifyLocation: true,
+          proximitySearchRadius: 100,
+        });
+        setLoading(false);
         return;
       }
 
@@ -285,7 +279,9 @@ export const usePlanRestrictions = () => {
     if (!subscription) return 'Sin Plan';
     
     const status = getSubscriptionStatus();
-    if (status === 'trial') return 'Período de Prueba (Plan Completo)';
+    if (status === 'trial' || status === 'payment_reminder' || status === 'payment_required') {
+      return 'Período de Prueba (Acceso Full)';
+    }
     
     return subscription.subscription_plans?.name || 'Plan Desconocido';
   };
