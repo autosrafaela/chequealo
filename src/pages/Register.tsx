@@ -40,14 +40,44 @@ const Register = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Relay OAuth hash from /register to /auth to let Supabase parse it
+  // Manejo del callback OAuth (PKCE code o hash) directamente en /register para evitar 404
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && (hash.includes('access_token') || hash.includes('code='))) {
-      window.location.replace(`${window.location.origin}/auth${hash}`);
-    }
-  }, []);
+    const url = new URL(window.location.href);
+    const hasCode = url.searchParams.has('code');
+    const hasAccessToken = window.location.hash.includes('access_token');
 
+    const finalize = async () => {
+      try {
+        if (hasCode) {
+          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+          if (error) {
+            console.error('[Register] exchangeCodeForSession error:', error);
+            toast.error('No se pudo completar el inicio de sesión. Intenta nuevamente.');
+          }
+          // Limpiar query params de la URL
+          url.search = '';
+          window.history.replaceState({}, '', url.toString());
+        } else if (hasAccessToken) {
+          const hash = new URLSearchParams(window.location.hash.substring(1));
+          const access_token = hash.get('access_token') || '';
+          const refresh_token = hash.get('refresh_token') || '';
+          if (access_token) {
+            const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+            if (error) {
+              console.error('[Register] setSession error:', error);
+              toast.error('No se pudo completar el inicio de sesión. Intenta nuevamente.');
+            }
+            // Limpiar el hash
+            window.location.hash = '';
+          }
+        }
+      } catch (e) {
+        console.error('[Register] OAuth finalize error:', e);
+      }
+    };
+
+    finalize();
+  }, []);
   // Redirect if user is already authenticated (after OAuth)
   useEffect(() => {
     if (user && !loading) {
