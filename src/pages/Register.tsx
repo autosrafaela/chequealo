@@ -40,6 +40,14 @@ const Register = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Relay OAuth hash from /register to /auth to let Supabase parse it
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && (hash.includes('access_token') || hash.includes('code='))) {
+      window.location.replace(`${window.location.origin}/auth${hash}`);
+    }
+  }, []);
+
   // Redirect if user is already authenticated (after OAuth)
   useEffect(() => {
     if (user && !loading) {
