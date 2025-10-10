@@ -2,10 +2,10 @@ name: build-and-deploy-to-deploy-branch
 
 on:
   push:
-    branches: [ main ]   # (En la UI en español se ve "principal", pero el nombre real es main)
+    branches: [ main ]
 
 permissions:
-  contents: write        # NECESARIO para poder push a la rama deploy
+  contents: write
 
 jobs:
   build:
@@ -22,6 +22,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Mostrar archivos (debug)
+        run: ls -la
+
       - name: Instalar dependencias
         run: |
           if [ -f package-lock.json ]; then
@@ -30,11 +33,29 @@ jobs:
             npm install
           fi
 
+      - name: Verificar script build
+        run: |
+          if ! cat package.json | grep -q '"build"'; then
+            echo 'Falta script "build" en package.json (debería ser "vite build")' >&2
+            exit 1
+          fi
+
       - name: Construir sitio (Vite)
+        env:
+          # Estas VITE_* vienen de "Actions → Variables" (ver paso 2)
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_PUBLIC_SITE_URL: ${{ vars.VITE_PUBLIC_SITE_URL }}
+          VITE_PAYMENT_PROVIDER: ${{ vars.VITE_PAYMENT_PROVIDER }}
+          VITE_CURRENCY: ${{ vars.VITE_CURRENCY }}
         run: npm run build
 
       - name: Publicar dist/ en la rama deploy
         run: |
+          if [ ! -d "dist" ]; then
+            echo "No se encontró carpeta dist (falló el build)" >&2
+            exit 1
+          fi
           git config user.name "CI"
           git config user.email "ci@users.noreply.github.com"
           git fetch origin
@@ -45,4 +66,3 @@ jobs:
           git add -A
           git commit -m "Deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push -f origin deploy
-
