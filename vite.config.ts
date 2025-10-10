@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
@@ -10,9 +10,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
+    react({
+      jsxRuntime: 'automatic'
+    }),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -34,8 +35,6 @@ export default defineConfig(({ mode }) => ({
     ],
   },
   build: {
-    commonjsOptions: {
-      include: [/node_modules/],
-    },
+    commonjsOptions: { include: [/node_modules/] },
   },
 }));
