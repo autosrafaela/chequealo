@@ -331,45 +331,62 @@ export const SubscriptionPanel = () => {
           </CardHeader>
           <CardContent>
               <div className="space-y-4">
-                <div className="bg-muted p-4 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">
-                      {subscription.selected_plan_id ? 'Plan Seleccionado' : subscription.subscription_plans.name}
-                    </span>
-                    <span className="text-lg font-bold">
-                      ${subscription.subscription_plans.price.toLocaleString()} {subscription.subscription_plans.currency}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">Facturación mensual</p>
+                {/* Selector de plan inline - SIEMPRE VISIBLE */}
+                <div className="border rounded-lg p-4 bg-background">
+                  <h4 className="font-semibold mb-3">Elegir tu plan</h4>
+                  <PlanSelector
+                    onPlanSelected={setInlineSelectedPlan}
+                    currentPlanId={inlineSelectedPlan || subscription.selected_plan_id || subscription.plan_id}
+                  />
                 </div>
                 
-                <div className="space-y-3">
+                <div className="flex gap-3">
                   <Button 
                     variant="outline"
-                    onClick={() => setShowPlanSelection(true)}
-                    className="w-full"
-                    disabled={creating}
+                    onClick={async () => {
+                      const planId = inlineSelectedPlan || subscription.selected_plan_id;
+                      if (!planId) { toast.error('Por favor seleccioná un plan'); return; }
+                      try {
+                        setInlineSaving(true);
+                        const ok = await updateSelectedPlan(planId);
+                        if (ok) toast.success('Plan seleccionado correctamente');
+                      } catch (e) {
+                        console.error(e); toast.error('Error al confirmar el plan');
+                      } finally { setInlineSaving(false); }
+                    }}
+                    className="flex-1"
+                    disabled={inlineSaving || creating}
                   >
-                    <Settings className="w-4 h-4 mr-2" />
-                    {subscription.selected_plan_id ? 'Cambiar Plan' : 'Seleccionar Plan'}
+                    {inlineSaving ? 'Guardando...' : 'Guardar Selección'}
                   </Button>
                   
                   <Button 
-                    onClick={() => handlePayment(subscription.selected_plan_id)}
+                    onClick={async () => {
+                      const planId = inlineSelectedPlan || subscription.selected_plan_id;
+                      if (!planId) { toast.error('Por favor seleccioná un plan'); return; }
+                      try {
+                        setInlineSaving(true);
+                        await updateSelectedPlan(planId);
+                        const pref = await createPaymentPreference(planId);
+                        if (pref && pref.initPoint) window.location.href = pref.initPoint;
+                      } catch (e) {
+                        console.error(e); toast.error('Error al procesar el pago');
+                      } finally { setInlineSaving(false); }
+                    }}
                     disabled={
-                      creating || (
-                        !subscription.selected_plan_id && ['payment_required','expired'].includes(getSubscriptionStatus())
+                      inlineSaving || creating || (
+                        !inlineSelectedPlan && !subscription.selected_plan_id && ['payment_required','expired'].includes(getSubscriptionStatus())
                       )
                     }
                     size="lg" 
-                    className="w-full"
+                    className="flex-1"
                   >
-                    {creating ? (
+                    {inlineSaving || creating ? (
                       <>Procesando...</>
                     ) : (
                       <>
                         <CreditCard className="w-4 h-4 mr-2" />
-                        Pagar con MercadoPago
+                        Pagar Ahora
                       </>
                     )}
                   </Button>
