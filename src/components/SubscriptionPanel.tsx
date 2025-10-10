@@ -315,8 +315,8 @@ export const SubscriptionPanel = () => {
         </Alert>
       )}
 
-      {/* Plan Selection Available Anytime */}
-      {(status === 'trial' || status === 'payment_reminder' || status === 'payment_required' || status === 'expired') && (
+      {/* Plan Selection - SIEMPRE disponible */}
+      {true && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
