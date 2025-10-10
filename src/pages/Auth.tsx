@@ -46,12 +46,50 @@ const Auth = () => {
 
   const defaultTab = searchParams.get('tab') || 'login';
 
+  // Manejo del callback OAuth (PKCE code o hash) para finalizar sesión y evitar 404
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const hasCode = url.searchParams.has('code');
+    const hasAccessToken = window.location.hash.includes('access_token');
+
+    const finalize = async () => {
+      try {
+        if (hasCode) {
+          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+          if (error) {
+            console.error('[Auth] exchangeCodeForSession error:', error);
+            setError('No se pudo completar el inicio de sesión. Intenta nuevamente.');
+          }
+          // Limpiar query params de la URL
+          url.search = '';
+          window.history.replaceState({}, '', url.toString());
+        } else if (hasAccessToken) {
+          const hash = new URLSearchParams(window.location.hash.substring(1));
+          const access_token = hash.get('access_token') || '';
+          const refresh_token = hash.get('refresh_token') || '';
+          if (access_token) {
+            const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+            if (error) {
+              console.error('[Auth] setSession error:', error);
+              setError('No se pudo completar el inicio de sesión. Intenta nuevamente.');
+            }
+            // Limpiar el hash
+            window.location.hash = '';
+          }
+        }
+      } catch (e) {
+        console.error('[Auth] OAuth finalize error:', e);
+      }
+    };
+
+    finalize();
+  }, []);
+
   useEffect(() => {
     if (user && !loading) {
       navigate('/', { replace: true });
     }
   }, [user, loading, navigate]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
