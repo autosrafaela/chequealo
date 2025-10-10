@@ -38,6 +38,15 @@ export const SubscriptionPanel = () => {
     }
   }, [loading, subscription]);
 
+  // Abrir modal si llega ?select_plan=1|true o &open=plan por URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sp = params.get('select_plan');
+    if ((sp && ['1','true','yes'].includes(sp)) || params.get('open') === 'plan') {
+      setShowPlanSelection(true);
+    }
+  }, []);
+
   const handlePayment = async (selectedPlanId?: string) => {
     const preference = await createPaymentPreference(selectedPlanId);
     
@@ -136,7 +145,8 @@ export const SubscriptionPanel = () => {
   };
 
   const statusInfo = getStatusInfo();
-
+  const canSelectPlanNow = ['trial','payment_reminder','payment_required','expired'].includes(status);
+  
   return (
     <div className="space-y-6">
       {/* Status Card */}
@@ -150,7 +160,14 @@ export const SubscriptionPanel = () => {
               </CardTitle>
               <CardDescription>{statusInfo.description}</CardDescription>
             </div>
-            {statusInfo.badge}
+            <div className="flex items-center gap-2">
+              {statusInfo.badge}
+              {canSelectPlanNow && (
+                <Button variant="outline" size="sm" onClick={() => setShowPlanSelection(true)}>
+                  {subscription.selected_plan_id ? 'Cambiar Plan' : 'Elegir Plan'}
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
