@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useSubscription } from '@/hooks/useSubscription';
 import { PlanSelectionModal } from './PlanSelectionModal';
+import { PlanSelector } from './PlanSelector';
+import { toast } from 'sonner';
 
 export const SubscriptionPanel = () => {
   const { 
@@ -21,6 +23,7 @@ export const SubscriptionPanel = () => {
     loading, 
     creating, 
     createPaymentPreference, 
+    updateSelectedPlan,
     getSubscriptionStatus, 
     getDaysRemaining,
     hasFullAccessDuringTrial,
@@ -46,6 +49,10 @@ export const SubscriptionPanel = () => {
       setShowPlanSelection(true);
     }
   }, []);
+
+  // Selector de plan inline (además del modal)
+  const [inlineSelectedPlan, setInlineSelectedPlan] = useState<string | undefined>(undefined);
+  const [inlineSaving, setInlineSaving] = useState(false);
 
   const handlePayment = async (selectedPlanId?: string) => {
     const preference = await createPaymentPreference(selectedPlanId);
