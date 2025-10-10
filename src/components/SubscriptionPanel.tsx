@@ -149,43 +149,107 @@ export const SubscriptionPanel = () => {
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Plan Actual</p>
               <p className="text-lg font-semibold">
-                {hasFullAccess ? 'Plan Full (Trial)' : subscription.subscription_plans.name}
+                {hasFullAccess ? 'Plan Full (Período de Prueba)' : (
+                  subscription.selected_plan_id 
+                    ? subscription.subscription_plans.name 
+                    : subscription.subscription_plans.name
+                )}
               </p>
               {hasFullAccess && (
-                <Badge variant="secondary" className="text-xs">Acceso completo durante prueba</Badge>
+                <Badge variant="secondary" className="text-xs">✓ Acceso Full Activo</Badge>
               )}
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">
-                {hasFullAccess ? 'Precio después del trial' : 'Precio'}
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">Costo Mensual</p>
               <p className="text-lg font-semibold">
-                ${subscription.subscription_plans.price.toLocaleString()} {subscription.subscription_plans.currency}
+                {hasFullAccess ? (
+                  <span className="text-green-600">$0 (Gratis en prueba)</span>
+                ) : (
+                  <span>${subscription.subscription_plans.price.toLocaleString()} {subscription.subscription_plans.currency}</span>
+                )}
               </p>
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Período de Prueba</p>
-              <p className="text-lg font-semibold">{subscription.subscription_plans.grace_period_days} días</p>
+              <p className="text-sm font-medium text-muted-foreground">Estado</p>
+              <p className="text-lg font-semibold flex items-center gap-2">
+                {statusInfo.badge}
+              </p>
             </div>
           </div>
           
+          {/* Plan Selection/Change Section - Always visible during trial */}
           {hasFullAccess && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-              <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2 flex items-center gap-2">
-                <CheckCircle className="w-4 h-4" />
-                Acceso Completo Durante el Trial
-              </h4>
-              <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
-                <li>✓ Solicitudes de contacto ilimitadas</li>
-                <li>✓ Fotos de trabajos ilimitadas</li>
-                <li>✓ Reservas mensuales ilimitadas</li>
-                <li>✓ Mensajes y envío de archivos</li>
-                <li>✓ Perfil destacado y analíticas avanzadas</li>
-                <li>✓ Soporte prioritario e integración de calendario</li>
-              </ul>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                Después del período de prueba, tendrás acceso según el plan que elijas.
-              </p>
+            <div className="mt-6 space-y-4">
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  Plan después del período de prueba
+                </h4>
+                <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+                  {subscription.selected_plan_id && subscription.selected_subscription_plan ? (
+                    <>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-semibold text-base">
+                            {subscription.selected_subscription_plan.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            ${subscription.selected_subscription_plan.price.toLocaleString()} {subscription.selected_subscription_plan.currency}/mes
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            ✓ Este será tu plan al finalizar el período de prueba
+                          </p>
+                        </div>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowPlanSelection(true)}
+                        >
+                          <Settings className="w-3 h-3 mr-1" />
+                          Cambiar
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm font-medium">Sin plan seleccionado</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Elige el plan que quieres después del trial
+                          </p>
+                        </div>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowPlanSelection(true)}
+                        >
+                          <Settings className="w-3 h-3 mr-1" />
+                          Elegir Plan
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4" />
+                  Acceso Full Activo ({daysRemaining} días restantes)
+                </h4>
+                <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                  <li>✓ Solicitudes de contacto ilimitadas</li>
+                  <li>✓ Fotos de trabajos ilimitadas</li>
+                  <li>✓ Reservas mensuales ilimitadas</li>
+                  <li>✓ Mensajes y envío de archivos</li>
+                  <li>✓ Perfil destacado y analíticas avanzadas</li>
+                  <li>✓ Soporte prioritario e integración de calendario</li>
+                </ul>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-3 font-medium">
+                  💡 Seleccioná tu plan ahora para continuar sin interrupciones al finalizar el período de prueba
+                </p>
+              </div>
             </div>
           )}
         </CardContent>

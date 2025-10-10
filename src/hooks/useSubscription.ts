@@ -26,6 +26,7 @@ interface Subscription {
   next_billing_date?: string;
   plan_selection_deadline?: string;
   subscription_plans: SubscriptionPlan;
+  selected_subscription_plan?: SubscriptionPlan;
 }
 
 export const useSubscription = () => {
@@ -53,12 +54,13 @@ export const useSubscription = () => {
         return;
       }
 
-      // Get subscription with proper plan relation
+      // Get subscription with proper plan relations (both plan_id and selected_plan_id)
       const { data, error } = await supabase
         .from('subscriptions')
         .select(`
           *,
-          subscription_plans!plan_id(*)
+          subscription_plans!plan_id(*),
+          selected_subscription_plan:subscription_plans!selected_plan_id(*)
         `)
         .eq('professional_id', professional.id)
         .order('created_at', { ascending: false })
