@@ -14,22 +14,26 @@ export const WhatsAppContactButton = ({
 }: WhatsAppContactButtonProps) => {
   const handleWhatsAppContact = () => {
     if (!phone) {
-      // Fallback: show alert if no phone number
       alert('Este profesional no tiene número de WhatsApp disponible. Usa "Pedir Presupuesto" para contactarlo por la plataforma.');
       return;
     }
 
-    // Clean phone number (remove spaces, dashes, etc.)
+    // SECURITY: Validate phone number format
     const cleanPhone = phone.replace(/\D/g, '');
+    
+    // Validate phone length (7-15 digits after cleaning)
+    if (cleanPhone.length < 7 || cleanPhone.length > 15) {
+      alert('El número de teléfono no es válido. Por favor, contacta al profesional usando "Pedir Presupuesto".');
+      console.error('[WhatsApp] Invalid phone length:', cleanPhone.length);
+      return;
+    }
     
     // Add Argentina country code if not present
     let whatsappNumber = cleanPhone;
     if (!cleanPhone.startsWith('54')) {
-      // If it's a local number (starts with 9, 11, etc.), add country code
       if (cleanPhone.startsWith('9') || cleanPhone.length === 10) {
         whatsappNumber = `54${cleanPhone}`;
       } else if (cleanPhone.length === 8 || cleanPhone.length === 7) {
-        // Local number without area code, add default area code (e.g., Buenos Aires 11)
         whatsappNumber = `5411${cleanPhone}`;
       }
     }

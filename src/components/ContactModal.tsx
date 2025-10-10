@@ -9,6 +9,7 @@ import { MessageCircle, Calendar, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { contactRequestSchema } from '@/schemas/contactSchemas';
 
 interface ContactModalProps {
   professionalId: string;
@@ -37,26 +38,42 @@ export const ContactModal = ({ professionalId, professionalName, type }: Contact
       return;
     }
 
-    if (!formData.name || !formData.email || !formData.message) {
-      toast.error('Por favor completa todos los campos requeridos');
-      return;
-    }
-
     setLoading(true);
 
     try {
+      // SECURITY: Validate input with Zod schema
+      const validationResult = contactRequestSchema.safeParse({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        message: formData.message,
+        serviceType: formData.serviceType || undefined,
+        budgetRange: formData.budgetRange || undefined,
+      });
+
+      if (!validationResult.success) {
+        // Show the first validation error
+        const firstError = validationResult.error.errors[0];
+        toast.error(firstError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Use validated data
+      const validatedData = validationResult.data;
+
       const { error } = await supabase
         .from('contact_requests')
         .insert({
           professional_id: professionalId,
           user_id: user.id,
           type,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone || null,
-          message: formData.message,
-          service_type: formData.serviceType || null,
-          budget_range: formData.budgetRange || null
+          name: validatedData.name,
+          email: validatedData.email,
+          phone: validatedData.phone || null,
+          message: validatedData.message,
+          service_type: validatedData.serviceType || null,
+          budget_range: validatedData.budgetRange || null
         });
 
       if (error) throw error;
@@ -129,6 +146,7 @@ export const ContactModal = ({ professionalId, professionalName, type }: Contact
                 placeholder="Tu nombre"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
+                maxLength={100}
                 required
               />
             </div>
@@ -141,6 +159,7 @@ export const ContactModal = ({ professionalId, professionalName, type }: Contact
                 placeholder="tu@email.com"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
+                maxLength={255}
                 required
               />
             </div>
@@ -150,9 +169,11 @@ export const ContactModal = ({ professionalId, professionalName, type }: Contact
             <Label htmlFor="phone">Teléfono</Label>
             <Input
               id="phone"
-              placeholder="Número de teléfono"
+              type="tel"
+              placeholder="Ej: +54 9 11 1234-5678"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
+              maxLength={20}
             />
           </div>
 
@@ -165,6 +186,7 @@ export const ContactModal = ({ professionalId, professionalName, type }: Contact
                   placeholder="¿Qué servicio necesitas?"
                   value={formData.serviceType}
                   onChange={(e) => handleInputChange('serviceType', e.target.value)}
+                  maxLength={100}
                 />
               </div>
 
@@ -188,7 +210,7 @@ export const ContactModal = ({ professionalId, professionalName, type }: Contact
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="message">Mensaje *</Label>
+            <Label htmlFor="message">Mensaje * (10-1000 caracteres)</Label>
             <Textarea
               id="message"
               placeholder={
@@ -199,8 +221,12 @@ export const ContactModal = ({ professionalId, professionalName, type }: Contact
               value={formData.message}
               onChange={(e) => handleInputChange('message', e.target.value)}
               rows={4}
+              maxLength={1000}
               required
             />
+            <p className="text-xs text-muted-foreground">
+              {formData.message.length}/1000 caracteres
+            </p>
           </div>
 
           <div className="flex justify-end space-x-2">

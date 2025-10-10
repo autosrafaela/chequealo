@@ -24,11 +24,15 @@ export const useUserRole = () => {
     try {
       setLoading(true);
       
-      // Admin por email únicamente
-      const emailAdmin = (user.email?.toLowerCase() === 'autosrafaela@gmail.com');
-      setIsAdmin(emailAdmin);
+      // Check admin role - ONLY use role-based access control (RBAC)
+      // SECURITY: Never check admin status using email comparison
+      const { data: adminCheck, error: adminError } = await supabase
+        .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+      console.log('[useUserRole] adminCheck', { userId: user.id, adminCheck, adminError });
+
+      setIsAdmin(!!adminCheck);
       
-      // Check moderator role (opcional)
+      // Check moderator role
       const { data: moderatorCheck, error: modError } = await supabase
         .rpc('has_role', { _user_id: user.id, _role: 'moderator' });
       console.log('[useUserRole] moderatorCheck', { userId: user.id, moderatorCheck, modError });
