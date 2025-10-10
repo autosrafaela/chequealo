@@ -20,13 +20,6 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom"],
   },
-  resolve: {
-    dedupe: ["react", "react-dom"],
-    alias: {
-      react: "react",
-      "react-dom": "react-dom"
-    }
-  },
   optimizeDeps: {
     include: ["react", "react-dom"],
     force: true,
