@@ -9,9 +9,11 @@ export default defineConfig(({ mode }) => {
     mode === 'ghpages' ||
     process.env.VITE_DEPLOY_TARGET === 'ghpages' ||
     process.env.GITHUB_PAGES === 'true';
-
+  
+  const isLovable = process.env.LOVABLE_DEPLOY === 'true';
+  
   return {
-    base: isGhPages ? '/chequealo/' : '/',
+    base: (isGhPages && !isLovable) ? '/chequealo/' : '/',
     server: {
       host: "::",
       port: 8080,
