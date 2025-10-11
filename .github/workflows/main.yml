@@ -54,6 +54,13 @@ jobs:
           VITE_CURRENCY: ${{ vars.VITE_CURRENCY }}
         run: npm run build
         
+      - name: Verify build output
+        run: |
+          echo "=== Contents of dist folder ==="
+          ls -lah dist/
+          echo "=== Total size ==="
+          du -sh dist/
+        
       - name: Publish dist/ to deploy branch (auth-safe)
         env:
           REPO: ${{ github.repository }}
@@ -64,14 +71,25 @@ jobs:
             exit 1
           fi
           
+          # Verify dist has content
+          echo "Contents of dist folder:"
+          ls -lah dist/
+          
+          if [ -z "$(ls -A dist)" ]; then
+            echo "dist folder is empty (build produced no output)" >&2
+            exit 1
+          fi
+          
           # Create orphan branch and clean everything
           git fetch --no-tags --prune --depth=1 origin
           git checkout --orphan deploy || git switch --orphan deploy
           git reset --hard
           git clean -fdx
           
-          # Copy ONLY the build
-          cp -r dist/* .
+          # Copy the entire dist folder content to root
+          mv dist/* . 2>/dev/null || true
+          mv dist/.* . 2>/dev/null || true
+          rm -rf dist
           touch .nojekyll
           
           # Commit
