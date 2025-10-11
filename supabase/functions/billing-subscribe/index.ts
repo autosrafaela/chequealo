@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,10 +12,40 @@ const BILLING_DISABLED = Deno.env.get('BILLING_DISABLED') === 'true';
 const PAYMENT_PROVIDER = Deno.env.get('PAYMENT_PROVIDER') || 'mercadopago';
 const TRIAL_DAYS = parseInt(Deno.env.get('TRIAL_DAYS') || '90');
 
-interface SubscribeRequest {
-  plan_id: string;
-  return_url?: string;
-}
+// SECURITY: Input validation schema
+const subscribeRequestSchema = z.object({
+  plan_id: z.string()
+    .uuid({ message: 'Invalid plan_id format - must be a valid UUID' })
+    .max(36, { message: 'plan_id exceeds maximum length' }),
+  return_url: z.string()
+    .url({ message: 'Invalid return_url format - must be a valid URL' })
+    .max(2048, { message: 'return_url exceeds maximum length' })
+    .optional()
+    .refine(
+      (url) => {
+        if (!url) return true;
+        // Whitelist allowed domains for return URLs
+        const allowedDomains = [
+          'chequealo.lovable.app',
+          'chequealo.ar',
+          'www.chequealo.ar',
+          'localhost',
+          '127.0.0.1'
+        ];
+        try {
+          const urlObj = new URL(url);
+          return allowedDomains.some(domain => 
+            urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+          );
+        } catch {
+          return false;
+        }
+      },
+      { message: 'return_url domain not allowed' }
+    )
+});
+
+type SubscribeRequest = z.infer<typeof subscribeRequestSchema>;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -41,7 +72,26 @@ serve(async (req) => {
       throw new Error('Invalid authentication');
     }
 
-    const { plan_id, return_url }: SubscribeRequest = await req.json();
+    // SECURITY: Validate and parse request body
+    const rawBody = await req.json();
+    const validationResult = subscribeRequestSchema.safeParse(rawBody);
+    
+    if (!validationResult.success) {
+      console.error('[billing-subscribe] Validation failed:', validationResult.error.errors);
+      return new Response(JSON.stringify({
+        ok: false,
+        message: 'Invalid request parameters',
+        errors: validationResult.error.errors.map(e => ({
+          field: e.path.join('.'),
+          message: e.message
+        }))
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
+    const { plan_id, return_url } = validationResult.data;
 
     console.log('[billing-subscribe] User:', user.id, 'Plan:', plan_id);
 

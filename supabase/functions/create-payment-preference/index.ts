@@ -1,16 +1,50 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface PaymentPreferenceRequest {
-  subscriptionId: string;
-  selectedPlanId?: string;
-  returnUrl?: string;
-}
+// SECURITY: Input validation schema
+const paymentPreferenceRequestSchema = z.object({
+  subscriptionId: z.string()
+    .uuid({ message: 'Invalid subscriptionId format - must be a valid UUID' })
+    .max(36, { message: 'subscriptionId exceeds maximum length' }),
+  selectedPlanId: z.string()
+    .uuid({ message: 'Invalid selectedPlanId format - must be a valid UUID' })
+    .max(36, { message: 'selectedPlanId exceeds maximum length' })
+    .optional(),
+  returnUrl: z.string()
+    .url({ message: 'Invalid returnUrl format - must be a valid URL' })
+    .max(2048, { message: 'returnUrl exceeds maximum length' })
+    .optional()
+    .refine(
+      (url) => {
+        if (!url) return true;
+        // Whitelist allowed domains for return URLs
+        const allowedDomains = [
+          'chequealo.lovable.app',
+          'chequealo.ar',
+          'www.chequealo.ar',
+          'localhost',
+          '127.0.0.1'
+        ];
+        try {
+          const urlObj = new URL(url);
+          return allowedDomains.some(domain => 
+            urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+          );
+        } catch {
+          return false;
+        }
+      },
+      { message: 'returnUrl domain not allowed' }
+    )
+});
+
+type PaymentPreferenceRequest = z.infer<typeof paymentPreferenceRequestSchema>;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -37,7 +71,27 @@ serve(async (req) => {
       throw new Error('Invalid authentication');
     }
 
-    const { subscriptionId, selectedPlanId, returnUrl }: PaymentPreferenceRequest = await req.json();
+    // SECURITY: Validate and parse request body
+    const rawBody = await req.json();
+    const validationResult = paymentPreferenceRequestSchema.safeParse(rawBody);
+    
+    if (!validationResult.success) {
+      console.error('[create-payment-preference] Validation failed:', validationResult.error.errors);
+      return new Response(JSON.stringify({
+        error: 'Invalid request parameters',
+        details: validationResult.error.errors.map(e => ({
+          field: e.path.join('.'),
+          message: e.message
+        }))
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
+    const { subscriptionId, selectedPlanId, returnUrl } = validationResult.data;
+
+    console.log('[create-payment-preference] Creating preference for subscription:', subscriptionId);
 
     // Get subscription details
     const { data: subscription, error: subError } = await supabaseClient
