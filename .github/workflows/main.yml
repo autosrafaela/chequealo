@@ -1,51 +1,36 @@
-name: build-and-deploy-to-deploy-branch
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
-    
-permissions:
-  contents: write
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          
-      - name: Show files (debug)
-        run: ls -la
-        
+
       - name: Install dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-          
-      - name: Verify build script
-        run: |
-          if ! grep -q '"build"' package.json; then
-            echo 'Missing "build" script in package.json (should be "vite build")' >&2
-            exit 1
-          fi
-          
-      - name: Build site (Vite)
+        run: npm ci
+
+      - name: Build
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
@@ -53,50 +38,15 @@ jobs:
           VITE_PAYMENT_PROVIDER: ${{ vars.VITE_PAYMENT_PROVIDER }}
           VITE_CURRENCY: ${{ vars.VITE_CURRENCY }}
         run: npm run build
-        
-      - name: Verify build output
-        run: |
-          echo "=== Contents of dist folder ==="
-          ls -lah dist/
-          echo "=== Total size ==="
-          du -sh dist/
-        
-      - name: Publish dist/ to deploy branch (auth-safe)
-        env:
-          REPO: ${{ github.repository }}
-          TOKEN: ${{ github.token }}
-        run: |
-          if [ ! -d "dist" ]; then
-            echo "dist folder not found (build failed)" >&2
-            exit 1
-          fi
-          
-          # Verify dist has content
-          echo "Contents of dist folder:"
-          ls -lah dist/
-          
-          if [ -z "$(ls -A dist)" ]; then
-            echo "dist folder is empty (build produced no output)" >&2
-            exit 1
-          fi
-          
-          # Create orphan branch and clean everything
-          git fetch --no-tags --prune --depth=1 origin
-          git checkout --orphan deploy || git switch --orphan deploy
-          git reset --hard
-          git clean -fdx
-          
-          # Copy the entire dist folder content to root
-          mv dist/* . 2>/dev/null || true
-          mv dist/.* . 2>/dev/null || true
-          rm -rf dist
-          touch .nojekyll
-          
-          # Commit
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Deploy $GITHUB_SHA"
-          
-          # Force push using token in URL (avoids extraheader issues)
-          git push -f "https://x-access-token:${TOKEN}@github.com/${REPO}.git" deploy
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
