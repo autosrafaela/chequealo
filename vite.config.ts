@@ -5,6 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: '/chequealo/', // ← AGREGADO: necesario para GitHub Pages
   server: {
     host: "::",
     port: 8080,
@@ -17,11 +18,14 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: [
-      "react",
-      "react-dom",
-      "react/jsx-runtime",
-      "react/jsx-dev-runtime",
-    ],
   },
+  build: {
+    outDir: 'dist', // ← AGREGADO: asegura que el output sea en dist/
+  },
+  optimizeDeps: [
+    "react",
+    "react-dom",
+    "react/jsx-runtime",
+    "react/jsx-dev-runtime",
+  ],
 }));
