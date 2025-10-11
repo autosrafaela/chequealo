@@ -38,7 +38,7 @@
     <script>
       // Register service worker for PWA and push notifications
       if ('serviceWorker' in navigator) {
-        const isLovablePreview = /lovable(project)?\.com$/.test(location.hostname) || /lovable\.dev$/.test(location.hostname);
+        const isLovablePreview = /lovable\.(dev|app|project\.com)$/.test(location.hostname) || location.hostname.includes('lovable');
         if (isLovablePreview) {
           console.log('Service Worker deshabilitado en preview para evitar caché inconsistente.');
         } else {
