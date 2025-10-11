@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+    
+
 permissions:
   contents: write
 
@@ -50,27 +55,31 @@ jobs:
           VITE_CURRENCY: ${{ vars.VITE_CURRENCY }}
         run: npm run build
 
-            - name: Publish dist/ to deploy branch (clean)
+                  - name: Publish dist/ to deploy branch (auth-safe)
+        env:
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ github.token }}
         run: |
           if [ ! -d "dist" ]; then
             echo "dist folder not found (build failed)" >&2
             exit 1
           fi
 
-          # Crear rama deploy sin historial
-          git fetch origin
+          # Crear rama huérfana y limpiar todo
+          git fetch --no-tags --prune --depth=1 origin
           git checkout --orphan deploy || git switch --orphan deploy
-
-          # LIMPIEZA TOTAL del árbol de trabajo (elimina node_modules y archivos no rastreados)
           git reset --hard
           git clean -fdx
 
-          # Copiar solo el build estático
+          # Copiar SOLO el build
           cp -r dist/* .
           touch .nojekyll
 
-          # Commit y push forzado a deploy
+          # Commit
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push -f origin deploy
+          git commit -m "Deploy $GITHUB_SHA"
 
+          # Push forzado usando token en la URL (evita problemas de extraheader)
+          git push -f "https://x-access-token:${TOKEN}@github.com/${REPO}.git" deploy
