@@ -1781,6 +1781,25 @@ export type Database = {
           phone: string
         }[]
       }
+      get_public_professional_data: {
+        Args: { prof_id: string }
+        Returns: {
+          availability: string
+          created_at: string
+          description: string
+          full_name: string
+          id: string
+          image_url: string
+          is_verified: boolean
+          location: string
+          profession: string
+          rating: number
+          review_count: number
+          updated_at: string
+          user_id: string
+          verification_date: string
+        }[]
+      }
       get_public_professional_profile: {
         Args: { prof_id: string }
         Returns: {
