@@ -29,3 +29,4 @@ export default defineConfig(({ mode }) => ({
     "react/jsx-dev-runtime",
   ],
 }));
+base: '/chequealo/'
