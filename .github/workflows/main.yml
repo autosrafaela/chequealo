@@ -50,19 +50,27 @@ jobs:
           VITE_CURRENCY: ${{ vars.VITE_CURRENCY }}
         run: npm run build
 
-      - name: Publicar dist/ en la rama deploy
+            - name: Publish dist/ to deploy branch (clean)
         run: |
           if [ ! -d "dist" ]; then
-            echo "No se encontró carpeta dist (falló el build)" >&2
+            echo "dist folder not found (build failed)" >&2
             exit 1
           fi
-          git config user.name "CI"
-          git config user.email "ci@users.noreply.github.com"
+
+          # Crear rama deploy sin historial
           git fetch origin
-          git checkout --orphan deploy
-          git rm -rf .
+          git checkout --orphan deploy || git switch --orphan deploy
+
+          # LIMPIEZA TOTAL del árbol de trabajo (elimina node_modules y archivos no rastreados)
+          git reset --hard
+          git clean -fdx
+
+          # Copiar solo el build estático
           cp -r dist/* .
           touch .nojekyll
+
+          # Commit y push forzado a deploy
           git add -A
           git commit -m "Deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push -f origin deploy
+
