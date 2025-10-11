@@ -279,7 +279,6 @@ const AdminDashboard = () => {
       const { data, error } = await supabase.functions.invoke('admin-delete-user', {
         body: {
           userId: professional.user_id,
-          adminEmail: user?.email
         }
       });
 

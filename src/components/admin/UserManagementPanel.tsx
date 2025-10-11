@@ -45,12 +45,9 @@ const UserManagementPanel = () => {
     try {
       setDeleteLoading(true);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      
       const { data, error } = await supabase.functions.invoke('admin-delete-user', {
         body: {
           userId: '74042bca-1ed0-4501-a7de-833d3f1a690b', // ID de Silvia
-          adminEmail: user?.email
         }
       });
 
@@ -199,13 +196,9 @@ const UserManagementPanel = () => {
     try {
       setDeleteLoading(true);
       
-      // Get current user for admin verification
-      const { data: { user } } = await supabase.auth.getUser();
-      
       const { data, error } = await supabase.functions.invoke('admin-delete-user', {
         body: {
           userId: selectedUser.user_id,
-          adminEmail: user?.email
         }
       });
 

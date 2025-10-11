@@ -17,7 +17,52 @@ Deno.serve(async (req) => {
       throw new Error('Method not allowed');
     }
 
-    // Initialize Supabase Admin Client with Service Role
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
+    // Initialize Supabase client for user verification
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    );
+
+    // Get the user from the JWT token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error('[admin-delete-user] Auth error:', authError);
+      throw new Error('Unauthorized: Invalid or expired token');
+    }
+
+    console.log('[admin-delete-user] User authenticated:', user.id);
+
+    // SECURITY: Check if the user has admin role using RBAC
+    const { data: isAdmin, error: roleError } = await supabaseClient.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+
+    console.log('[admin-delete-user] Admin check:', { isAdmin, roleError });
+
+    if (roleError || !isAdmin) {
+      console.error('[admin-delete-user] Authorization failed:', roleError);
+      throw new Error('Unauthorized: Admin role required');
+    }
+
+    // Get request body
+    const { userId } = await req.json();
+    
+    console.log('[admin-delete-user] Request to delete user:', { userId, requestedBy: user.id });
+
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    // Initialize Supabase Admin Client with Service Role for deletion operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -28,20 +73,6 @@ Deno.serve(async (req) => {
         }
       }
     );
-
-    // Get request body
-    const { userId, adminEmail } = await req.json();
-    
-    console.log('Delete user request:', { userId, adminEmail });
-    
-    // Verify admin email
-    if (adminEmail !== 'autosrafaela@gmail.com') {
-      throw new Error('Unauthorized: Only admin can delete users');
-    }
-
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
 
     // 1. Delete related data first (to avoid foreign key constraints)
     console.log('Deleting user related data...');
