@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import HowItWorks from "./pages/HowItWorks";
 import FAQ from "./pages/FAQ";
 import Pricing from "./pages/Pricing";
+import AISearch from "./pages/AISearch";
 
 const App = () => (
   <TooltipProvider>
@@ -37,6 +38,7 @@ const App = () => (
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/ai-search" element={<AISearch />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verification" element={<Verification />} />

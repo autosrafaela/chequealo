@@ -20,13 +20,14 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    outDir: 'dist', // ← AGREGADO: asegura que el output sea en dist/
+    outDir: 'dist',
   },
-  optimizeDeps: [
-    "react",
-    "react-dom",
-    "react/jsx-runtime",
-    "react/jsx-dev-runtime",
-  ],
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+    ],
+  },
 }));
-base: '/chequealo/'

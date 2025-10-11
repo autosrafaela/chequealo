@@ -7,7 +7,7 @@ import ContextualTips from "@/components/ContextualTips";
 import BadgeSystem from "@/components/BadgeSystem";
 import RankingSystem from "@/components/RankingSystem";
 import { Button } from "@/components/ui/button";
-import { MapPin, Shield, Clock, Star } from "lucide-react";
+import { MapPin, Shield, Clock, Star, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -17,6 +17,30 @@ const Index = () => {
       <Hero />
       <ServiceCategories />
       <LatestProfessionals />
+      
+      {/* AI Search Promo */}
+      <section className="py-16 bg-gradient-to-br from-primary/10 to-purple-500/10">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
+            <div className="inline-flex items-center gap-2 bg-background px-4 py-2 rounded-full border">
+              <Sparkles className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-primary">Nuevo</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold">
+              ¿Buscas herramientas de IA?
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Explora nuestro directorio de inteligencias artificiales especializadas en diseño, código, marketing y más
+            </p>
+            <Link to="/ai-search">
+              <Button size="lg" className="gap-2">
+                <Sparkles className="w-5 h-5" />
+                Explorar IAs
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
       
       {/* Gamification Section */}
       <section className="py-16 bg-muted/30">
