@@ -1,3 +1,4 @@
+# Allow all major search engines and AI crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +11,42 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# OpenAI (ChatGPT)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic (Claude)
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Google Bard/Gemini
+User-agent: Google-Extended
+Allow: /
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+# Common crawlers
+User-agent: CCBot
+Allow: /
+
+# Allow all other bots
 User-agent: *
 Allow: /
+
+# Sitemap location
+Sitemap: https://chequealo.ar/sitemap.xml
