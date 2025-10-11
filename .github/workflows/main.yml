@@ -8,54 +8,53 @@ concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
     
-
 permissions:
   contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Node.js
+          
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Mostrar archivos (debug)
+          
+      - name: Show files (debug)
         run: ls -la
-
-      - name: Instalar dependencias
+        
+      - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
             npm ci
           else
             npm install
           fi
-
-      - name: Verificar script build
+          
+      - name: Verify build script
         run: |
-          if ! cat package.json | grep -q '"build"'; then
-            echo 'Falta script "build" en package.json (debería ser "vite build")' >&2
+          if ! grep -q '"build"' package.json; then
+            echo 'Missing "build" script in package.json (should be "vite build")' >&2
             exit 1
           fi
-
-      - name: Construir sitio (Vite)
+          
+      - name: Build site (Vite)
         env:
-          # Estas VITE_* vienen de "Actions → Variables" (ver paso 2)
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_PUBLIC_SITE_URL: ${{ vars.VITE_PUBLIC_SITE_URL }}
           VITE_PAYMENT_PROVIDER: ${{ vars.VITE_PAYMENT_PROVIDER }}
           VITE_CURRENCY: ${{ vars.VITE_CURRENCY }}
         run: npm run build
-
-                  - name: Publish dist/ to deploy branch (auth-safe)
+        
+      - name: Publish dist/ to deploy branch (auth-safe)
         env:
           REPO: ${{ github.repository }}
           TOKEN: ${{ github.token }}
@@ -64,22 +63,22 @@ jobs:
             echo "dist folder not found (build failed)" >&2
             exit 1
           fi
-
-          # Crear rama huérfana y limpiar todo
+          
+          # Create orphan branch and clean everything
           git fetch --no-tags --prune --depth=1 origin
           git checkout --orphan deploy || git switch --orphan deploy
           git reset --hard
           git clean -fdx
-
-          # Copiar SOLO el build
+          
+          # Copy ONLY the build
           cp -r dist/* .
           touch .nojekyll
-
+          
           # Commit
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Deploy $GITHUB_SHA"
-
-          # Push forzado usando token en la URL (evita problemas de extraheader)
+          
+          # Force push using token in URL (avoids extraheader issues)
           git push -f "https://x-access-token:${TOKEN}@github.com/${REPO}.git" deploy
