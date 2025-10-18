@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ import {
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 const NotificationCenter = () => {
+  const navigate = useNavigate();
   const {
     notifications,
     unreadCount,
@@ -63,7 +65,7 @@ const NotificationCenter = () => {
       if (notification.action_url.startsWith('http')) {
         window.open(notification.action_url, '_blank');
       } else {
-        window.location.href = notification.action_url;
+        navigate(notification.action_url);
       }
     }
     setIsOpen(false);

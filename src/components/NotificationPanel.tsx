@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, X, MessageSquare, Star, Settings, CheckCircle } from "lucide-react";
@@ -33,6 +34,7 @@ const NotificationPanel = ({
   onMarkAsRead,
   onMarkAllAsRead 
 }: NotificationPanelProps) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const getNotificationIcon = (type: string) => {
@@ -156,6 +158,14 @@ const NotificationPanel = ({
                 onClick={() => {
                   if (!notification.read) {
                     onMarkAsRead(notification.id);
+                  }
+                  if (notification.actionUrl) {
+                    if (notification.actionUrl.startsWith('http')) {
+                      window.open(notification.actionUrl, '_blank');
+                    } else {
+                      navigate(notification.actionUrl);
+                      setIsOpen(false);
+                    }
                   }
                 }}
               >
