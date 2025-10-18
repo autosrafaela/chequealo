@@ -79,9 +79,9 @@ const ProfessionalProfile = () => {
         return;
       }
 
-      // Fetch professional data from public view first
+      // Fetch professional data from public safe view
       const { data: professionalData, error: profError } = await supabase
-        .from('professionals_public')
+        .from('professionals_public_safe')
         .select('*')
         .eq('id', id)
         .maybeSingle();
@@ -95,17 +95,10 @@ const ProfessionalProfile = () => {
 
       setProfessional(professionalData);
 
-      // Check if current user is the owner - query the full professionals table
+      // Check if current user is the owner using user_id from public_safe view
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: ownerData } = await supabase
-          .from('professionals')
-          .select('user_id')
-          .eq('id', id)
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        setIsOwner(!!ownerData);
+      if (user && professionalData.user_id) {
+        setIsOwner(user.id === professionalData.user_id);
       } else {
         setIsOwner(false);
       }
