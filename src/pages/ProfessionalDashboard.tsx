@@ -163,9 +163,14 @@ const ProfessionalDashboard = () => {
               <p className="text-muted-foreground mb-6">
                 Crea tu perfil de profesional para comenzar a recibir solicitudes de clientes
               </p>
-              <Button asChild>
-                <Link to="/register">Crear Perfil Profesional</Link>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Button asChild>
+                  <Link to="/register">Crear Perfil Profesional</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/">Continuar como Usuario</Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
