@@ -112,7 +112,7 @@ const Pricing = () => {
           <div className="max-w-7xl mx-auto">
             
             {/* Plan Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
               {plans.map((plan, index) => (
                 <Card 
                   key={plan.id} 
@@ -177,6 +177,52 @@ const Pricing = () => {
                   </CardContent>
                 </Card>
               ))}
+              
+              {/* PRO MAX - Coming Soon Card */}
+              <Card className="relative border-2 border-dashed border-muted-foreground/30 opacity-75">
+                <CardHeader className="text-center pt-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Crown className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl">PRO MAX</CardTitle>
+                  <CardDescription className="text-base">
+                    Para empresas y equipos grandes
+                  </CardDescription>
+                  <div className="text-center py-6">
+                    <div className="text-3xl font-bold text-muted-foreground mb-2">
+                      Próximamente
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Funcionalidades exclusivas
+                    </p>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="space-y-6">
+                  <div className="space-y-3 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Gestión de equipos múltiples
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      API y integraciones avanzadas
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Reportes personalizados
+                    </p>
+                  </div>
+
+                  <div className="pt-6">
+                    <Button 
+                      size="lg" 
+                      className="w-full"
+                      variant="outline"
+                      disabled
+                    >
+                      Disponible Pronto
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Trial Period Info */}
