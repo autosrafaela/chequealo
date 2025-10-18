@@ -99,7 +99,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
   return (
     <div className="w-full max-w-7xl mx-auto px-4">
       {/* Desktop: Grid Layout */}
-      <div className="hidden md:grid md:grid-cols-3 gap-8 justify-items-center">
+      <div className="hidden md:grid md:grid-cols-3 gap-8 justify-center justify-items-center">
         {sortedPlans.map((plan) => {
           const isSelected = selectedPlan === plan.id || currentPlanId === plan.id;
           const isRecommended = plan.is_recommended || plan.id === recommendedId;
