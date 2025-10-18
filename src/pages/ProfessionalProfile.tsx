@@ -103,18 +103,23 @@ const ProfessionalProfile = () => {
       // Get contact info: owners read from professionals table (RLS allows), others via RPC
       let contact: { phone: string | null; email: string | null } | null = null;
       if (owner) {
+        console.log('Owner detected, fetching contact from professionals table');
         const { data: ownContact, error: ownErr } = await supabase
           .from('professionals')
           .select('phone, email')
           .eq('id', id)
           .maybeSingle();
+        console.log('Owner contact data:', ownContact, 'error:', ownErr);
         if (!ownErr && ownContact) {
           contact = { phone: ownContact.phone, email: ownContact.email };
         }
       }
       if (!contact) {
+        console.log('Fetching contact via RPC');
         contact = await getContactInfo(id);
+        console.log('RPC contact data:', contact);
       }
+      console.log('Final contact info:', contact);
       setContactInfo(contact);
 
       // Fetch services
