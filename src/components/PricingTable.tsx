@@ -190,6 +190,35 @@ export const PricingTable: React.FC<PricingTableProps> = ({
             </Card>
           );
         })}
+
+        {/* PRO MAX - Coming Soon Card */}
+        <Card className="relative border-2 border-dashed border-muted-foreground/30 w-full opacity-75">
+          <CardHeader className="text-center pb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Crown className="h-6 w-6 text-white" />
+            </div>
+            <CardTitle className="text-xl">PRO MAX</CardTitle>
+            <div className="py-4">
+              <div className="text-2xl font-bold text-muted-foreground">
+                Próximamente
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="space-y-2 text-center text-sm text-muted-foreground">
+              <p>Funcionalidades exclusivas en desarrollo</p>
+            </div>
+
+            <Button 
+              className="w-full" 
+              variant="outline"
+              disabled
+            >
+              Disponible Pronto
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Mobile: Carousel/Stack Layout */}
@@ -276,6 +305,35 @@ export const PricingTable: React.FC<PricingTableProps> = ({
             </Card>
           );
         })}
+
+        {/* PRO MAX - Coming Soon Card */}
+        <Card className="relative border-2 border-dashed border-muted-foreground/30 opacity-75">
+          <CardHeader className="text-center pb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Crown className="h-6 w-6 text-white" />
+            </div>
+            <CardTitle className="text-xl">PRO MAX</CardTitle>
+            <div className="py-4">
+              <div className="text-2xl font-bold text-muted-foreground">
+                Próximamente
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="space-y-2 text-center text-sm text-muted-foreground">
+              <p>Funcionalidades exclusivas en desarrollo</p>
+            </div>
+
+            <Button 
+              className="w-full" 
+              variant="outline"
+              disabled
+            >
+              Disponible Pronto
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
