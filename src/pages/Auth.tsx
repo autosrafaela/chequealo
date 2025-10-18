@@ -87,7 +87,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [user, loading, navigate]);
   const handleLogin = async (e: React.FormEvent) => {
@@ -108,7 +108,7 @@ const Auth = () => {
         }
       } else {
         toast.success('¡Bienvenido de vuelta!');
-        navigate('/', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } catch (err) {
       setError('Error inesperado. Inténtalo de nuevo.');
@@ -187,12 +187,21 @@ const Auth = () => {
           setError(error.message);
         }
       } else {
-        // Si es profesional, crear el perfil profesional después del registro
+        // Si es profesional, redirigir a la página de registro completo
         if (isProfessional) {
-          // Redirigir a la página de registro de profesional con información precargada
           navigate(`/register?type=professional&email=${encodeURIComponent(signupEmail)}&name=${encodeURIComponent(fullName)}&dni=${encodeURIComponent(dni)}`, { replace: true });
         } else {
-          toast.success('¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.');
+          // Para clientes, intentar auto-login e ir al dashboard
+          const { error: loginError } = await signIn(signupEmail, signupPassword);
+          
+          if (!loginError) {
+            toast.success('¡Cuenta creada e inicio de sesión exitoso!');
+            navigate('/dashboard', { replace: true });
+          } else {
+            // Si falla auto-login (por confirmación de email), mostrar mensaje
+            toast.success('¡Cuenta creada! Revisa tu email para confirmar tu cuenta.');
+            setError('Por favor confirma tu email antes de iniciar sesión');
+          }
         }
       }
     } catch (err) {
@@ -231,7 +240,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: `${window.location.origin}/dashboard`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

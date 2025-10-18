@@ -86,14 +86,23 @@ const Register = () => {
         .from('professionals')
         .select('id')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
         .then(({ data }) => {
           if (data) {
             // Has professional profile, go to dashboard
+            toast.success('¡Bienvenido de vuelta!');
             navigate('/dashboard', { replace: true });
           } else {
             // New OAuth user without profile - stay on register to complete setup
-            toast.success('¡Bienvenido! Por favor completa tu perfil');
+            toast.success('¡Bienvenido! Por favor completa tu perfil profesional');
+            // Pre-fill form with Google data if available
+            if (user.user_metadata?.full_name) {
+              setFormData(prev => ({
+                ...prev,
+                fullName: user.user_metadata.full_name || prev.fullName,
+                email: user.email || prev.email
+              }));
+            }
           }
         });
     }
@@ -189,7 +198,7 @@ const Register = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: `${window.location.origin}/register`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -216,17 +225,6 @@ const Register = () => {
       return;
     }
     
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Las contraseñas no coinciden');
-      return;
-    }
-    
-    const passwordValidation = validatePassword(formData.password);
-    if (!passwordValidation.isValid) {
-      toast.error('La contraseña no cumple con los requisitos de seguridad');
-      return;
-    }
-    
     if (userType === 'professional' && selectedServices.length === 0) {
       toast.error('Debes seleccionar al menos un servicio');
       return;
@@ -240,16 +238,88 @@ const Register = () => {
     setIsLoading(true);
     
     try {
+      // Si el usuario ya está autenticado (por Google), solo crear perfil profesional
+      if (user) {
+        if (userType === 'professional') {
+          // Verificar que el email no esté ya registrado como profesional
+          const { data: existingProfessional } = await supabase
+            .from('professionals')
+            .select('id')
+            .eq('email', user.email || formData.email)
+            .maybeSingle();
+            
+          if (existingProfessional) {
+            toast.error('Este email ya está registrado como profesional');
+            setIsLoading(false);
+            return;
+          }
+
+          // Verificar que el DNI no esté ya registrado
+          if (formData.dni) {
+            const { data: existingDNI } = await supabase
+              .from('professionals')
+              .select('id')
+              .eq('dni', formData.dni)
+              .maybeSingle();
+              
+            if (existingDNI) {
+              toast.error('Este DNI ya está registrado como profesional');
+              setIsLoading(false);
+              return;
+            }
+          }
+
+          // Crear perfil profesional
+          const { error: profileError } = await supabase.from('professionals').insert({
+            user_id: user.id,
+            full_name: formData.fullName || user.user_metadata?.full_name,
+            email: user.email || formData.email,
+            phone: formData.phone || '',
+            dni: formData.dni || '',
+            profession: selectedServices[0] || 'Profesional',
+            location: formData.location || '',
+            description: formData.description || '',
+            availability: 'Disponible'
+          });
+
+          if (profileError) {
+            toast.error('Error al crear perfil profesional: ' + profileError.message);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        toast.success('¡Perfil creado exitosamente!');
+        navigate('/dashboard', { replace: true });
+        setIsLoading(false);
+        return;
+      }
+
+      // Usuario NO autenticado - flujo normal de registro por email
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('Las contraseñas no coinciden');
+        setIsLoading(false);
+        return;
+      }
+      
+      const passwordValidation = validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        toast.error('La contraseña no cumple con los requisitos de seguridad');
+        setIsLoading(false);
+        return;
+      }
+
       // Si es profesional, verificar que el email no esté ya registrado como profesional
       if (userType === 'professional') {
         const { data: existingProfessional } = await supabase
           .from('professionals')
           .select('id')
           .eq('email', formData.email)
-          .single();
+          .maybeSingle();
           
         if (existingProfessional) {
           toast.error('Este email ya está registrado como profesional');
+          setIsLoading(false);
           return;
         }
 
@@ -259,10 +329,11 @@ const Register = () => {
             .from('professionals')
             .select('id')
             .eq('dni', formData.dni)
-            .single();
+            .maybeSingle();
             
           if (existingDNI) {
             toast.error('Este DNI ya está registrado como profesional');
+            setIsLoading(false);
             return;
           }
         }
@@ -282,6 +353,7 @@ const Register = () => {
         } else {
           toast.error(signUpError.message);
         }
+        setIsLoading(false);
         return;
       }
 
@@ -290,11 +362,11 @@ const Register = () => {
 
       if (!loginError) {
         // Ya logueado: crear perfil profesional si corresponde
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && userType === 'professional') {
+        const { data: { user: newUser } } = await supabase.auth.getUser();
+        if (newUser && userType === 'professional') {
           try {
             await supabase.from('professionals').insert({
-              user_id: user.id,
+              user_id: newUser.id,
               full_name: formData.fullName,
               email: formData.email,
               phone: formData.phone || '',
@@ -309,7 +381,7 @@ const Register = () => {
           }
         }
 
-        toast.success('Cuenta creada e inicio de sesión exitoso');
+        toast.success('¡Cuenta creada e inicio de sesión exitoso!');
         navigate('/dashboard', { replace: true });
       } else {
         // Si el proyecto requiere confirmación de email, el login fallará hasta confirmar
