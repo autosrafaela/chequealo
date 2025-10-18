@@ -97,9 +97,9 @@ export const PricingTable: React.FC<PricingTableProps> = ({
   const sortedPlans = [...plans].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-screen-2xl mx-auto px-4">
       {/* Desktop: Grid Layout */}
-      <div className="hidden md:grid md:grid-cols-3 gap-8 w-full">
+      <div className="hidden md:grid md:grid-cols-3 gap-8 justify-center items-stretch">
         {sortedPlans.map((plan) => {
           const isSelected = selectedPlan === plan.id || currentPlanId === plan.id;
           const isRecommended = plan.is_recommended || plan.id === recommendedId;
