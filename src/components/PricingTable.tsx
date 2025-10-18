@@ -97,9 +97,9 @@ export const PricingTable: React.FC<PricingTableProps> = ({
   const sortedPlans = [...plans].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4">
+    <div className="w-full">
       {/* Desktop: Grid Layout */}
-      <div className="hidden md:grid md:grid-cols-3 gap-8 justify-center justify-items-center">
+      <div className="hidden md:grid md:grid-cols-3 gap-8 w-full">
         {sortedPlans.map((plan) => {
           const isSelected = selectedPlan === plan.id || currentPlanId === plan.id;
           const isRecommended = plan.is_recommended || plan.id === recommendedId;
@@ -107,7 +107,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
           return (
             <Card 
               key={plan.id}
-              className={`relative cursor-pointer transition-all hover:shadow-lg w-full max-w-sm ${
+              className={`relative cursor-pointer transition-all hover:shadow-lg w-full ${
                 isSelected 
                   ? 'border-2 border-primary shadow-lg scale-[1.02]' 
                   : 'border hover:border-primary/50'
