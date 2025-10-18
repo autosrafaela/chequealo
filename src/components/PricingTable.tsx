@@ -44,10 +44,9 @@ export const PricingTable: React.FC<PricingTableProps> = ({
 
   const getPlanIcon = (planName: string) => {
     const name = planName.toLowerCase();
-    if (name.includes('gratis') || name.includes('free')) return <Users className="h-6 w-6 text-blue-500" />;
     if (name.includes('emprendedor')) return <Zap className="h-6 w-6 text-purple-500" />;
     if (name.includes('profesional')) return <Star className="h-6 w-6 text-primary" />;
-    if (name.includes('agencia')) return <Crown className="h-6 w-6 text-yellow-500" />;
+    if (name.includes('premium')) return <Crown className="h-6 w-6 text-yellow-500" />;
     return <Star className="h-6 w-6 text-primary" />;
   };
 

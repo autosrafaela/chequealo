@@ -13,8 +13,8 @@ export const billingConfig = {
   // Prices (in cents or smallest currency unit)
   prices: {
     profesional: parseInt(import.meta.env.VITE_PRICE_PROFESIONAL || '14990'),
-    emprendedor: parseInt(import.meta.env.VITE_PRICE_EMPRENDEDOR || '4990'),
-    agencia: parseInt(import.meta.env.VITE_PRICE_AGENCIA || '39990'),
+    emprendedor: parseInt(import.meta.env.VITE_PRICE_EMPRENDEDOR || '8999'),
+    premium: parseInt(import.meta.env.VITE_PRICE_PREMIUM || '24990'),
   },
   
   // Helper functions
