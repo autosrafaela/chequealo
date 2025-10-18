@@ -15,6 +15,9 @@ import { WorkPhotosManager } from '@/components/WorkPhotosManager';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
 import { ProfessionManager } from '@/components/ProfessionManager';
+import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
+import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
+import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -30,7 +33,8 @@ import {
   Edit3,
   Package,
   Camera,
-  MessageSquare
+  MessageSquare,
+  AlertCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -56,6 +60,13 @@ const ProfessionalDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('requests');
+
+  // Transaction confirmation hook
+  const { 
+    pendingTransactions, 
+    loading: confirmLoading, 
+    confirmCompletion 
+  } = useTransactionConfirmation();
 
   useEffect(() => {
     if (user) {
@@ -487,6 +498,41 @@ const ProfessionalDashboard = () => {
           </TabsList>
 
           <TabsContent value="requests">
+            {/* Transaction Confirmations - Highest Priority */}
+            {pendingTransactions.length > 0 && (
+              <div className="mb-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Confirmaciones Pendientes</h3>
+                  <Badge variant="default">{pendingTransactions.length}</Badge>
+                </div>
+                {pendingTransactions.map((transaction) => (
+                  <TransactionConfirmationCard
+                    key={transaction.id}
+                    transaction={transaction}
+                    isProfessional={true}
+                    onConfirm={confirmCompletion}
+                    disabled={confirmLoading}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Ready to Rate Transactions */}
+            <div className="mb-6">
+              <ReadyToRateTransactions 
+                isProfessional={true}
+                onRate={(transactionId) => {
+                  setActiveTab('reviews');
+                  // Scroll to reviews section
+                  setTimeout(() => {
+                    const reviewsSection = document.querySelector('[value="reviews"]');
+                    reviewsSection?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+              />
+            </div>
+
             <ContactRequestsPanel />
           </TabsContent>
 

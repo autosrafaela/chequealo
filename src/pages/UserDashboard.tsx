@@ -31,7 +31,8 @@ import {
   Key,
   Download,
   Trash2,
-  Smartphone
+  Smartphone,
+  AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -42,6 +43,9 @@ import FavoritesPanel from '@/components/FavoritesPanel';
 import { UserTransactionReviews } from '@/components/UserTransactionReviews';
 import PWAFeatures from '@/components/PWAFeatures';
 import PushNotificationToggle from '@/components/PushNotificationToggle';
+import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
+import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
+import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 
 interface UserProfile {
   id: string;
@@ -82,6 +86,13 @@ const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isProfessional, setIsProfessional] = useState(false);
   const [showProfessionalForm, setShowProfessionalForm] = useState(false);
+  
+  // Transaction confirmation hook
+  const { 
+    pendingTransactions, 
+    loading: confirmLoading, 
+    confirmCompletion 
+  } = useTransactionConfirmation();
 
   // Form states
   const [fullName, setFullName] = useState('');
@@ -835,6 +846,41 @@ const UserDashboard = () => {
           </TabsList>
 
           <TabsContent value="profile">
+            {/* Transaction Confirmations - Highest Priority */}
+            {pendingTransactions.length > 0 && (
+              <div className="mb-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Confirmaciones Pendientes</h3>
+                  <Badge variant="default">{pendingTransactions.length}</Badge>
+                </div>
+                {pendingTransactions.map((transaction) => (
+                  <TransactionConfirmationCard
+                    key={transaction.id}
+                    transaction={transaction}
+                    isProfessional={false}
+                    onConfirm={confirmCompletion}
+                    disabled={confirmLoading}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Ready to Rate Transactions */}
+            <div className="mb-6">
+              <ReadyToRateTransactions 
+                isProfessional={false}
+                onRate={(transactionId) => {
+                  setActiveTab('reviews');
+                  // Scroll to reviews section
+                  setTimeout(() => {
+                    const reviewsSection = document.querySelector('[value="reviews"]');
+                    reviewsSection?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+              />
+            </div>
+
             <Card>
               <CardHeader>
                 <CardTitle>Información Personal</CardTitle>

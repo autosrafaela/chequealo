@@ -92,3 +92,9 @@ verify_jwt = true
 
 [functions.billing-cancel]
 verify_jwt = true
+
+[functions.send-completion-confirmations]
+verify_jwt = false
+
+[functions.send-booking-reminders]
+verify_jwt = false

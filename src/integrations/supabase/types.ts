@@ -1270,41 +1270,59 @@ export type Database = {
       transactions: {
         Row: {
           amount: number | null
+          both_confirmed_at: string | null
           completed_at: string | null
+          confirmation_requested_at: string | null
           contact_request_id: string | null
           created_at: string
           id: string
+          professional_confirmed_at: string | null
+          professional_confirmed_completion: boolean | null
           professional_id: string
           service_type: string | null
           started_at: string | null
           status: string
           updated_at: string
+          user_confirmed_at: string | null
+          user_confirmed_completion: boolean | null
           user_id: string
         }
         Insert: {
           amount?: number | null
+          both_confirmed_at?: string | null
           completed_at?: string | null
+          confirmation_requested_at?: string | null
           contact_request_id?: string | null
           created_at?: string
           id?: string
+          professional_confirmed_at?: string | null
+          professional_confirmed_completion?: boolean | null
           professional_id: string
           service_type?: string | null
           started_at?: string | null
           status?: string
           updated_at?: string
+          user_confirmed_at?: string | null
+          user_confirmed_completion?: boolean | null
           user_id: string
         }
         Update: {
           amount?: number | null
+          both_confirmed_at?: string | null
           completed_at?: string | null
+          confirmation_requested_at?: string | null
           contact_request_id?: string | null
           created_at?: string
           id?: string
+          professional_confirmed_at?: string | null
+          professional_confirmed_completion?: boolean | null
           professional_id?: string
           service_type?: string | null
           started_at?: string | null
           status?: string
           updated_at?: string
+          user_confirmed_at?: string | null
+          user_confirmed_completion?: boolean | null
           user_id?: string
         }
         Relationships: []
