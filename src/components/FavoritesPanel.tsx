@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, X, MapPin, Star, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -42,15 +42,7 @@ const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propO
   const { favorites: favoriteIds, toggleFavorite } = useFavorites();
   const { getContactInfo } = useProfessionalContact();
 
-  useEffect(() => {
-    if (favoriteIds.length > 0 && user) {
-      fetchFavoriteDetails();
-    } else {
-      setRealFavorites([]);
-    }
-  }, [favoriteIds, user]);
-
-  const fetchFavoriteDetails = async () => {
+  const fetchFavoriteDetails = useCallback(async () => {
     if (favoriteIds.length === 0) {
       setRealFavorites([]);
       return;
@@ -83,7 +75,16 @@ const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propO
     } finally {
       setLoading(false);
     }
-  };
+  }, [favoriteIds, getContactInfo]);
+
+  useEffect(() => {
+    if (favoriteIds.length > 0 && user) {
+      fetchFavoriteDetails();
+    } else {
+      setRealFavorites([]);
+      setContactInfos({});
+    }
+  }, [favoriteIds, user, fetchFavoriteDetails]);
 
   const handleRemoveFavorite = async (professionalId: string) => {
     try {
