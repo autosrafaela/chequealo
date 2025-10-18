@@ -101,14 +101,14 @@ export const AvailabilityCalendar = () => {
 
   const isSlotAvailable = (date: Date, hour: number) => {
     const key = getSlotKey(date, hour);
-    return timeSlots.get(key) ?? false;
+    return timeSlots.get(key) ?? true; // Disponible por defecto
   };
 
   const handleToggleSlot = async (date: Date, hour: number) => {
     if (!professionalId) return;
 
     const key = getSlotKey(date, hour);
-    const currentAvailability = timeSlots.get(key) ?? false;
+    const currentAvailability = timeSlots.get(key) ?? true; // Disponible por defecto
     const newAvailability = !currentAvailability;
 
     // Actualizar UI inmediatamente
