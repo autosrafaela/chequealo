@@ -20,7 +20,11 @@ export const useProfessionalContact = () => {
         return null;
       }
 
-      return data && data.length > 0 ? data[0] : null;
+      // Handle both array and object returns
+      if (!data) return null;
+      if (Array.isArray(data)) return data[0] ?? null;
+      if (typeof data === 'object' && 'phone' in data) return data as ContactInfo;
+      return null;
     } catch (error) {
       console.error('Error getting contact info:', error);
       return null;

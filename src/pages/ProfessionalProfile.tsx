@@ -97,14 +97,24 @@ const ProfessionalProfile = () => {
 
       // Check if current user is the owner using user_id from public_safe view
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && professionalData.user_id) {
-        setIsOwner(user.id === professionalData.user_id);
-      } else {
-        setIsOwner(false);
-      }
+      const owner = !!(user && professionalData.user_id && user.id === professionalData.user_id);
+      setIsOwner(owner);
 
-      // Get contact info if user is authorized
-      const contact = await getContactInfo(id);
+      // Get contact info: owners read from professionals table (RLS allows), others via RPC
+      let contact: { phone: string | null; email: string | null } | null = null;
+      if (owner) {
+        const { data: ownContact, error: ownErr } = await supabase
+          .from('professionals')
+          .select('phone, email')
+          .eq('id', id)
+          .maybeSingle();
+        if (!ownErr && ownContact) {
+          contact = { phone: ownContact.phone, email: ownContact.email };
+        }
+      }
+      if (!contact) {
+        contact = await getContactInfo(id);
+      }
       setContactInfo(contact);
 
       // Fetch services
