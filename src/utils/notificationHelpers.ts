@@ -140,6 +140,24 @@ export const notifyNewReview = async (professionalUserId: string, rating: number
 };
 
 /**
+ * Create notification when a new message is received
+ */
+export const notifyNewMessage = async (
+  recipientUserId: string, 
+  senderName: string, 
+  messagePreview: string,
+  conversationId: string
+) => {
+  return await createNotification({
+    userId: recipientUserId,
+    title: `💬 Mensaje de ${senderName}`,
+    message: messagePreview.length > 50 ? `${messagePreview.substring(0, 50)}...` : messagePreview,
+    type: 'message' as any,
+    actionUrl: `/user-dashboard?tab=messages&conversation_id=${conversationId}`
+  });
+};
+
+/**
  * Create notification when payment is successful
  */
 export const notifyPaymentSuccess = async (userId: string, amount: number) => {

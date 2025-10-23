@@ -1015,6 +1015,10 @@ const UserDashboard = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="messages">
+            <ChatInterface initialConversationId={conversationId} />
+          </TabsContent>
+
           <TabsContent value="requests">
             <Card>
               <CardHeader>
