@@ -34,9 +34,9 @@ const App = () => (
     <PWAInstallPrompt />
     <IOSInstallInstructions />
     <FloatingWhatsAppWidget />
-    <FloatingChatWidget />
     
     <BrowserRouter>
+      <FloatingChatWidget />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<Search />} />
