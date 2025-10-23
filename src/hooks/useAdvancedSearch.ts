@@ -300,6 +300,7 @@ export const useAdvancedSearch = () => {
       try {
         // Lista completa de profesiones predefinidas
         const predefinedProfessions = [
+          'Alisadora Profesional',
           'Arquitecta', 'Carpintero / Ebanista', 'Contadora Pública', 'Electricista',
           'Empleada Doméstica / Servicio de Limpieza', 'Entrenador Personal', 'Herrero',
           'Jardinero / Paisajista', 'Limpieza y Mantenimiento', 'Maquillador/a', 'Pintor',
@@ -316,7 +317,8 @@ export const useAdvancedSearch = () => {
           'Personal Shopper', 'Chef a Domicilio', 'Pastelero', 'Repostero', 'Catering',
           'Barman / Bartender', 'Sommelier', 'Nutricionista', 'Profesor de Yoga', 'Profesor de Pilates',
           'Masajista', 'Esteticista', 'Manicurista', 'Pedicurista', 'Peluquero/a', 'Barbero',
-          'Maquillador Profesional', 'Fotógrafo', 'Camarógrafo', 'Editor de Video',
+          'Maquillador Profesional', 'Maquilladora Social', 'Maquilladora Artística',
+          'Fotógrafo', 'Camarógrafo', 'Editor de Video',
           'Diseñador Gráfico', 'Desarrollador Web', 'Community Manager', 'Redactor de Contenidos',
           'Traductor', 'Profesor Particular', 'Profesor de Matemáticas', 'Profesor de Física',
           'Profesor de Química', 'Profesor de Idiomas', 'Profesor de Música (Piano)',
@@ -331,9 +333,9 @@ export const useAdvancedSearch = () => {
           'Reparación de Computadoras', 'Técnico en Redes', 'Instalador de Internet',
           'Instalador de TV', 'Tapicero', 'Cortinero', 'Pulidor de Pisos', 'Limpieza de Alfombras',
           'Limpieza de Persianas', 'Limpieza de Tanques de Agua', 'Desinfección y Sanitización',
-          'Control de Plagas y Fumigación', 'Lavadero de Autos', 'Detailing de Autos',
+          'Control de Plagas y Fumigación', 'Lavadero de Autos', 'Detailing de Autos', 'Detailing',
           'Polarizado de Vidrios', 'Instalador de Audio para Autos', 'Mecánico de Motos',
-          'Chapista y Pintor Automotor', 'Gomería'
+          'Chapista y Pintor Automotor', 'Gomería', 'Auxiliares de Estudio'
         ];
 
         // Cargar profesiones de la base de datos
