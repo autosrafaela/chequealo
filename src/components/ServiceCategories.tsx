@@ -1,6 +1,6 @@
 import { 
   Wrench, Zap, Car, Sparkles, Dumbbell, Paintbrush, 
-  Hammer, Flame, TreePine, Building, Heart, Laptop, ChevronDown, ChevronUp 
+  Hammer, Flame, TreePine, Building, Heart, Laptop, ChevronDown, ChevronUp, Scissors 
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -28,6 +28,7 @@ const ServiceCategories = () => {
     { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600", rank: 11, searchTerm: "fumigador" },
     { name: "Automatización con IA", icon: Laptop, color: "bg-violet-100 text-violet-600", rank: 12, searchTerm: "automatización ia" },
     { name: "Piscinas / Piletas Colocación", icon: Building, color: "bg-blue-200 text-blue-700", rank: 13, searchTerm: "piscinas piletas" },
+    { name: "Modista/Costurera/Confeccionista a medida/Bordados", icon: Scissors, color: "bg-rose-100 text-rose-600", rank: 14, searchTerm: "modista costurera" },
   ];
 
   const loadAllProfessions = async () => {
