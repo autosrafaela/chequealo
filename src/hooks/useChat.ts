@@ -162,10 +162,7 @@ export const useChat = () => {
         return null;
       }
 
-      if (messageType !== 'text' && !planLimits.canSendFiles) {
-        toast.error('El envío de archivos no está disponible en tu plan actual');
-        return null;
-      }
+      // Restricción de envío de archivos removida - ahora disponible para todos
 
       setSending(true);
 
@@ -174,7 +171,7 @@ export const useChat = () => {
       let fileSize: number | undefined;
 
       // Handle file upload if present
-      if (file && planLimits.canSendFiles) {
+      if (file) {
         const fileExt = file.name.split('.').pop();
         const filePath = `chat-files/${conversationId}/${Date.now()}.${fileExt}`;
 

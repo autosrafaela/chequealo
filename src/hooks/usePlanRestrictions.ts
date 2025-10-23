@@ -63,7 +63,7 @@ export const usePlanRestrictions = () => {
     featuredListing: false,
     canAccessAdvancedFeatures: true,
     canReceiveMessages: true,
-    canSendFiles: false,
+    canSendFiles: true, // Siempre habilitado
     maxMonthlyBookings: -1,
     calendarIntegration: false,
     maxAvailabilitySlots: 5,
@@ -191,7 +191,7 @@ export const usePlanRestrictions = () => {
           featuredListing: plan.featured_listing,
           canAccessAdvancedFeatures: status === 'active',
           canReceiveMessages: plan.can_receive_messages,
-          canSendFiles: plan.can_send_files,
+          canSendFiles: true, // Siempre habilitado independientemente del plan
           maxMonthlyBookings: plan.max_monthly_bookings,
           calendarIntegration: plan.calendar_integration,
           maxAvailabilitySlots: isBasicPlan ? 5 : -1,
