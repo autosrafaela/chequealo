@@ -26,7 +26,8 @@ const ServiceCategories = () => {
     { name: "Limpieza de Tapizados", icon: Sparkles, color: "bg-cyan-100 text-cyan-600", rank: 9, searchTerm: "limpieza tapizados" },
     { name: "Instalador de Durlock / Yesero", icon: Hammer, color: "bg-amber-100 text-amber-600", rank: 10, searchTerm: "durlock" },
     { name: "Fumigador / Control de Plagas", icon: Building, color: "bg-green-100 text-green-600", rank: 11, searchTerm: "fumigador" },
-    { name: "Profesor de Música", icon: Laptop, color: "bg-yellow-100 text-yellow-600", rank: 12, searchTerm: "profesor música" },
+    { name: "Automatización con IA", icon: Laptop, color: "bg-violet-100 text-violet-600", rank: 12, searchTerm: "automatización ia" },
+    { name: "Piscinas / Piletas Colocación", icon: Building, color: "bg-blue-200 text-blue-700", rank: 13, searchTerm: "piscinas piletas" },
   ];
 
   const loadAllProfessions = async () => {
@@ -44,6 +45,7 @@ const ServiceCategories = () => {
         'Arquitecta',
         'Asesor de Seguros',
         'Asesor Inmobiliario',
+        'Automatización con IA',
         'Auxiliares de estudio',
         'Barbero',
         'Barman / Bartender',
@@ -125,6 +127,7 @@ const ServiceCategories = () => {
         'Personal Shopper',
         'Pintor',
         'Pintor de Obras',
+        'Piscinas / Piletas Colocación',
         'Plomero / Gasista',
         'Podador de Árboles',
         'Polarizado de Vidrios',

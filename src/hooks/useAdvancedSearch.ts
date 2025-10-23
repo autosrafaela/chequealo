@@ -301,10 +301,10 @@ export const useAdvancedSearch = () => {
         // Lista completa de profesiones predefinidas
         const predefinedProfessions = [
           'Alisadora Profesional',
-          'Arquitecta', 'Carpintero / Ebanista', 'Contadora Pública', 'Electricista',
+          'Arquitecta', 'Automatización con IA', 'Carpintero / Ebanista', 'Contadora Pública', 'Electricista',
           'Empleada Doméstica / Servicio de Limpieza', 'Entrenador Personal', 'Herrero',
           'Jardinero / Paisajista', 'Limpieza y Mantenimiento', 'Maquillador/a', 'Pintor',
-          'Profesor de Apoyo Escolar', 'Profesora de Inglés', 'Técnico de PC', 'Mecánico',
+          'Piscinas / Piletas Colocación', 'Profesor de Apoyo Escolar', 'Profesora de Inglés', 'Técnico de PC', 'Mecánico',
           'Técnico de Aire Acondicionado', 'Kinesiólogo / Fisioterapeuta', 'Gestor del Automotor',
           'Servicio Técnico (Línea Blanca)', 'Limpieza de Tapizados', 'Instalador de Durlock / Yesero',
           'Fumigador / Control de Plagas', 'Profesor de Música', 'Plomero / Gasista',
