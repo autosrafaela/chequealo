@@ -4,8 +4,15 @@
     <meta charset="UTF-8" />
     <base href="/">
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <meta name="google-site-verification" content="E7c8QYGDHMV1lv_63AxgNcLZLgxU1TEeU6f_dPuSgwE" />
+    
+    <!-- iOS Specific Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Chequealo" />
+    <meta name="format-detection" content="telephone=no" />
+    
     <title>Chequealo - Encontrá Profesionales y Servicios en Argentina</title>
     <meta name="description" content="Plataforma líder para encontrar profesionales verificados cerca de tu ubicación. Plomeros, electricistas, mecánicos y más servicios en Argentina.">
     <meta name="author" content="Chequealo" />
@@ -36,23 +43,40 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Service Worker control: disable in Lovable preview, iOS Safari web, and ensure caches are cleared
+      // Service Worker control: disable in Lovable preview and ALL iOS/Mobile Safari browsers
       if ('serviceWorker' in navigator) {
         const isLovablePreview = /lovable\.(dev|app|project\.com)$/.test(location.hostname) || location.hostname.includes('lovable');
         
-        // Detect iOS Safari web (not Capacitor app)
-        const isIOSSafari = /iPhone|iPad|iPod/.test(navigator.userAgent) && 
-                           !window.matchMedia('(display-mode: standalone)').matches &&
-                           !/Capacitor/.test(navigator.userAgent);
+        // Detect iOS/Mobile Safari - more comprehensive detection
+        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || 
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
+        const isMobileSafari = isIOS && isSafari;
+        const isIOSChrome = /CriOS/.test(navigator.userAgent);
         
-        if (isLovablePreview || isIOSSafari) {
-          // Unregister any existing SW and clear caches
-          navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
+        // Disable SW on Lovable preview, iOS Safari, and iOS Chrome
+        if (isLovablePreview || isMobileSafari || isIOSChrome || isIOS) {
+          // Unregister any existing SW and clear caches aggressively
+          navigator.serviceWorker.getRegistrations().then((regs) => {
+            regs.forEach((r) => {
+              r.unregister();
+              console.log('Service Worker desregistrado');
+            });
+          });
+          
           if ('caches' in window) {
-            caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+            caches.keys().then((keys) => {
+              keys.forEach((k) => {
+                caches.delete(k);
+                console.log('Cache eliminado:', k);
+              });
+            });
           }
-          console.log('Service Worker deshabilitado:', isLovablePreview ? 'Lovable preview' : 'iOS Safari web');
+          
+          console.log('✓ Service Worker deshabilitado para iOS/Safari/Chrome');
+          console.log('Plataforma:', navigator.userAgent);
         } else {
+          // Only register SW on non-iOS devices
           window.addEventListener('load', () => {
             navigator.serviceWorker.register('/service-worker.js')
               .then((registration) => {
