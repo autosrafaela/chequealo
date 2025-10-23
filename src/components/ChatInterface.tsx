@@ -39,6 +39,10 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Abrir conversación inicial si se proporciona
   useEffect(() => {
@@ -62,10 +66,45 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
   };
 
   const handleSendMessage = async () => {
-    if (!messageText.trim() || !activeConversationId) return;
+    if ((!messageText.trim() && !selectedFile) || !activeConversationId) return;
 
-    await sendMessage(activeConversationId, messageText, 'text');
+    const messageType = selectedFile ? (selectedFile.type.startsWith('image/') ? 'image' : 'file') : 'text';
+    
+    await sendMessage(
+      activeConversationId, 
+      messageText || (selectedFile ? `Archivo: ${selectedFile.name}` : ''),
+      messageType,
+      selectedFile || undefined
+    );
+    
     setMessageText('');
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      
+      // Crear preview si es imagen
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviewUrl(null);
+      }
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (imageInputRef.current) imageInputRef.current.value = '';
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -226,6 +265,25 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                             : 'bg-muted'
                         }`}
                       >
+                        {message.message_type === 'image' && message.file_url && (
+                          <img 
+                            src={message.file_url} 
+                            alt="Imagen adjunta"
+                            className="rounded-lg mb-2 max-w-full"
+                          />
+                        )}
+                        
+                        {message.message_type === 'file' && message.file_url && (
+                          <a 
+                            href={message.file_url} 
+                            download={message.file_name}
+                            className="flex items-center gap-2 mb-2 hover:underline"
+                          >
+                            <Paperclip className="h-4 w-4" />
+                            <span className="text-sm">{message.file_name}</span>
+                          </a>
+                        )}
+                        
                         <p className="text-sm break-words">{message.content}</p>
                         <span className={`text-xs mt-1 block ${
                           isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
@@ -245,11 +303,57 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
 
             {/* Input de mensaje */}
             <div className="p-4 border-t">
+              {/* Preview de archivo */}
+              {selectedFile && (
+                <div className="mb-2 p-2 bg-muted rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {previewUrl ? (
+                      <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded" />
+                    ) : (
+                      <Paperclip className="h-5 w-5" />
+                    )}
+                    <span className="text-sm">{selectedFile.name}</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleRemoveFile}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              )}
+              
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" disabled>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  accept="*/*"
+                />
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  accept="image/*"
+                />
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                >
                   <Paperclip className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="sm" disabled>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={sending}
+                >
                   <ImageIcon className="h-5 w-5" />
                 </Button>
                 
@@ -264,7 +368,7 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!messageText.trim() || sending}
+                  disabled={(!messageText.trim() && !selectedFile) || sending}
                   size="sm"
                 >
                   <Send className="h-4 w-4" />
