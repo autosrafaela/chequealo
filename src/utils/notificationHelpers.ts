@@ -76,13 +76,31 @@ export const createNotification = async ({
 /**
  * Create notification when a new contact request is received
  */
-export const notifyNewContactRequest = async (professionalUserId: string, clientName: string, serviceType: string) => {
+export const notifyNewContactRequest = async (
+  professionalId: string, 
+  clientName: string, 
+  requestType: 'contact' | 'quote',
+  conversationId?: string
+) => {
+  // Get professional's user_id
+  const { data: professional } = await supabase
+    .from('professionals')
+    .select('user_id')
+    .eq('id', professionalId)
+    .single();
+
+  if (!professional) return { data: null, error: 'Professional not found' };
+
+  const actionUrl = conversationId
+    ? `/professional-dashboard?tab=messages&conversation=${conversationId}`
+    : '/professional-dashboard?tab=requests';
+
   return await createNotification({
-    userId: professionalUserId,
-    title: '🔔 Nueva solicitud de contacto',
-    message: `${clientName} está interesado en tu servicio de ${serviceType}`,
+    userId: professional.user_id,
+    title: requestType === 'contact' ? '🔔 Nueva solicitud de contacto' : '📋 Nueva solicitud de presupuesto',
+    message: `${clientName} te ha enviado una ${requestType === 'contact' ? 'solicitud de contacto' : 'solicitud de presupuesto'}. Haz clic para responder en el chat.`,
     type: 'info',
-    actionUrl: '/dashboard'
+    actionUrl
   });
 };
 
@@ -146,14 +164,18 @@ export const notifyNewMessage = async (
   recipientUserId: string, 
   senderName: string, 
   messagePreview: string,
-  conversationId: string
+  conversationId: string,
+  isRecipientProfessional: boolean = false
 ) => {
+  const dashboardUrl = isRecipientProfessional ? '/professional-dashboard' : '/user-dashboard';
+  const actionUrl = `${dashboardUrl}?tab=messages&conversation=${conversationId}`;
+  
   return await createNotification({
     userId: recipientUserId,
     title: `💬 Mensaje de ${senderName}`,
     message: messagePreview.length > 50 ? `${messagePreview.substring(0, 50)}...` : messagePreview,
     type: 'message' as any,
-    actionUrl: `/user-dashboard?tab=messages&conversation_id=${conversationId}`
+    actionUrl
   });
 };
 

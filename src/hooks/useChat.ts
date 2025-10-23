@@ -225,6 +225,46 @@ export const useChat = () => {
         [conversationId]: [...(prev[conversationId] || []), data]
       }));
 
+      // Send notification to the recipient
+      try {
+        const { data: conversation } = await supabase
+          .from('conversations')
+          .select('user_id, professional_id, professionals(user_id)')
+          .eq('id', conversationId)
+          .single();
+
+        if (conversation) {
+          const { data: senderProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('user_id', user?.id)
+            .single();
+
+          const senderName = senderProfile?.full_name || 'Un usuario';
+          
+          // Determine recipient
+          const recipientUserId = senderType === 'professional' 
+            ? conversation.user_id 
+            : conversation.professionals?.user_id;
+          
+          const isRecipientProfessional = senderType === 'user';
+
+          if (recipientUserId) {
+            const { notifyNewMessage } = await import('@/utils/notificationHelpers');
+            await notifyNewMessage(
+              recipientUserId,
+              senderName,
+              messageType === 'text' ? content : 'Archivo adjunto',
+              conversationId,
+              isRecipientProfessional
+            );
+          }
+        }
+      } catch (notifError) {
+        console.error('Error sending notification:', notifError);
+        // Don't block the message flow if notification fails
+      }
+
       return data;
     } catch (error) {
       console.error('Error sending message:', error);

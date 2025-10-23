@@ -123,6 +123,15 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type }:
 
       if (messageError) throw messageError;
 
+      // 6. Notificar al profesional con link directo al chat
+      try {
+        const { notifyNewContactRequest } = await import('@/utils/notificationHelpers');
+        await notifyNewContactRequest(professionalId, formData.name, type, conversationId);
+      } catch (notifError) {
+        console.error('Error sending notification:', notifError);
+        // No bloquear el flujo si falla la notificación
+      }
+
       // 5. Mostrar éxito y redirigir al chat
       toast.success(
         type === 'contact' 
