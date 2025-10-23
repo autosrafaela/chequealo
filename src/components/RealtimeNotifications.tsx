@@ -125,18 +125,29 @@ export const RealtimeNotifications: React.FC = () => {
                   table: 'messages',
                   filter: `conversation_id=in.(select id from conversations where professional_id=${professional.id})`
                 },
-                (payload) => {
+                async (payload) => {
                   console.log('New message received:', payload);
                   const message = payload.new;
                   
                   // Only show notification if message is not from current user
                   if (message.sender_id !== user.id) {
+                    // Check if user is professional
+                    const { data: professional } = await supabase
+                      .from('professionals')
+                      .select('id')
+                      .eq('user_id', user.id)
+                      .single();
+                    
+                    const redirectUrl = professional 
+                      ? `/dashboard?tab=messages&conversation=${message.conversation_id}`
+                      : `/user-dashboard?tab=messages&conversation=${message.conversation_id}`;
+                    
                     toast('Nuevo mensaje', {
                       description: `Tienes un nuevo mensaje: ${message.content.substring(0, 50)}...`,
                       icon: <MessageCircle className="h-4 w-4" />,
                       action: {
                         label: "Ver",
-                        onClick: () => window.location.href = `/user-dashboard?tab=messages&conversation=${message.conversation_id}`
+                        onClick: () => window.location.href = redirectUrl
                       }
                     });
                   }

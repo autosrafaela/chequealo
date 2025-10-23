@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,7 @@ import { ProfessionManager } from '@/components/ProfessionManager';
 import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
+import ChatInterface from '@/components/ChatInterface';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -36,7 +38,6 @@ import {
   MessageSquare,
   AlertCircle
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 interface DashboardStats {
   totalRequests: number;
@@ -49,6 +50,7 @@ interface DashboardStats {
 
 const ProfessionalDashboard = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [professional, setProfessional] = useState<any>(null);
   const [stats, setStats] = useState<DashboardStats>({
     totalRequests: 0,
@@ -60,6 +62,7 @@ const ProfessionalDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('requests');
+  const [conversationId, setConversationId] = useState<string | undefined>();
 
   // Transaction confirmation hook
   const { 
@@ -74,12 +77,14 @@ const ProfessionalDashboard = () => {
     }
   }, [user]);
 
-  // Abrir la pestaña correcta si viene en la URL (?tab=subscription)
+  // Abrir la pestaña correcta si viene en la URL (?tab=subscription&conversation=xxx)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
+    const tab = searchParams.get('tab');
+    const conversation = searchParams.get('conversation');
+    
     if (tab) setActiveTab(tab);
-  }, []);
+    if (conversation) setConversationId(conversation);
+  }, [searchParams]);
 
   const fetchDashboardData = async () => {
     try {
@@ -464,9 +469,13 @@ const ProfessionalDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10 sticky top-4 z-10 bg-background">
+          <TabsList className="grid w-full grid-cols-11 sticky top-4 z-10 bg-background">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
+            </TabsTrigger>
+            <TabsTrigger value="messages">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Mensajes
             </TabsTrigger>
             <TabsTrigger value="reviews">
               Reseñas ({stats.totalReviews})
@@ -534,6 +543,10 @@ const ProfessionalDashboard = () => {
             </div>
 
             <ContactRequestsPanel />
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <ChatInterface initialConversationId={conversationId} />
           </TabsContent>
 
           <TabsContent value="reviews">

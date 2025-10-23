@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,7 @@ interface ContactRequestDialogProps {
 
 export const ContactRequestDialog = ({ professionalId, professionalName, type }: ContactRequestDialogProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -45,7 +47,8 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type }:
     try {
       setLoading(true);
 
-      const { error } = await supabase
+      // 1. Crear el contact_request
+      const { data: contactRequest, error: contactError } = await supabase
         .from('contact_requests')
         .insert({
           professional_id: professionalId,
@@ -57,12 +60,83 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type }:
           message: formData.message.trim(),
           service_type: formData.service_type || null,
           budget_range: formData.budget_range || null
+        })
+        .select()
+        .single();
+
+      if (contactError) throw contactError;
+
+      // 2. Verificar si ya existe una conversación entre el usuario y el profesional
+      const { data: existingConversation } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('professional_id', professionalId)
+        .eq('status', 'active')
+        .single();
+
+      let conversationId = existingConversation?.id;
+
+      // 3. Si no existe conversación, crearla
+      if (!conversationId) {
+        const { data: newConversation, error: convError } = await supabase
+          .from('conversations')
+          .insert({
+            user_id: user.id,
+            professional_id: professionalId,
+            contact_request_id: contactRequest.id,
+            status: 'active'
+          })
+          .select()
+          .single();
+
+        if (convError) throw convError;
+        conversationId = newConversation.id;
+      }
+
+      // 4. Enviar mensaje inicial con los detalles de la solicitud
+      let messageContent = type === 'contact' 
+        ? `Hola! ${formData.message}`
+        : `Solicitud de presupuesto:\n\n${formData.message}`;
+
+      if (type === 'quote') {
+        if (formData.service_type) {
+          messageContent = `Tipo de servicio: ${formData.service_type}\n` + messageContent;
+        }
+        if (formData.budget_range) {
+          messageContent += `\n\nPresupuesto estimado: ${formData.budget_range}`;
+        }
+        if (formData.phone) {
+          messageContent += `\nTeléfono: ${formData.phone}`;
+        }
+      }
+
+      const { error: messageError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          sender_type: 'user',
+          message_type: 'text',
+          content: messageContent
         });
 
-      if (error) throw error;
+      if (messageError) throw messageError;
 
-      toast.success(type === 'contact' ? 'Solicitud de contacto enviada' : 'Solicitud de presupuesto enviada');
+      // 5. Mostrar éxito y redirigir al chat
+      toast.success(
+        type === 'contact' 
+          ? '¡Conversación iniciada! Redirigiendo al chat...' 
+          : '¡Solicitud enviada! Redirigiendo al chat...'
+      );
+      
       setOpen(false);
+      
+      // Redirigir al chat después de un breve delay
+      setTimeout(() => {
+        navigate(`/user-dashboard?tab=messages&conversation=${conversationId}`);
+      }, 500);
+
       setFormData({
         name: '',
         email: user?.email || '',
