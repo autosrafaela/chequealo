@@ -25,9 +25,9 @@ export const LatestProfessionals = () => {
   useEffect(() => {
     const fetchLatestProfessionals = async () => {
       try {
-        // SECURITY: Using professionals_public_safe view to exclude sensitive data
+        // SECURITY: Using professionals_with_contact view to show contact info
         const { data, error } = await supabase
-          .from('professionals_public_safe')
+          .from('professionals_with_contact')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(12);

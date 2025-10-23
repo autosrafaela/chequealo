@@ -79,9 +79,9 @@ const ProfessionalProfile = () => {
         return;
       }
 
-      // Fetch professional data from public safe view
+      // Fetch professional data with contact information
       const { data: professionalData, error: profError } = await supabase
-        .from('professionals_public_safe')
+        .from('professionals_with_contact')
         .select('*')
         .eq('id', id)
         .maybeSingle();
@@ -95,32 +95,16 @@ const ProfessionalProfile = () => {
 
       setProfessional(professionalData);
 
-      // Check if current user is the owner using user_id from public_safe view
+      // Check if current user is the owner using user_id from professionals_with_contact view
       const { data: { user } } = await supabase.auth.getUser();
       const owner = !!(user && professionalData.user_id && user.id === professionalData.user_id);
       setIsOwner(owner);
 
-      // Get contact info: owners read from professionals table (RLS allows), others via RPC
-      let contact: { phone: string | null; email: string | null } | null = null;
-      if (owner) {
-        console.log('Owner detected, fetching contact from professionals table');
-        const { data: ownContact, error: ownErr } = await supabase
-          .from('professionals')
-          .select('phone, email')
-          .eq('id', id)
-          .maybeSingle();
-        console.log('Owner contact data:', ownContact, 'error:', ownErr);
-        if (!ownErr && ownContact) {
-          contact = { phone: ownContact.phone, email: ownContact.email };
-        }
-      }
-      if (!contact) {
-        console.log('Fetching contact via RPC');
-        contact = await getContactInfo(id);
-        console.log('RPC contact data:', contact);
-      }
-      console.log('Final contact info:', contact);
-      setContactInfo(contact);
+      // Get contact info from the view (now includes phone and email)
+      setContactInfo({
+        phone: professionalData.phone || null,
+        email: professionalData.email || null
+      });
 
       // Fetch services
       const { data: servicesData, error: servicesError } = await supabase

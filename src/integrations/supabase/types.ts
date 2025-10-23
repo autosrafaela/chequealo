@@ -73,6 +73,13 @@ export type Database = {
             referencedRelation: "professionals_public_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "availability_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
         ]
       }
       badges: {
@@ -207,6 +214,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bookings_rescheduled_from_fkey"
             columns: ["rescheduled_from"]
             isOneToOne: false
@@ -275,7 +289,7 @@ export type Database = {
           action_result: string | null
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           professional_id: string
           user_agent: string | null
         }
@@ -285,7 +299,7 @@ export type Database = {
           action_result?: string | null
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           professional_id: string
           user_agent?: string | null
         }
@@ -295,7 +309,7 @@ export type Database = {
           action_result?: string | null
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           professional_id?: string
           user_agent?: string | null
         }
@@ -418,6 +432,13 @@ export type Database = {
             referencedRelation: "professionals_public_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "conversations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
         ]
       }
       favorites: {
@@ -459,6 +480,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
         ]
@@ -719,6 +747,13 @@ export type Database = {
             referencedRelation: "professionals_public_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "professional_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
         ]
       }
       professional_services: {
@@ -778,6 +813,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_services_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
         ]
@@ -1007,6 +1049,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "review_responses_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "review_responses_review_id_fkey"
             columns: ["review_id"]
             isOneToOne: false
@@ -1078,6 +1127,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
         ]
@@ -1592,6 +1648,13 @@ export type Database = {
             referencedRelation: "professionals_public_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "work_photos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -1665,6 +1728,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
           {
@@ -1778,12 +1848,66 @@ export type Database = {
         }
         Relationships: []
       }
+      professionals_with_contact: {
+        Row: {
+          availability: string | null
+          created_at: string | null
+          description: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          image_url: string | null
+          is_verified: boolean | null
+          location: string | null
+          phone: string | null
+          profession: string | null
+          rating: number | null
+          review_count: number | null
+          updated_at: string | null
+          user_id: string | null
+          verification_date: string | null
+        }
+        Insert: {
+          availability?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_verified?: boolean | null
+          location?: string | null
+          phone?: string | null
+          profession?: string | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_date?: string | null
+        }
+        Update: {
+          availability?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_verified?: boolean | null
+          location?: string | null
+          phone?: string | null
+          profession?: string | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_date?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      add_user_admin_role: {
-        Args: { _email: string }
-        Returns: undefined
-      }
+      add_user_admin_role: { Args: { _email: string }; Returns: undefined }
       check_and_award_badges: {
         Args: { user_id_param: string }
         Returns: undefined
