@@ -23,15 +23,21 @@ Deno.serve(async (req) => {
       throw new Error('Missing authorization header');
     }
 
-    // Initialize Supabase client for user verification
-    const supabaseClient = createClient(
+    // Initialize Supabase Admin Client with Service Role for all operations
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     );
 
-    // Get the user from the JWT token
+    // Get the user from the JWT token using admin client
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
       console.error('[admin-delete-user] Auth error:', authError);
@@ -41,7 +47,7 @@ Deno.serve(async (req) => {
     console.log('[admin-delete-user] User authenticated:', user.id);
 
     // SECURITY: Check if the user has admin role using RBAC
-    const { data: isAdmin, error: roleError } = await supabaseClient.rpc('has_role', {
+    const { data: isAdmin, error: roleError } = await supabaseAdmin.rpc('has_role', {
       _user_id: user.id,
       _role: 'admin'
     });
@@ -61,18 +67,6 @@ Deno.serve(async (req) => {
     if (!userId) {
       throw new Error('User ID is required');
     }
-
-    // Initialize Supabase Admin Client with Service Role for deletion operations
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
 
     // 1. Delete related data first (to avoid foreign key constraints)
     console.log('Deleting user related data...');
