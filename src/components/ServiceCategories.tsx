@@ -32,22 +32,161 @@ const ServiceCategories = () => {
   const loadAllProfessions = async () => {
     try {
       setLoading(true);
-      // SECURITY: Using professionals_public_safe for profession list
+      
+      // Lista completa de profesiones disponibles
+      const predefinedProfessions = [
+        'Arquitecta',
+        'Carpintero / Ebanista',
+        'Contadora Pública',
+        'Electricista',
+        'Empleada Doméstica / Servicio de Limpieza',
+        'Entrenador Personal',
+        'Herrero',
+        'Jardinero / Paisajista',
+        'Limpieza y Mantenimiento',
+        'Maquillador/a',
+        'Pintor',
+        'Profesor de Apoyo Escolar',
+        'Profesora de Inglés',
+        'Técnico de PC',
+        'Mecánico',
+        'Técnico de Aire Acondicionado',
+        'Kinesiólogo / Fisioterapeuta',
+        'Gestor del Automotor',
+        'Servicio Técnico (Línea Blanca)',
+        'Limpieza de Tapizados',
+        'Instalador de Durlock / Yesero',
+        'Fumigador / Control de Plagas',
+        'Profesor de Música',
+        'Plomero / Gasista',
+        'Técnico en Refrigeración',
+        'Cerrajero',
+        'Albañil',
+        'Pintor de Obras',
+        'Techista',
+        'Jardinero',
+        'Podador de Árboles',
+        'Electricista Matriculado',
+        'Instalador de Alarmas',
+        'Instalador de Cámaras de Seguridad',
+        'Colocador de Pisos',
+        'Colocador de Cerámicos',
+        'Colocador de Porcelanatos',
+        'Vidriería',
+        'Herrería de Obra',
+        'Soldador',
+        'Técnico en Calefacción',
+        'Instalador de Paneles Solares',
+        'Técnico en Energías Renovables',
+        'Decorador de Interiores',
+        'Diseñador de Interiores',
+        'Organizador Profesional',
+        'Personal Shopper',
+        'Chef a Domicilio',
+        'Pastelero',
+        'Repostero',
+        'Catering',
+        'Barman / Bartender',
+        'Sommelier',
+        'Nutricionista',
+        'Profesor de Yoga',
+        'Profesor de Pilates',
+        'Masajista',
+        'Esteticista',
+        'Manicurista',
+        'Pedicurista',
+        'Peluquero/a',
+        'Barbero',
+        'Maquillador Profesional',
+        'Fotógrafo',
+        'Camarógrafo',
+        'Editor de Video',
+        'Diseñador Gráfico',
+        'Desarrollador Web',
+        'Community Manager',
+        'Redactor de Contenidos',
+        'Traductor',
+        'Profesor Particular',
+        'Profesor de Matemáticas',
+        'Profesor de Física',
+        'Profesor de Química',
+        'Profesor de Idiomas',
+        'Profesor de Música (Piano)',
+        'Profesor de Música (Guitarra)',
+        'Profesor de Canto',
+        'Profesor de Danza',
+        'Profesor de Dibujo y Pintura',
+        'Veterinario',
+        'Peluquero Canino',
+        'Paseador de Perros',
+        'Cuidador de Mascotas',
+        'Adiestrador de Perros',
+        'Chofer Particular',
+        'Remisero',
+        'Fletero / Mudanzas',
+        'Mensajería',
+        'Cuidador/a de Niños (Niñera)',
+        'Cuidador/a de Adultos Mayores',
+        'Enfermero/a',
+        'Acompañante Terapéutico',
+        'Psicólogo',
+        'Psicopedagogo',
+        'Fonoaudiólogo',
+        'Terapista Ocupacional',
+        'Abogado',
+        'Contador',
+        'Asesor de Seguros',
+        'Asesor Inmobiliario',
+        'Martillero Público',
+        'Escribano',
+        'Ingeniero',
+        'Agrimensor',
+        'Reparación de Electrodomésticos',
+        'Reparación de Celulares',
+        'Reparación de Computadoras',
+        'Técnico en Redes',
+        'Instalador de Internet',
+        'Instalador de TV',
+        'Tapicero',
+        'Cortinero',
+        'Pulidor de Pisos',
+        'Limpieza de Alfombras',
+        'Limpieza de Persianas',
+        'Limpieza de Tanques de Agua',
+        'Desinfección y Sanitización',
+        'Control de Plagas y Fumigación',
+        'Lavadero de Autos',
+        'Detailing de Autos',
+        'Polarizado de Vidrios',
+        'Instalador de Audio para Autos',
+        'Mecánico de Motos',
+        'Chapista y Pintor Automotor',
+        'Gomería'
+      ];
+      
+      // SECURITY: Using professionals_public_safe for profession list from database
       const { data: profs, error: profsError } = await supabase
         .from('professionals_public_safe')
-        .select('profession')
-        .order('profession');
+        .select('profession');
+      
       if (profsError) throw profsError;
-      const uniqueProfessions = Array.from(new Set(profs?.map(p => p.profession).filter(Boolean) || []));
-      setAllProfessions(uniqueProfessions);
+      
+      // Combinar profesiones de la BD con las predefinidas
+      const dbProfessions = profs?.map(p => p.profession).filter(Boolean) || [];
+      const allProfessionsList = [...new Set([...predefinedProfessions, ...dbProfessions])];
+      
+      // Ordenar alfabéticamente
+      allProfessionsList.sort((a, b) => a.localeCompare(b, 'es'));
+      setAllProfessions(allProfessionsList);
 
-      // Load services
+      // Load ALL services (no filter by is_active)
       const { data: services, error: servicesError } = await supabase
         .from('professional_services')
-        .select('service_name, is_active')
-        .eq('is_active', true)
+        .select('service_name')
         .order('service_name');
+      
       if (servicesError) throw servicesError;
+      
       const uniqueServices = Array.from(new Set(services?.map(s => s.service_name).filter(Boolean) || []));
       setAllServices(uniqueServices);
     } catch (error) {
