@@ -48,6 +48,7 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [transcribeAudio, setTranscribeAudio] = useState(true); // Toggle para transcribir o enviar audio directo
   const audioChunksRef = useRef<Blob[]>([]);
 
   // Abrir conversación inicial si se proporciona
@@ -128,7 +129,12 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
       
       recorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await transcribeAndSend(audioBlob);
+        
+        if (transcribeAudio) {
+          await transcribeAndSend(audioBlob);
+        } else {
+          await sendAudioDirect(audioBlob);
+        }
         
         stream.getTracks().forEach(track => track.stop());
       };
@@ -147,6 +153,23 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
       mediaRecorder.stop();
       setIsRecording(false);
       setMediaRecorder(null);
+    }
+  };
+
+  const sendAudioDirect = async (audioBlob: Blob) => {
+    if (!activeConversationId) return;
+
+    try {
+      // Crear un archivo desde el blob
+      const audioFile = new File([audioBlob], `audio-${Date.now()}.webm`, {
+        type: 'audio/webm'
+      });
+
+      // Enviar como archivo de audio
+      await sendMessage(activeConversationId, '🎤 Mensaje de voz', 'audio', audioFile);
+    } catch (error) {
+      console.error('Error sending audio:', error);
+      alert('Error al enviar el audio');
     }
   };
 
@@ -344,6 +367,17 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                           />
                         )}
                         
+                        {message.message_type === 'audio' && message.file_url && (
+                          <audio 
+                            controls 
+                            className="mb-2 max-w-full"
+                            preload="metadata"
+                          >
+                            <source src={message.file_url} type="audio/webm" />
+                            Tu navegador no soporta el elemento de audio.
+                          </audio>
+                        )}
+                        
                         {message.message_type === 'file' && message.file_url && (
                           <a 
                             href={message.file_url} 
@@ -428,15 +462,28 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                   <ImageIcon className="h-5 w-5" />
                 </Button>
                 
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={sending}
-                  className={isRecording ? 'text-red-500' : ''}
-                >
-                  {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={isRecording ? stopRecording : startRecording}
+                    disabled={sending}
+                    className={isRecording ? 'text-red-500' : ''}
+                    title={transcribeAudio ? 'Grabar y transcribir' : 'Grabar audio directo'}
+                  >
+                    {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setTranscribeAudio(!transcribeAudio)}
+                    disabled={isRecording || sending}
+                    className="text-xs"
+                    title={transcribeAudio ? 'Cambiar a audio directo' : 'Cambiar a transcripción'}
+                  >
+                    {transcribeAudio ? '📝' : '🎵'}
+                  </Button>
+                </div>
                 
                 <Input
                   placeholder="Escribe un mensaje..."
