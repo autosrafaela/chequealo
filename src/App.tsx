@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NotificationSystem from "@/components/NotificationSystem";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
+import { FloatingChatWidget } from "@/components/FloatingChatWidget";
 
 import Index from "./pages/Index";
 import Search from "./pages/Search";
@@ -33,6 +34,7 @@ const App = () => (
     <PWAInstallPrompt />
     <IOSInstallInstructions />
     <FloatingWhatsAppWidget />
+    <FloatingChatWidget />
     
     <BrowserRouter>
       <Routes>
