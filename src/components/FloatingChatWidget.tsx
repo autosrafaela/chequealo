@@ -439,7 +439,6 @@ export const FloatingChatWidget = () => {
                       variant="ghost" 
                       size="icon"
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={sending}
                       className="h-8 w-8"
                     >
                       <Paperclip className="h-4 w-4" />
@@ -448,7 +447,6 @@ export const FloatingChatWidget = () => {
                       variant="ghost" 
                       size="icon"
                       onClick={() => imageInputRef.current?.click()}
-                      disabled={sending}
                       className="h-8 w-8"
                     >
                       <ImageIcon className="h-4 w-4" />
@@ -459,7 +457,6 @@ export const FloatingChatWidget = () => {
                         variant="ghost" 
                         size="icon"
                         onClick={isRecording ? stopRecording : startRecording}
-                        disabled={sending}
                         className={`h-8 w-8 ${isRecording ? 'text-red-500' : ''}`}
                         title={transcribeAudio ? 'Grabar y transcribir' : 'Grabar audio directo'}
                       >
@@ -469,7 +466,7 @@ export const FloatingChatWidget = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setTranscribeAudio(!transcribeAudio)}
-                        disabled={isRecording || sending}
+                        disabled={isRecording}
                         className="h-8 w-8 text-xs"
                         title={transcribeAudio ? 'Cambiar a audio directo' : 'Cambiar a transcripción'}
                       >
@@ -482,13 +479,12 @@ export const FloatingChatWidget = () => {
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      disabled={sending}
                       className="flex-1 h-8 text-sm"
                     />
                     
                     <Button
                       onClick={handleSendMessage}
-                      disabled={(!messageText.trim() && !selectedFile) || sending}
+                      disabled={!messageText.trim() && !selectedFile}
                       size="icon"
                       className="h-8 w-8"
                     >

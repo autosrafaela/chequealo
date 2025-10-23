@@ -449,7 +449,6 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                   variant="ghost" 
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={sending}
                 >
                   <Paperclip className="h-5 w-5" />
                 </Button>
@@ -457,7 +456,6 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                   variant="ghost" 
                   size="sm"
                   onClick={() => imageInputRef.current?.click()}
-                  disabled={sending}
                 >
                   <ImageIcon className="h-5 w-5" />
                 </Button>
@@ -467,7 +465,6 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                     variant="ghost" 
                     size="sm"
                     onClick={isRecording ? stopRecording : startRecording}
-                    disabled={sending}
                     className={isRecording ? 'text-red-500' : ''}
                     title={transcribeAudio ? 'Grabar y transcribir' : 'Grabar audio directo'}
                   >
@@ -477,7 +474,7 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setTranscribeAudio(!transcribeAudio)}
-                    disabled={isRecording || sending}
+                    disabled={isRecording}
                     className="text-xs"
                     title={transcribeAudio ? 'Cambiar a audio directo' : 'Cambiar a transcripción'}
                   >
@@ -490,13 +487,12 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  disabled={sending}
                   className="flex-1"
                 />
                 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={(!messageText.trim() && !selectedFile) || sending}
+                  disabled={!messageText.trim() && !selectedFile}
                   size="sm"
                 >
                   <Send className="h-4 w-4" />
