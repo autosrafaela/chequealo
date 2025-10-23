@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,9 @@ import {
   MoreVertical,
   ArrowLeft,
   Paperclip,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -43,6 +46,9 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Abrir conversación inicial si se proporciona
   useEffect(() => {
@@ -105,6 +111,71 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
     setPreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      
+      audioChunksRef.current = [];
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await transcribeAndSend(audioBlob);
+        
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      alert('No se pudo acceder al micrófono');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+    }
+  };
+
+  const transcribeAndSend = async (audioBlob: Blob) => {
+    if (!activeConversationId) return;
+
+    try {
+      // Convert blob to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      
+      reader.onloadend = async () => {
+        const base64Audio = (reader.result as string).split(',')[1];
+        
+        // Call transcription edge function
+        const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+          body: { audio: base64Audio }
+        });
+
+        if (error) throw error;
+
+        if (data?.text) {
+          await sendMessage(activeConversationId, `🎤 ${data.text}`, 'text');
+        }
+      };
+    } catch (error) {
+      console.error('Error transcribing audio:', error);
+      alert('Error al transcribir el audio');
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -355,6 +426,16 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
                   disabled={sending}
                 >
                   <ImageIcon className="h-5 w-5" />
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={sending}
+                  className={isRecording ? 'text-red-500' : ''}
+                >
+                  {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                 </Button>
                 
                 <Input
