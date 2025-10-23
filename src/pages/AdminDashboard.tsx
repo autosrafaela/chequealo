@@ -654,7 +654,7 @@ const AdminDashboard = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button asChild variant="outline" size="sm">
-                          <Link to={`/professional/${professional.id}`} target="_blank">
+                          <Link to={`/professional/${professional.id}`}>
                             <Eye className="h-4 w-4 mr-1" />
                             Ver Perfil
                           </Link>
