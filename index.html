@@ -36,16 +36,22 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Service Worker control: disable in Lovable preview and ensure caches are cleared
+      // Service Worker control: disable in Lovable preview, iOS Safari web, and ensure caches are cleared
       if ('serviceWorker' in navigator) {
         const isLovablePreview = /lovable\.(dev|app|project\.com)$/.test(location.hostname) || location.hostname.includes('lovable');
-        if (isLovablePreview) {
-          // Unregister any existing SW and clear caches before the app boots to avoid stale shells
+        
+        // Detect iOS Safari web (not Capacitor app)
+        const isIOSSafari = /iPhone|iPad|iPod/.test(navigator.userAgent) && 
+                           !window.matchMedia('(display-mode: standalone)').matches &&
+                           !/Capacitor/.test(navigator.userAgent);
+        
+        if (isLovablePreview || isIOSSafari) {
+          // Unregister any existing SW and clear caches
           navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
           if ('caches' in window) {
             caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
           }
-          console.log('Service Worker y cachés deshabilitados en preview de Lovable.');
+          console.log('Service Worker deshabilitado:', isLovablePreview ? 'Lovable preview' : 'iOS Safari web');
         } else {
           window.addEventListener('load', () => {
             navigator.serviceWorker.register('/service-worker.js')
