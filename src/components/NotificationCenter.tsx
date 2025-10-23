@@ -65,7 +65,13 @@ const NotificationCenter = () => {
       if (notification.action_url.startsWith('http')) {
         window.open(notification.action_url, '_blank');
       } else {
-        navigate(notification.action_url);
+        // Si es una notificación de mensaje, extraer el conversation_id
+        if (notification.type === 'message' && notification.action_url.includes('conversation_id=')) {
+          const conversationId = notification.action_url.split('conversation_id=')[1];
+          navigate(`/user-dashboard?tab=messages&conversation=${conversationId}`);
+        } else {
+          navigate(notification.action_url);
+        }
       }
     }
     setIsOpen(false);

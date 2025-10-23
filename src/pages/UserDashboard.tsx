@@ -38,8 +38,9 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import ProfileCompletionChecklist from '@/components/ProfileCompletionChecklist';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import FavoritesPanel from '@/components/FavoritesPanel';
+import ChatInterface from '@/components/ChatInterface';
 import { UserTransactionReviews } from '@/components/UserTransactionReviews';
 import PWAFeatures from '@/components/PWAFeatures';
 import PushNotificationToggle from '@/components/PushNotificationToggle';
@@ -79,6 +80,7 @@ interface ContactRequest {
 
 const UserDashboard = () => {
   const { user, profile } = useAuth();
+  const [searchParams] = useSearchParams();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,6 +88,7 @@ const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isProfessional, setIsProfessional] = useState(false);
   const [showProfessionalForm, setShowProfessionalForm] = useState(false);
+  const [conversationId, setConversationId] = useState<string | undefined>();
   
   // Transaction confirmation hook
   const { 
@@ -123,6 +126,15 @@ const UserDashboard = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+
+  // Manejar parámetros de URL para abrir conversación
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    const conversation = searchParams.get('conversation');
+    
+    if (tab) setActiveTab(tab);
+    if (conversation) setConversationId(conversation);
+  }, [searchParams]);
 
   useEffect(() => {
     if (user) {
@@ -818,7 +830,7 @@ const UserDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
               Mi Perfil
@@ -827,9 +839,13 @@ const UserDashboard = () => {
               <Heart className="h-4 w-4 mr-2" />
               Favoritos
             </TabsTrigger>
+            <TabsTrigger value="messages">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Mensajes
+            </TabsTrigger>
             <TabsTrigger value="requests">
               <MessageSquare className="h-4 w-4 mr-2" />
-              Mis Solicitudes
+              Solicitudes
             </TabsTrigger>
             <TabsTrigger value="reviews">
               <Star className="h-4 w-4 mr-2" />

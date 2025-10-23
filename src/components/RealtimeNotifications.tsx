@@ -136,7 +136,7 @@ export const RealtimeNotifications: React.FC = () => {
                       icon: <MessageCircle className="h-4 w-4" />,
                       action: {
                         label: "Ver",
-                        onClick: () => window.location.href = '/professional/messages'
+                        onClick: () => window.location.href = `/user-dashboard?tab=messages&conversation=${message.conversation_id}`
                       }
                     });
                   }
