@@ -335,7 +335,8 @@ export const useAdvancedSearch = () => {
           'Limpieza de Persianas', 'Limpieza de Tanques de Agua', 'Desinfección y Sanitización',
           'Control de Plagas y Fumigación', 'Lavadero de Autos', 'Detailing de Autos', 'Detailing',
           'Polarizado de Vidrios', 'Instalador de Audio para Autos', 'Mecánico de Motos',
-          'Chapista y Pintor Automotor', 'Gomería', 'Auxiliares de Estudio'
+          'Chapista y Pintor Automotor', 'Gomería', 'Auxiliares de Estudio',
+          'Modista/Costurera/Confeccionista a medida/Bordados'
         ];
 
         // Cargar profesiones de la base de datos

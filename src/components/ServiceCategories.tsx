@@ -115,6 +115,7 @@ const ServiceCategories = () => {
         'Maquilladora social',
         'Martillero Público',
         'Masajista',
+        'Modista/Costurera/Confeccionista a medida/Bordados',
         'Mecánico',
         'Mecánico de Motos',
         'Mensajería',

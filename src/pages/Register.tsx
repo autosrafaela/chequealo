@@ -201,6 +201,7 @@ const Register = () => {
     { name: "Maquilladora Social", icon: Heart, color: "bg-pink-200 text-pink-700" },
     { name: "Martillero Público", icon: Building, color: "bg-green-100 text-green-600" },
     { name: "Masajista", icon: Heart, color: "bg-pink-100 text-pink-600" },
+    { name: "Modista/Costurera/Confeccionista a medida/Bordados", icon: Heart, color: "bg-rose-100 text-rose-600" },
     { name: "Mecánico", icon: Car, color: "bg-orange-100 text-orange-600" },
     { name: "Mecánico de Motos", icon: Car, color: "bg-orange-200 text-orange-700" },
     { name: "Mensajería", icon: Car, color: "bg-blue-100 text-blue-600" },
