@@ -38,7 +38,7 @@ import {
   Gift
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 
 interface AdminStats {
   totalUsers: number;
@@ -654,10 +654,10 @@ const AdminDashboard = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button asChild variant="outline" size="sm">
-                          <a href={`/professional/${professional.id}`} target="_blank">
+                          <Link to={`/professional/${professional.id}`} target="_blank">
                             <Eye className="h-4 w-4 mr-1" />
                             Ver Perfil
-                          </a>
+                          </Link>
                         </Button>
                         {professional.is_verified ? (
                           <Button 
