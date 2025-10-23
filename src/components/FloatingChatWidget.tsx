@@ -89,6 +89,13 @@ export const FloatingChatWidget = () => {
     setActiveConversationId(null);
   };
 
+  // Auto-abrir la última conversación para permitir continuar escribiendo
+  useEffect(() => {
+    if (isOpen && showConversationList && !activeConversationId && conversations.length > 0) {
+      handleOpenConversation(conversations[0]); // la más reciente ya viene ordenada
+    }
+  }, [isOpen, showConversationList, activeConversationId, conversations]);
+
   const handleSendMessage = async () => {
     if ((!messageText.trim() && !selectedFile) || !activeConversationId) return;
 
