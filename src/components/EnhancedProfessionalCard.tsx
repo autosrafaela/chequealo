@@ -164,7 +164,7 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
                 </Badge>
                 
                 {professional.is_verified && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-green-500 text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400">
                     Verificado
                   </Badge>
                 )}

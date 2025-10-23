@@ -103,10 +103,7 @@ const ProfessionalCard = ({
               <div className="flex items-center space-x-2">
                 <h3 className="text-lg font-semibold text-foreground">{name}</h3>
                 {isVerified && (
-                  <div className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                    <Shield className="h-3 w-3" />
-                    Verificado
-                  </div>
+                  <Shield className="h-4 w-4 text-blue-500 flex-shrink-0" />
                 )}
               </div>
               <p className="text-primary font-medium">{profession}</p>
@@ -149,9 +146,17 @@ const ProfessionalCard = ({
         </p>
 
         {/* Availability */}
-        <div className="flex items-center text-success text-sm mb-4">
-          <Clock className="h-4 w-4 mr-1" />
-          {availability}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center text-success text-sm">
+            <Clock className="h-4 w-4 mr-1" />
+            {availability}
+          </div>
+          
+          {isVerified && (
+            <div className="bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 text-xs px-3 py-1 rounded-full border border-green-500">
+              Verificado
+            </div>
+          )}
         </div>
       </div>
 
