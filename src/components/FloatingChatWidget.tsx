@@ -24,6 +24,7 @@ export const FloatingChatWidget = () => {
     fetchMessages,
     sendMessage,
     setActiveConversationId,
+    openConversationByContactRequest,
     canReceiveMessages
   } = useChat();
 
@@ -48,17 +49,33 @@ export const FloatingChatWidget = () => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
     const conversationId = params.get('conversation');
+    const contactRequestId = params.get('contactRequestId');
     
-    if (tab === 'messages' && conversationId && conversations.length > 0) {
-      const conversation = conversations.find(c => c.id === conversationId);
-      if (conversation) {
-        setIsOpen(true);
-        handleOpenConversation(conversation);
-        // Limpiar parámetros de URL
-        const newParams = new URLSearchParams(location.search);
-        newParams.delete('tab');
-        newParams.delete('conversation');
-        navigate({ search: newParams.toString() }, { replace: true });
+    if (tab === 'messages') {
+      if (conversationId && conversations.length > 0) {
+        const conversation = conversations.find(c => c.id === conversationId);
+        if (conversation) {
+          setIsOpen(true);
+          handleOpenConversation(conversation);
+          // Limpiar parámetros de URL
+          const newParams = new URLSearchParams(location.search);
+          newParams.delete('tab');
+          newParams.delete('conversation');
+          navigate({ search: newParams.toString() }, { replace: true });
+        }
+      } else if (contactRequestId) {
+        // Abrir chat por contact request
+        openConversationByContactRequest(contactRequestId).then(conv => {
+          if (conv) {
+            setIsOpen(true);
+            handleOpenConversation(conv);
+            // Limpiar parámetros de URL
+            const newParams = new URLSearchParams(location.search);
+            newParams.delete('tab');
+            newParams.delete('contactRequestId');
+            navigate({ search: newParams.toString() }, { replace: true });
+          }
+        });
       }
     }
   }, [location.search, conversations, navigate]);

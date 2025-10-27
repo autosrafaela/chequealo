@@ -392,6 +392,34 @@ export const useChat = () => {
     }
   };
 
+  const openConversationByContactRequest = async (contactRequestId: string) => {
+    try {
+      // Find existing conversation with this contact request
+      const existingConv = conversations.find(c => c.contact_request_id === contactRequestId);
+      
+      if (existingConv) {
+        return existingConv;
+      }
+
+      // Get the contact request to find the professional
+      const { data: contactRequest, error: crError } = await supabase
+        .from('contact_requests')
+        .select('professional_id, user_id')
+        .eq('id', contactRequestId)
+        .single();
+
+      if (crError) throw crError;
+
+      // Create new conversation
+      const newConv = await createConversation(contactRequest.professional_id, contactRequestId);
+      return newConv;
+    } catch (error) {
+      console.error('Error opening conversation by contact request:', error);
+      toast.error('Error al abrir el chat');
+      return null;
+    }
+  };
+
   return {
     conversations,
     messages,
@@ -401,6 +429,7 @@ export const useChat = () => {
     setActiveConversationId,
     fetchMessages,
     createConversation,
+    openConversationByContactRequest,
     sendMessage,
     markMessagesAsRead,
     deleteConversation,

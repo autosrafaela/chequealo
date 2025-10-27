@@ -19,10 +19,16 @@ serve(async (req: Request) => {
   try {
     console.log('Starting review reminder process...');
 
-    // Find completed transactions from 10 days ago that need review reminders
-    const tenDaysAgo = new Date();
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    const now = new Date();
+    
+    // Calculate time windows for 24hs and 72hs reminders
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const twentyFiveHoursAgo = new Date(now.getTime() - 25 * 60 * 60 * 1000);
+    
+    const seventyTwoHoursAgo = new Date(now.getTime() - 72 * 60 * 60 * 1000);
+    const seventyThreeHoursAgo = new Date(now.getTime() - 73 * 60 * 60 * 1000);
 
+    // Find completed transactions that need first reminder (24hs) or follow-up reminders (every 72hs)
     const { data: transactions, error: transactionsError } = await supabase
       .from('transactions')
       .select(`
@@ -33,8 +39,7 @@ serve(async (req: Request) => {
         professionals!inner(user_id, full_name)
       `)
       .eq('status', 'completed')
-      .gte('completed_at', tenDaysAgo.toISOString())
-      .lt('completed_at', new Date(tenDaysAgo.getTime() + 24 * 60 * 60 * 1000).toISOString());
+      .not('completed_at', 'is', null);
 
     if (transactionsError) {
       console.error('Error fetching transactions:', transactionsError);
@@ -43,7 +48,15 @@ serve(async (req: Request) => {
 
     console.log(`Found ${transactions?.length || 0} transactions to check for reminders`);
 
+    let remindersCount = 0;
+
     for (const transaction of transactions || []) {
+      const completedAt = new Date(transaction.completed_at);
+      const hoursSinceCompleted = (now.getTime() - completedAt.getTime()) / (1000 * 60 * 60);
+      
+      // Skip if less than 24 hours have passed
+      if (hoursSinceCompleted < 24) continue;
+
       // Check if user has already reviewed the professional
       const { data: userReview } = await supabase
         .from('reviews')
@@ -51,7 +64,7 @@ serve(async (req: Request) => {
         .eq('user_id', transaction.user_id)
         .eq('professional_id', transaction.professional_id)
         .eq('transaction_id', transaction.id)
-        .single();
+        .maybeSingle();
 
       // Check if professional has already reviewed the user
       const { data: professionalReview } = await supabase
@@ -60,60 +73,82 @@ serve(async (req: Request) => {
         .eq('professional_id', transaction.professional_id)
         .eq('user_id', transaction.user_id)
         .eq('transaction_id', transaction.id)
-        .single();
+        .maybeSingle();
 
-      // Check if reminder notifications have already been sent
-      const { data: existingUserNotification } = await supabase
+      // Get the last reminder sent for this transaction
+      const { data: lastUserNotification } = await supabase
         .from('notifications')
-        .select('id')
+        .select('created_at')
         .eq('user_id', transaction.user_id)
-        .eq('title', 'Recordatorio: Deja tu reseña')
-        .gte('created_at', tenDaysAgo.toISOString())
-        .single();
+        .ilike('title', '%Recordatorio%reseña%')
+        .contains('message', [(transaction as any).professionals.full_name])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      const { data: existingProfessionalNotification } = await supabase
+      const { data: lastProfessionalNotification } = await supabase
         .from('notifications')
-        .select('id')
+        .select('created_at')
         .eq('user_id', (transaction as any).professionals.user_id)
-        .eq('title', 'Recordatorio: Evalúa al cliente')
-        .gte('created_at', tenDaysAgo.toISOString())
-        .single();
+        .ilike('title', '%Recordatorio%cliente%')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      // Send reminder to user if they haven't reviewed and no reminder sent
-      if (!userReview && !existingUserNotification) {
+      // Determine if we should send reminder
+      const shouldSendUserReminder = !userReview && (
+        !lastUserNotification || // First reminder at 24hs
+        (now.getTime() - new Date(lastUserNotification.created_at).getTime()) >= 72 * 60 * 60 * 1000 // Follow-ups every 72hs
+      );
+
+      const shouldSendProfessionalReminder = !professionalReview && (
+        !lastProfessionalNotification || // First reminder at 24hs
+        (now.getTime() - new Date(lastProfessionalNotification.created_at).getTime()) >= 72 * 60 * 60 * 1000 // Follow-ups every 72hs
+      );
+
+      // Send reminder to user if needed
+      if (shouldSendUserReminder) {
+        const isFirstReminder = !lastUserNotification;
         const { error: userNotificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: transaction.user_id,
-            title: 'Recordatorio: Deja tu reseña',
-            message: `¿Cómo fue tu experiencia con ${(transaction as any).professionals.full_name}? Tu opinión ayuda a otros usuarios.`,
+            title: isFirstReminder ? '¡Deja tu reseña!' : 'Recordatorio: Deja tu reseña',
+            message: isFirstReminder 
+              ? `¿Cómo fue tu experiencia con ${(transaction as any).professionals.full_name}? Tu opinión ayuda a otros usuarios.`
+              : `Aún no has reseñado tu experiencia con ${(transaction as any).professionals.full_name}. ¡Tu opinión es importante!`,
             type: 'info',
-            action_url: `/professional/${transaction.professional_id}?review=true`
+            action_url: `/user-dashboard?tab=reviews`
           });
 
         if (userNotificationError) {
           console.error('Error sending user notification:', userNotificationError);
         } else {
-          console.log(`Review reminder sent to user ${transaction.user_id}`);
+          console.log(`Review reminder sent to user ${transaction.user_id} (${isFirstReminder ? 'first' : 'follow-up'})`);
+          remindersCount++;
         }
       }
 
-      // Send reminder to professional if they haven't reviewed and no reminder sent
-      if (!professionalReview && !existingProfessionalNotification) {
+      // Send reminder to professional if needed
+      if (shouldSendProfessionalReminder) {
+        const isFirstReminder = !lastProfessionalNotification;
         const { error: professionalNotificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: (transaction as any).professionals.user_id,
-            title: 'Recordatorio: Evalúa al cliente',
-            message: 'No olvides evaluar la experiencia con tu cliente reciente. Esto ayuda a mejorar la plataforma.',
+            title: isFirstReminder ? '¡Evalúa al cliente!' : 'Recordatorio: Evalúa al cliente',
+            message: isFirstReminder
+              ? 'No olvides evaluar la experiencia con tu cliente reciente. Esto ayuda a mejorar la plataforma.'
+              : 'Aún no has evaluado a tu cliente reciente. ¡Tu evaluación es importante para la comunidad!',
             type: 'info',
-            action_url: `/professional/dashboard?rate=true&transaction=${transaction.id}`
+            action_url: `/professional-dashboard?tab=reviews`
           });
 
         if (professionalNotificationError) {
           console.error('Error sending professional notification:', professionalNotificationError);
         } else {
-          console.log(`Review reminder sent to professional ${(transaction as any).professionals.user_id}`);
+          console.log(`Review reminder sent to professional ${(transaction as any).professionals.user_id} (${isFirstReminder ? 'first' : 'follow-up'})`);
+          remindersCount++;
         }
       }
     }
@@ -121,7 +156,7 @@ serve(async (req: Request) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Processed ${transactions?.length || 0} transactions for review reminders` 
+        message: `Processed ${transactions?.length || 0} transactions, sent ${remindersCount} reminders` 
       }),
       {
         status: 200,

@@ -80,7 +80,14 @@ export const ContactRequestsPanel = () => {
           const TypeIcon = getTypeIcon(request.type);
           
           return (
-            <div key={request.id} className="border rounded-lg p-4 space-y-3">
+            <div 
+              key={request.id} 
+              className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-accent/50 transition-colors"
+              onClick={() => {
+                window.location.href = `${window.location.pathname}?tab=messages&contactRequestId=${request.id}`;
+              }}
+              title="Click para abrir el chat"
+            >
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
@@ -145,11 +152,14 @@ export const ContactRequestsPanel = () => {
               <Separator />
 
               {/* Actions */}
-              <div className="flex gap-2">
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                 {request.status === 'pending' && (
                   <Button
                     size="sm"
-                    onClick={() => updateRequestStatus(request.id, 'contacted')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateRequestStatus(request.id, 'contacted');
+                    }}
                     className="flex-1"
                   >
                     Marcar como Contactado
@@ -159,7 +169,10 @@ export const ContactRequestsPanel = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => updateRequestStatus(request.id, 'closed')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateRequestStatus(request.id, 'closed');
+                    }}
                     className="flex-1"
                   >
                     Cerrar Solicitud
@@ -171,7 +184,10 @@ export const ContactRequestsPanel = () => {
                   asChild
                   className="flex-1"
                 >
-                  <a href={`mailto:${request.email}?subject=Re: ${getTypeText(request.type)} - Chequealo`}>
+                  <a 
+                    href={`mailto:${request.email}?subject=Re: ${getTypeText(request.type)} - Chequealo`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     Responder por Email
                   </a>
                 </Button>
