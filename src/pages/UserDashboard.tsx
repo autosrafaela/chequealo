@@ -38,7 +38,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import ProfileCompletionChecklist from '@/components/ProfileCompletionChecklist';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import FavoritesPanel from '@/components/FavoritesPanel';
 import ChatInterface from '@/components/ChatInterface';
 import { UserTransactionReviews } from '@/components/UserTransactionReviews';
@@ -81,6 +81,8 @@ interface ContactRequest {
 const UserDashboard = () => {
   const { user, profile } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const routerLocation = useLocation();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1087,7 +1089,17 @@ const UserDashboard = () => {
                 <div className="space-y-4">
                   {contactRequests.length > 0 ? (
                     contactRequests.map((request) => (
-                      <div key={request.id} className="border rounded-lg p-4">
+                    <div 
+                      key={request.id} 
+                      className="border rounded-lg p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                      onClick={() => {
+                        const params = new URLSearchParams();
+                        params.set('tab', 'messages');
+                        params.set('contactRequestId', request.id);
+                        navigate(`${routerLocation.pathname}?${params.toString()}`, { replace: true });
+                      }}
+                      title="Click para abrir el chat"
+                    >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -1110,7 +1122,7 @@ const UserDashboard = () => {
                                 size="sm"
                                 asChild
                               >
-                                <a href={`/professional/${request.professional.id}`}>
+                                <a href={`/professional/${request.professional.id}`} onClick={(e) => e.stopPropagation()}>
                                   <ExternalLink className="h-4 w-4 mr-1" />
                                   Ver Perfil
                                 </a>
