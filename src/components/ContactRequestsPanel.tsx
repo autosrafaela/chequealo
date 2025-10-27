@@ -7,9 +7,12 @@ import { MessageCircle, Calculator, Mail, Calendar, User, Clock } from "lucide-r
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const ContactRequestsPanel = () => {
   const { requests, loading, updateRequestStatus } = useContactRequests();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const getStatusColor = (status: ContactRequest['status']) => {
     switch (status) {
@@ -84,7 +87,11 @@ export const ContactRequestsPanel = () => {
               key={request.id} 
               className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-accent/50 transition-colors"
               onClick={() => {
-                window.location.href = `${window.location.pathname}?tab=messages&contactRequestId=${request.id}`;
+                // Navegamos a la misma ruta pero con parámetros para abrir el chat
+                const params = new URLSearchParams();
+                params.set('tab', 'messages');
+                params.set('contactRequestId', request.id);
+                navigate(`${location.pathname}?${params.toString()}`, { replace: true });
               }}
               title="Click para abrir el chat"
             >
