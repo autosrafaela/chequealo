@@ -109,14 +109,17 @@ serve(async (req: Request) => {
       // Send reminder to user if needed
       if (shouldSendUserReminder) {
         const isFirstReminder = !lastUserNotification;
+        const title = isFirstReminder ? '¡Deja tu reseña!' : 'Recordatorio: Deja tu reseña';
+        const message = isFirstReminder 
+          ? `¿Cómo fue tu experiencia con ${(transaction as any).professionals.full_name}? Tu opinión ayuda a otros usuarios.`
+          : `Aún no has reseñado tu experiencia con ${(transaction as any).professionals.full_name}. ¡Tu opinión es importante!`;
+        
         const { error: userNotificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: transaction.user_id,
-            title: isFirstReminder ? '¡Deja tu reseña!' : 'Recordatorio: Deja tu reseña',
-            message: isFirstReminder 
-              ? `¿Cómo fue tu experiencia con ${(transaction as any).professionals.full_name}? Tu opinión ayuda a otros usuarios.`
-              : `Aún no has reseñado tu experiencia con ${(transaction as any).professionals.full_name}. ¡Tu opinión es importante!`,
+            title,
+            message,
             type: 'info',
             action_url: `/user-dashboard?tab=reviews`
           });
@@ -125,6 +128,23 @@ serve(async (req: Request) => {
           console.error('Error sending user notification:', userNotificationError);
         } else {
           console.log(`Review reminder sent to user ${transaction.user_id} (${isFirstReminder ? 'first' : 'follow-up'})`);
+          
+          // Send push notification
+          try {
+            await supabase.functions.invoke('send-push-notification', {
+              body: {
+                userIds: [transaction.user_id],
+                title,
+                body: message,
+                url: `/user-dashboard?tab=reviews`,
+                icon: '/icon-192.png'
+              }
+            });
+            console.log(`Push notification sent to user ${transaction.user_id}`);
+          } catch (pushError) {
+            console.error('Error sending push notification to user:', pushError);
+          }
+          
           remindersCount++;
         }
       }
@@ -132,14 +152,17 @@ serve(async (req: Request) => {
       // Send reminder to professional if needed
       if (shouldSendProfessionalReminder) {
         const isFirstReminder = !lastProfessionalNotification;
+        const title = isFirstReminder ? '¡Evalúa al cliente!' : 'Recordatorio: Evalúa al cliente';
+        const message = isFirstReminder
+          ? 'No olvides evaluar la experiencia con tu cliente reciente. Esto ayuda a mejorar la plataforma.'
+          : 'Aún no has evaluado a tu cliente reciente. ¡Tu evaluación es importante para la comunidad!';
+        
         const { error: professionalNotificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: (transaction as any).professionals.user_id,
-            title: isFirstReminder ? '¡Evalúa al cliente!' : 'Recordatorio: Evalúa al cliente',
-            message: isFirstReminder
-              ? 'No olvides evaluar la experiencia con tu cliente reciente. Esto ayuda a mejorar la plataforma.'
-              : 'Aún no has evaluado a tu cliente reciente. ¡Tu evaluación es importante para la comunidad!',
+            title,
+            message,
             type: 'info',
             action_url: `/professional-dashboard?tab=reviews`
           });
@@ -148,6 +171,23 @@ serve(async (req: Request) => {
           console.error('Error sending professional notification:', professionalNotificationError);
         } else {
           console.log(`Review reminder sent to professional ${(transaction as any).professionals.user_id} (${isFirstReminder ? 'first' : 'follow-up'})`);
+          
+          // Send push notification
+          try {
+            await supabase.functions.invoke('send-push-notification', {
+              body: {
+                userIds: [(transaction as any).professionals.user_id],
+                title,
+                body: message,
+                url: `/professional-dashboard?tab=reviews`,
+                icon: '/icon-192.png'
+              }
+            });
+            console.log(`Push notification sent to professional ${(transaction as any).professionals.user_id}`);
+          } catch (pushError) {
+            console.error('Error sending push notification to professional:', pushError);
+          }
+          
           remindersCount++;
         }
       }
