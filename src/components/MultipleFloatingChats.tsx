@@ -21,7 +21,8 @@ export const MultipleFloatingChats = () => {
   const {
     conversations,
     canReceiveMessages,
-    openConversationByContactRequest
+    openConversationByContactRequest,
+    getConversationWithRelations
   } = useChat();
 
   const [openChats, setOpenChats] = useState<OpenChat[]>([]);
@@ -68,12 +69,18 @@ export const MultipleFloatingChats = () => {
     setUnreadCount(total);
   }, [conversations]);
 
-  const handleOpenChat = (conversation: any) => {
+  const handleOpenChat = async (conversation: any) => {
     // Verificar si el chat ya está abierto
     const existingChat = openChats.find(chat => chat.conversationId === conversation.id);
     if (existingChat) {
-      // Si ya está abierto, no hacer nada o traerlo al frente
       return;
+    }
+
+    // Enriquecer la conversación con relaciones si faltan (p.ej. al crear por contactRequest)
+    let enriched = conversation;
+    if (!conversation.professionals) {
+      const fetched = await getConversationWithRelations(conversation.id);
+      if (fetched) enriched = fetched;
     }
 
     // Calcular posición para el nuevo chat
@@ -86,8 +93,8 @@ export const MultipleFloatingChats = () => {
 
     const newChat: OpenChat = {
       id: `chat-${Date.now()}`,
-      conversationId: conversation.id,
-      conversation,
+      conversationId: enriched.id,
+      conversation: enriched,
       position: newPosition
     };
 

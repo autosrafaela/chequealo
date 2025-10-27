@@ -48,11 +48,11 @@ export const useChat = () => {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user && planLimits.canReceiveMessages) {
+    if (user) {
       fetchConversations();
       setupRealtimeSubscriptions();
     }
-  }, [user, planLimits.canReceiveMessages]);
+  }, [user]);
 
   const fetchConversations = async () => {
     try {
@@ -436,6 +436,14 @@ export const useChat = () => {
     blockConversation,
     refreshConversations: fetchConversations,
     canSendFiles: planLimits.canSendFiles,
-    canReceiveMessages: planLimits.canReceiveMessages
+    canReceiveMessages: planLimits.canReceiveMessages,
+    getConversationWithRelations: async (conversationId: string) => {
+      const { data } = await supabase
+        .from('conversations')
+        .select(`*, professionals!professional_id(full_name, image_url)`) 
+        .eq('id', conversationId)
+        .single();
+      return data;
+    }
   };
 };
