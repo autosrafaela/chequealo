@@ -117,6 +117,47 @@ const UserDashboard = () => {
   const [creatingProfessional, setCreatingProfessional] = useState(false);
   const [professionCategories, setProfessionCategories] = useState<any[]>([]);
   const [serviceCategories, setServiceCategories] = useState<any[]>([]);
+  const [professionSearch, setProfessionSearch] = useState('');
+  const [showProfessionDropdown, setShowProfessionDropdown] = useState(false);
+
+  // Lista completa de profesiones disponibles (130+)
+  const allProfessions = [
+    "Abogado", "Acompañante Terapéutico", "Adiestrador de Perros", "Agrimensor", "Albañil",
+    "Alisadora Profesional", "Arquitecta", "Asesor de Seguros", "Asesor Inmobiliario",
+    "Automatización con IA", "Auxiliares de Estudio", "Barman / Bartender", "Barbero",
+    "Camarógrafo", "Carpintero / Ebanista", "Catering", "Cerrajero", "Chapista y Pintor Automotor",
+    "Chef a Domicilio", "Chofer Particular", "Colocador de Cerámicos", "Colocador de Pisos",
+    "Colocador de Porcelanatos", "Community Manager", "Contadora Pública", "Contador",
+    "Control de Plagas y Fumigación", "Cortinero", "Cuidador de Mascotas",
+    "Cuidador/a de Adultos Mayores", "Cuidador/a de Niños (Niñera)", "Decorador de Interiores",
+    "Desinfección y Sanitización", "Detailing", "Detailing de Autos", "Desarrollador Web",
+    "Diseñador de Interiores", "Diseñador Gráfico", "Editor de Video", "Electricista",
+    "Electricista Matriculado", "Empleada Doméstica / Servicio de Limpieza", "Enfermero/a",
+    "Entrenador Personal", "Escribano", "Esteticista", "Fletero / Mudanzas", "Fonoaudiólogo",
+    "Fotógrafo", "Fumigador / Control de Plagas", "Gestor del Automotor", "Gomería", "Herrero",
+    "Herrería de Obra", "Ingeniero", "Instalador de Alarmas", "Instalador de Audio para Autos",
+    "Instalador de Cámaras de Seguridad", "Instalador de Durlock / Yesero",
+    "Instalador de Internet", "Instalador de Paneles Solares", "Instalador de TV", "Jardinero",
+    "Jardinero / Paisajista", "Kinesiólogo / Fisioterapeuta", "Lavadero de Autos",
+    "Limpieza de Alfombras", "Limpieza de Persianas", "Limpieza de Tanques de Agua",
+    "Limpieza de Tapizados", "Limpieza y Mantenimiento", "Manicurista", "Maquillador/a",
+    "Maquillador Profesional", "Maquilladora Artística", "Maquilladora Social", "Martillero Público",
+    "Masajista", "Modista/Costurera/Confeccionista a medida/Bordados", "Mecánico",
+    "Mecánico de Motos", "Mensajería", "Nutricionista", "Organizador Profesional",
+    "Paseador de Perros", "Pastelero", "Pedicurista", "Peluquero/a", "Peluquero Canino",
+    "Personal Shopper", "Pintor", "Pintor de Obras", "Piscinas / Piletas Colocación",
+    "Plomero / Gasista", "Podador de Árboles", "Polarizado de Vidrios", "Profesor de Apoyo Escolar",
+    "Profesor de Canto", "Profesor de Danza", "Profesor de Dibujo y Pintura", "Profesor de Física",
+    "Profesor de Idiomas", "Profesor de Matemáticas", "Profesor de Música",
+    "Profesor de Música (Guitarra)", "Profesor de Música (Piano)", "Profesor de Química",
+    "Profesor de Yoga", "Profesor de Pilates", "Profesor Particular", "Profesora de Inglés",
+    "Psicólogo", "Psicopedagogo", "Pulidor de Pisos", "Redactor de Contenidos", "Remisero",
+    "Reparación de Celulares", "Reparación de Computadoras", "Reparación de Electrodomésticos",
+    "Repostero", "Servicio Técnico (Línea Blanca)", "Soldador", "Sommelier", "Tapicero",
+    "Techista", "Técnico de Aire Acondicionado", "Técnico de Celulares", "Técnico de PC",
+    "Técnico en Calefacción", "Técnico en Energías Renovables", "Técnico en Redes",
+    "Técnico en Refrigeración", "Terapista Ocupacional", "Traductor", "Veterinario", "Vidriería"
+  ];
 
   // States for account actions
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -135,6 +176,21 @@ const UserDashboard = () => {
     if (tab) setActiveTab(tab);
     if (conversation) setConversationId(conversation);
   }, [searchParams]);
+
+  // Cerrar dropdown de profesiones al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('#prof-profession') && !target.closest('.profession-dropdown')) {
+        setShowProfessionDropdown(false);
+      }
+    };
+
+    if (showProfessionDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showProfessionDropdown]);
 
   useEffect(() => {
     if (user) {
@@ -1270,44 +1326,58 @@ const UserDashboard = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="prof-profession">Profesión *</Label>
-                <Select
-                  value={professionalData.profession}
-                  onValueChange={(value) => setProfessionalData(prev => ({
-                    ...prev,
-                    profession: value
-                  }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona tu profesión" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {professionCategories.map((category) => {
-                      const categoryServices = serviceCategories.filter(
-                        service => service.profession_category_id === category.id
-                      );
-                      
-                      return (
-                        <div key={category.id}>
-                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50">
-                            {category.icon} {category.name}
-                          </div>
-                          {categoryServices.map((service) => (
-                            <SelectItem 
-                              key={service.id} 
-                              value={service.name}
-                              className="pl-6"
-                            >
-                              {service.name}
-                            </SelectItem>
-                          ))}
+                <div className="relative">
+                  <Input
+                    id="prof-profession"
+                    value={professionSearch || professionalData.profession}
+                    onChange={(e) => {
+                      setProfessionSearch(e.target.value);
+                      setShowProfessionDropdown(true);
+                    }}
+                    onFocus={() => setShowProfessionDropdown(true)}
+                    placeholder="Escribe para buscar tu profesión..."
+                    className="w-full"
+                  />
+                  {showProfessionDropdown && (
+                    <div className="profession-dropdown absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-[300px] overflow-y-auto">
+                      {allProfessions
+                        .filter(prof => 
+                          prof.toLowerCase().includes((professionSearch || professionalData.profession).toLowerCase())
+                        )
+                        .map((profession, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground text-sm transition-colors"
+                            onClick={() => {
+                              setProfessionalData(prev => ({
+                                ...prev,
+                                profession: profession
+                              }));
+                              setProfessionSearch('');
+                              setShowProfessionDropdown(false);
+                            }}
+                          >
+                            {profession}
+                          </button>
+                        ))}
+                      {allProfessions.filter(prof => 
+                        prof.toLowerCase().includes((professionSearch || professionalData.profession).toLowerCase())
+                      ).length === 0 && (
+                        <div className="px-4 py-3 text-sm text-muted-foreground">
+                          No se encontraron profesiones. Escribe tu profesión manualmente.
                         </div>
-                      );
-                    })}
-                    <SelectItem value="Otro">Otro</SelectItem>
-                  </SelectContent>
-                </Select>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {professionalData.profession && !showProfessionDropdown && (
+                  <p className="text-xs text-muted-foreground">
+                    Profesión seleccionada: <span className="font-medium">{professionalData.profession}</span>
+                  </p>
+                )}
               </div>
 
               <LocationAutocomplete
