@@ -29,6 +29,8 @@ const ServiceCategories = () => {
     { name: "Automatización con IA", icon: Laptop, color: "bg-violet-100 text-violet-600", rank: 12, searchTerm: "automatización ia" },
     { name: "Piscinas / Piletas Colocación", icon: Building, color: "bg-blue-200 text-blue-700", rank: 13, searchTerm: "piscinas piletas" },
     { name: "Modista/Costurera/Confeccionista a medida/Bordados", icon: Scissors, color: "bg-rose-100 text-rose-600", rank: 14, searchTerm: "modista costurera" },
+    { name: "Capacitación en Manejo y Programación de Tornos CNC", icon: Laptop, color: "bg-indigo-100 text-indigo-600", rank: 15, searchTerm: "capacitación tornos cnc" },
+    { name: "Cursos/Formación", icon: Laptop, color: "bg-blue-100 text-blue-600", rank: 16, searchTerm: "cursos formación" },
   ];
 
   const loadAllProfessions = async () => {
