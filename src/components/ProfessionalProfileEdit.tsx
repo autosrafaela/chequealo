@@ -343,7 +343,6 @@ export const ProfessionalProfileEdit = ({ professionalData, onUpdate, isOwner }:
                   id="photo-file"
                   type="file"
                   accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
-                  capture="environment"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                   required
                   className="sr-only"
