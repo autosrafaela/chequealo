@@ -83,6 +83,7 @@ const ServiceCategories = () => {
         'Electricista',
         'Electricista Matriculado',
         'Empleada Doméstica / Servicio de Limpieza',
+        'Encomiendas/Comisionista',
         'Enfermero/a',
         'Entrenador Personal',
         'Escribano',

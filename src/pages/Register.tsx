@@ -167,6 +167,7 @@ const Register = () => {
     { name: "Electricista", icon: Zap, color: "bg-yellow-200 text-yellow-700" },
     { name: "Electricista Matriculado", icon: Zap, color: "bg-yellow-100 text-yellow-600" },
     { name: "Empleada Doméstica / Servicio de Limpieza", icon: Sparkles, color: "bg-teal-100 text-teal-600" },
+    { name: "Encomiendas/Comisionista", icon: Car, color: "bg-blue-200 text-blue-700" },
     { name: "Enfermero/a", icon: Heart, color: "bg-blue-100 text-blue-600" },
     { name: "Entrenador Personal", icon: Dumbbell, color: "bg-purple-100 text-purple-600" },
     { name: "Escribano", icon: Laptop, color: "bg-gray-100 text-gray-600" },

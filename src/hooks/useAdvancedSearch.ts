@@ -320,7 +320,7 @@ export const useAdvancedSearch = () => {
           'Maquillador Profesional', 'Maquilladora Social', 'Maquilladora Artística',
           'Fotógrafo', 'Camarógrafo', 'Capacitación en Manejo y Programación de Tornos CNC', 'Editor de Video',
           'Diseñador Gráfico', 'Desarrollador Web', 'Community Manager', 'Redactor de Contenidos',
-          'Traductor', 'Profesor Particular', 'Profesor de Matemáticas', 'Profesor de Física',
+          'Traductor', 'Encomiendas/Comisionista', 'Profesor Particular', 'Profesor de Matemáticas', 'Profesor de Física',
           'Profesor de Química', 'Profesor de Idiomas', 'Profesor de Música (Piano)',
           'Profesor de Música (Guitarra)', 'Profesor de Canto', 'Profesor de Danza',
           'Profesor de Dibujo y Pintura', 'Veterinario', 'Peluquero Canino', 'Paseador de Perros',
