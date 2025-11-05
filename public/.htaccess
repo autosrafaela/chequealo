@@ -9,6 +9,12 @@ Options -MultiViews
   RewriteCond %{HTTP_HOST} ^www\.chequealo\.ar$ [NC]
   RewriteRule ^(.*)$ https://chequealo.ar/$1 [L,R=301]
 
+  # Pre-rendering for social media bots (Facebook, WhatsApp, Twitter, etc.)
+  # This allows social platforms to see the correct meta tags when sharing
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|instagram|Pinterest) [NC]
+  RewriteCond %{REQUEST_URI} ^/professional/
+  RewriteRule ^(.*)$ https://service.prerender.io/https://chequealo.ar/$1 [P,L]
+
   # Serve files if they exist
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

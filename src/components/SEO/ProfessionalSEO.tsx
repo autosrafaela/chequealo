@@ -84,6 +84,27 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     ogUrl.content = window.location.href;
     document.head.appendChild(ogUrl);
 
+    const ogSiteName = document.createElement('meta');
+    ogSiteName.setAttribute('property', 'og:site_name');
+    ogSiteName.content = 'Chequealo';
+    document.head.appendChild(ogSiteName);
+
+    // Twitter Card tags
+    const twitterCard = document.createElement('meta');
+    twitterCard.setAttribute('name', 'twitter:card');
+    twitterCard.content = 'summary_large_image';
+    document.head.appendChild(twitterCard);
+
+    const twitterTitle = document.createElement('meta');
+    twitterTitle.setAttribute('name', 'twitter:title');
+    twitterTitle.content = title;
+    document.head.appendChild(twitterTitle);
+
+    const twitterDescription = document.createElement('meta');
+    twitterDescription.setAttribute('name', 'twitter:description');
+    twitterDescription.content = description;
+    document.head.appendChild(twitterDescription);
+
     if (professional.image_url) {
       const ogImage = document.createElement('meta');
       ogImage.setAttribute('property', 'og:image');
@@ -109,6 +130,12 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       ogImageType.setAttribute('property', 'og:image:type');
       ogImageType.content = 'image/jpeg';
       document.head.appendChild(ogImageType);
+
+      // Twitter image
+      const twitterImage = document.createElement('meta');
+      twitterImage.setAttribute('name', 'twitter:image');
+      twitterImage.content = imageUrl;
+      document.head.appendChild(twitterImage);
     }
 
     // Canonical URL
@@ -172,16 +199,17 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       // Remove added meta tags
       if (metaDescription.parentNode) metaDescription.remove();
       if (metaKeywords.parentNode) metaKeywords.remove();
-      if (ogType.parentNode) ogType.remove();
-      if (ogTitle.parentNode) ogTitle.remove();
-      if (ogDescription.parentNode) ogDescription.remove();
-      if (ogUrl.parentNode) ogUrl.remove();
       if (canonical.parentNode) canonical.remove();
       if (script.parentNode) script.remove();
 
-      // Remove image meta tags if they exist
-      const imageMetaTags = document.querySelectorAll('meta[property^="og:image"]');
-      imageMetaTags.forEach(tag => {
+      // Remove all dynamic Open Graph and Twitter meta tags
+      const ogMetaTags = document.querySelectorAll('meta[property^="og:"]');
+      ogMetaTags.forEach(tag => {
+        if (tag.parentNode) tag.remove();
+      });
+
+      const twitterMetaTags = document.querySelectorAll('meta[name^="twitter:"]');
+      twitterMetaTags.forEach(tag => {
         if (tag.parentNode) tag.remove();
       });
     };
