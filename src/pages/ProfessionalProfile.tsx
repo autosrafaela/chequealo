@@ -221,11 +221,17 @@ const ProfessionalProfile = () => {
     setIsFavorite(!isFavorite);
   };
 
+  const getShareUrl = () => {
+    const target = `/professional/${professional.id}`;
+    return `${window.location.origin}/?to=${encodeURIComponent(target)}`;
+  };
+
   const handleShare = async () => {
+    const url = getShareUrl();
     const shareData = {
       title: `${professional.full_name} - ${professional.profession}`,
       text: `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location}`,
-      url: window.location.href,
+      url,
     };
 
     if (navigator.share) {
@@ -237,7 +243,7 @@ const ProfessionalProfile = () => {
     } else {
       // Fallback: copy to clipboard
       try {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText(url);
         toast.success('Enlace copiado al portapapeles');
       } catch (error) {
         toast.error('No se pudo copiar el enlace');
@@ -246,31 +252,31 @@ const ProfessionalProfile = () => {
   };
 
   const shareToWhatsApp = () => {
-    const message = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location} - ${window.location.href}`;
+    const message = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location} - ${getShareUrl()}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
   const shareToFacebook = () => {
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`;
     window.open(facebookUrl, '_blank', 'width=600,height=400');
   };
 
   const shareToTwitter = () => {
     const text = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location}`;
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(getShareUrl())}`;
     window.open(twitterUrl, '_blank', 'width=600,height=400');
   };
 
   const shareToInstagram = () => {
     // Instagram doesn't have direct URL sharing, so we copy to clipboard with a message
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(getShareUrl());
     toast.success('Enlace copiado. Puedes pegarlo en tu historia de Instagram');
   };
 
   const shareToEmail = () => {
     const subject = `Conoce a ${professional.full_name} - ${professional.profession}`;
-    const body = `Te recomiendo a ${professional.full_name}, ${professional.profession} en ${professional.location}.\n\nPuedes ver su perfil aquí: ${window.location.href}`;
+    const body = `Te recomiendo a ${professional.full_name}, ${professional.profession} en ${professional.location}.\n\nPuedes ver su perfil aquí: ${getShareUrl()}`;
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoUrl;
   };
