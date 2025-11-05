@@ -40,19 +40,6 @@
 
   <body>
     <div id="root"></div>
-    <script>
-      (function() {
-        try {
-          var url = new URL(window.location.href);
-          var to = url.searchParams.get('to');
-          // Only allow safe internal routes to prevent open redirects
-          if (to && /^\/(professional|p)\//.test(to)) {
-            // Redirect before React mounts to support iOS PWA deep links
-            window.location.replace(to);
-          }
-        } catch (e) { /* noop */ }
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       // Service Worker control: disable in Lovable preview and ALL iOS/Mobile Safari browsers
