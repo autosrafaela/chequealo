@@ -54,8 +54,8 @@ const App = () => (
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/test-results" element={<TestResults />} />
-        {/* SEO-friendly URLs */}
-        <Route path="/:profession/:location/:name" element={<SeoLanding />} />
+        {/* SEO-friendly URLs - Must be after all other routes with 3+ segments */}
+        <Route path="/p/:profession/:location/:name" element={<SeoLanding />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
