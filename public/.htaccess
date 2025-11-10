@@ -10,7 +10,7 @@ Options -MultiViews
   RewriteRule ^(.*)$ https://chequealo.ar/$1 [L,R=301]
 
   # Pre-rendering ONLY for social media bots, allow Googlebot normal access
-  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|instagram|Pinterest) [NC]
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Twitterbot|Slackbot|LinkedInBot|instagram|Pinterest|Discordbot|TelegramBot) [NC]
   RewriteCond %{HTTP_USER_AGENT} !Googlebot [NC]
   RewriteCond %{REQUEST_URI} ^/professional/
   RewriteRule ^(.*)$ https://service.prerender.io/https://chequealo.ar/$1 [P,L]
