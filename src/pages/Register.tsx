@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import { PasswordStrengthIndicator } from '@/components/ui/password-strength-indicator';
 import { validatePassword } from '@/utils/passwordValidation';
+import { getDashboardRoute } from '@/utils/redirectHelpers';
 import heroProfessionals from "@/assets/hero-professionals.jpg";
 import chequealoLogo from '@/assets/chequealo-transparent-logo.png';
 import { 
@@ -89,24 +90,33 @@ const Register = () => {
         .maybeSingle()
         .then(({ data }) => {
           if (data) {
-            // Has professional profile, go to dashboard
+            // Has professional profile, go to professional dashboard
             toast.success('¡Bienvenido de vuelta!');
             navigate('/dashboard', { replace: true });
           } else {
-            // New OAuth user without profile - stay on register to complete setup
-            toast.success('¡Bienvenido! Por favor completa tu perfil profesional');
-            // Pre-fill form with Google data if available
-            if (user.user_metadata?.full_name) {
-              setFormData(prev => ({
-                ...prev,
-                fullName: user.user_metadata.full_name || prev.fullName,
-                email: user.email || prev.email
-              }));
+            // Check if coming from OAuth or if this is a new user
+            const isNewOAuthUser = !urlEmail; // If no URL params, it's an OAuth user
+            
+            if (isNewOAuthUser && userType === 'professional') {
+              // New OAuth user without profile - stay on register to complete setup
+              toast.success('¡Bienvenido! Por favor completa tu perfil profesional');
+              // Pre-fill form with Google data if available
+              if (user.user_metadata?.full_name) {
+                setFormData(prev => ({
+                  ...prev,
+                  fullName: user.user_metadata.full_name || prev.fullName,
+                  email: user.email || prev.email
+                }));
+              }
+            } else if (isNewOAuthUser && userType === 'client') {
+              // OAuth client without professional profile - go to user dashboard
+              toast.success('¡Bienvenido de vuelta!');
+              navigate('/user-dashboard', { replace: true });
             }
           }
         });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, userType, urlEmail]);
   
   // Form data - prefill from URL parameters
   const [formData, setFormData] = useState({
@@ -377,8 +387,10 @@ const Register = () => {
           }
         }
 
+        // Determinar ruta correcta según tipo de usuario
+        const dashboardRoute = await getDashboardRoute(user.id);
         toast.success('¡Perfil creado exitosamente!');
-        navigate('/dashboard', { replace: true });
+        navigate(dashboardRoute, { replace: true });
         setIsLoading(false);
         return;
       }
@@ -469,8 +481,12 @@ const Register = () => {
           }
         }
 
-        toast.success('¡Cuenta creada e inicio de sesión exitoso!');
-        navigate('/dashboard', { replace: true });
+        // Determinar ruta correcta según tipo de usuario
+        if (newUser) {
+          const dashboardRoute = await getDashboardRoute(newUser.id);
+          toast.success('¡Cuenta creada e inicio de sesión exitoso!');
+          navigate(dashboardRoute, { replace: true });
+        }
       } else {
         // Si el proyecto requiere confirmación de email, el login fallará hasta confirmar
         toast.success('Cuenta creada. Revisa tu email para confirmar y luego inicia sesión.');

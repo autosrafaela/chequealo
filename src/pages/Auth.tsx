@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import Header from '@/components/Header';
 import { PasswordStrengthIndicator } from '@/components/ui/password-strength-indicator';
 import { validatePassword } from '@/utils/passwordValidation';
+import { getDashboardRoute } from '@/utils/redirectHelpers';
 import chequealoLogo from '@/assets/chequealo-transparent-logo.png';
 
 const Auth = () => {
@@ -87,7 +88,10 @@ const Auth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/dashboard', { replace: true });
+      // Determinar ruta correcta según tipo de usuario
+      getDashboardRoute(user.id).then(dashboardRoute => {
+        navigate(dashboardRoute, { replace: true });
+      });
     }
   }, [user, loading, navigate]);
   const handleLogin = async (e: React.FormEvent) => {
@@ -107,8 +111,13 @@ const Auth = () => {
           setError(error.message);
         }
       } else {
-        toast.success('¡Bienvenido de vuelta!');
-        navigate('/dashboard', { replace: true });
+        // Determinar ruta correcta según tipo de usuario
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          const dashboardRoute = await getDashboardRoute(currentUser.id);
+          toast.success('¡Bienvenido de vuelta!');
+          navigate(dashboardRoute, { replace: true });
+        }
       }
     } catch (err) {
       setError('Error inesperado. Inténtalo de nuevo.');
@@ -195,8 +204,13 @@ const Auth = () => {
           const { error: loginError } = await signIn(signupEmail, signupPassword);
           
           if (!loginError) {
-            toast.success('¡Cuenta creada e inicio de sesión exitoso!');
-            navigate('/dashboard', { replace: true });
+            // Determinar ruta correcta según tipo de usuario
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            if (currentUser) {
+              const dashboardRoute = await getDashboardRoute(currentUser.id);
+              toast.success('¡Cuenta creada e inicio de sesión exitoso!');
+              navigate(dashboardRoute, { replace: true });
+            }
           } else {
             // Si falla auto-login (por confirmación de email), mostrar mensaje
             toast.success('¡Cuenta creada! Revisa tu email para confirmar tu cuenta.');
@@ -240,7 +254,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/auth`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
