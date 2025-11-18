@@ -1,9 +1,17 @@
 # Allow all major search engines and AI crawlers
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /user-dashboard
+Disallow: /admin
+Disallow: /test-results
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /user-dashboard
+Disallow: /admin
+Disallow: /test-results
 
 User-agent: Twitterbot
 Allow: /
@@ -44,9 +52,18 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-# Allow all other bots
+# Allow all other bots - exclude private pages and search results with parameters
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /user-dashboard
+Disallow: /admin
+Disallow: /test-results
+Disallow: /auth
+Disallow: /verification
+
+# Block search result pages with query parameters to avoid duplicate content
+Disallow: /*?q=*
 
 # Sitemap location
 Sitemap: https://chequealo.ar/sitemap.xml
