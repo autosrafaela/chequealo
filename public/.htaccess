@@ -9,19 +9,22 @@ Options -MultiViews
   RewriteCond %{HTTP_HOST} ^www\.chequealo\.ar$ [NC]
   RewriteRule ^(.*)$ https://chequealo.ar/$1 [L,R=301]
 
-  # Pre-rendering ONLY for social media bots, allow Googlebot normal access
+  # Pre-rendering ONLY for social media bots, exclude Googlebot and WhatsApp
   RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Twitterbot|Slackbot|LinkedInBot|instagram|Pinterest|Discordbot|TelegramBot) [NC]
   RewriteCond %{HTTP_USER_AGENT} !Googlebot [NC]
   RewriteCond %{REQUEST_URI} ^/professional/
   RewriteRule ^(.*)$ https://service.prerender.io/https://chequealo.ar/$1 [P,L]
 
-  # Serve static files directly (images, CSS, JS, sitemap, robots.txt)
+  # Serve static files directly (images, CSS, JS, fonts, manifest, sitemap, robots.txt, favicon)
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Fallback all other routes to the SPA entry point for Google and normal users
-  RewriteRule ^ index.html [L]
+  # SPA fallback: redirect all other routes to index.html
+  # This allows React Router to handle all app routes
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
 </IfModule>
 
 # Optional: Cache static assets aggressively (adjust as needed)
