@@ -34,6 +34,7 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     const existingOgTitle = document.querySelector('meta[property="og:title"]');
     const existingOgDescription = document.querySelector('meta[property="og:description"]');
     const existingOgImage = document.querySelector('meta[property="og:image"]');
+    const existingOgImageSecure = document.querySelector('meta[property="og:image:secure_url"]');
     const existingOgImageWidth = document.querySelector('meta[property="og:image:width"]');
     const existingOgImageHeight = document.querySelector('meta[property="og:image:height"]');
     const existingOgImageType = document.querySelector('meta[property="og:image:type"]');
@@ -46,6 +47,7 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     if (existingOgTitle) existingOgTitle.remove();
     if (existingOgDescription) existingOgDescription.remove();
     if (existingOgImage) existingOgImage.remove();
+    if (existingOgImageSecure) existingOgImageSecure.remove();
     if (existingOgImageWidth) existingOgImageWidth.remove();
     if (existingOgImageHeight) existingOgImageHeight.remove();
     if (existingOgImageType) existingOgImageType.remove();
@@ -109,29 +111,61 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     let imageUrl = professional.image_url;
     
     if (imageUrl) {
-      // If it's a Supabase Storage URL (relative path)
-      if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
-        imageUrl = `https://rolitmcxydholgsxpvwa.supabase.co${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+      console.log('Original image URL:', imageUrl);
+      
+      // Handle Supabase Storage URLs
+      // Format: https://PROJECT.supabase.co/storage/v1/object/public/BUCKET/PATH
+      if (imageUrl.includes('/storage/v1/object/public/')) {
+        // If it already has the full Supabase URL, use it as is
+        if (imageUrl.startsWith('https://rolitmcxydholgsxpvwa.supabase.co')) {
+          // Already correct format
+        }
+        // If it's a relative path from Supabase Storage
+        else if (imageUrl.startsWith('/storage/v1/object/public/')) {
+          imageUrl = `https://rolitmcxydholgsxpvwa.supabase.co${imageUrl}`;
+        }
+        // If it starts with storage/v1/object/public/ without leading slash
+        else if (imageUrl.startsWith('storage/v1/object/public/')) {
+          imageUrl = `https://rolitmcxydholgsxpvwa.supabase.co/${imageUrl}`;
+        }
       }
-      // If it's a relative path, make it absolute with the site domain
-      else if (!imageUrl.startsWith('http')) {
+      // Legacy format: /storage/ or storage/
+      else if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+        // Assume it's in the default bucket and convert to full URL
+        const cleanPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
+        imageUrl = `https://rolitmcxydholgsxpvwa.supabase.co/storage/v1/object/public/${cleanPath}`;
+      }
+      // If it's already a full URL (http or https), use it as is
+      else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        // Already absolute URL
+      }
+      // Otherwise, assume it's a relative path to our domain
+      else {
         imageUrl = `https://www.chequealo.ar${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
       }
+
+      console.log('Final image URL for og:image:', imageUrl);
       
       const ogImage = document.createElement('meta');
       ogImage.setAttribute('property', 'og:image');
       ogImage.content = imageUrl;
       document.head.appendChild(ogImage);
 
+      // Add secure URL variant for Facebook
+      const ogImageSecure = document.createElement('meta');
+      ogImageSecure.setAttribute('property', 'og:image:secure_url');
+      ogImageSecure.content = imageUrl;
+      document.head.appendChild(ogImageSecure);
+
       // Add image dimensions for better Facebook display
       const ogImageWidth = document.createElement('meta');
       ogImageWidth.setAttribute('property', 'og:image:width');
-      ogImageWidth.content = '1200';
+      ogImageWidth.content = '800';
       document.head.appendChild(ogImageWidth);
 
       const ogImageHeight = document.createElement('meta');
       ogImageHeight.setAttribute('property', 'og:image:height');
-      ogImageHeight.content = '630';
+      ogImageHeight.content = '800';
       document.head.appendChild(ogImageHeight);
 
       const ogImageType = document.createElement('meta');
@@ -144,6 +178,13 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       twitterImage.setAttribute('name', 'twitter:image');
       twitterImage.content = imageUrl;
       document.head.appendChild(twitterImage);
+
+      const twitterImageAlt = document.createElement('meta');
+      twitterImageAlt.setAttribute('name', 'twitter:image:alt');
+      twitterImageAlt.content = `Foto de ${professional.full_name}`;
+      document.head.appendChild(twitterImageAlt);
+    } else {
+      console.log('No image URL available for this professional');
     }
 
     // Canonical URL
