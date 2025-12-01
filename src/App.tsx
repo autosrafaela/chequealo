@@ -7,6 +7,7 @@ import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstal
 import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
 import { MultipleFloatingChats } from "@/components/MultipleFloatingChats";
 import { RedirectWithTracking } from "@/components/RedirectWithTracking";
+import { InAppBrowserBanner } from "@/components/InAppBrowserBanner";
 
 import Index from "./pages/Index";
 import Search from "./pages/Search";
@@ -29,6 +30,7 @@ import AISearch from "./pages/AISearch";
 
 const App = () => (
   <TooltipProvider>
+    <InAppBrowserBanner />
     <Toaster />
     <Sonner />
     <NotificationSystem />
