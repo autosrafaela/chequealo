@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import NotificationSystem from "@/components/NotificationSystem";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
@@ -39,6 +39,7 @@ const App = () => (
       <MultipleFloatingChats />
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/inicio" element={<Navigate to="/" replace />} />
         <Route path="/search" element={<Search />} />
         <Route path="/ai-search" element={<AISearch />} />
         <Route path="/auth" element={<Auth />} />
