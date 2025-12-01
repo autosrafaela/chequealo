@@ -105,13 +105,21 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     twitterDescription.content = description;
     document.head.appendChild(twitterDescription);
 
-    if (professional.image_url) {
+    // Handle image URL - ensure it's absolute
+    let imageUrl = professional.image_url;
+    
+    if (imageUrl) {
+      // If it's a Supabase Storage URL (relative path)
+      if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+        imageUrl = `https://rolitmcxydholgsxpvwa.supabase.co${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+      }
+      // If it's a relative path, make it absolute with the site domain
+      else if (!imageUrl.startsWith('http')) {
+        imageUrl = `https://www.chequealo.ar${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+      }
+      
       const ogImage = document.createElement('meta');
       ogImage.setAttribute('property', 'og:image');
-      // Ensure we have an absolute URL for the image
-      const imageUrl = professional.image_url.startsWith('http') 
-        ? professional.image_url 
-        : `${window.location.origin}${professional.image_url}`;
       ogImage.content = imageUrl;
       document.head.appendChild(ogImage);
 
@@ -167,8 +175,8 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       "sameAs": []
     };
 
-    if (professional.image_url) {
-      structuredData["image"] = professional.image_url;
+    if (imageUrl) {
+      structuredData["image"] = imageUrl;
     }
 
     if (professional.phone) {
