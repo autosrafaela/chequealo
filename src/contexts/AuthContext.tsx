@@ -91,7 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName?: string, username?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Tras confirmar el email, redirigimos siempre a /auth para que el frontend
+    // complete la sesión y lleve al usuario a su panel correspondiente
+    const redirectUrl = `${window.location.origin}/auth`;
     
     const { error } = await supabase.auth.signUp({
       email,
