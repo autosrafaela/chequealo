@@ -18,6 +18,7 @@ import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
 import { ProfessionManager } from '@/components/ProfessionManager';
 import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
+import { ProfileCompletionProgress } from '@/components/ProfileCompletionProgress';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import ChatInterface from '@/components/ChatInterface';
 import { supabase } from '@/integrations/supabase/client';
@@ -238,6 +239,14 @@ const ProfessionalDashboard = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Profile Completion Progress */}
+        <div className="mb-8">
+          <ProfileCompletionProgress 
+            professionalId={professional?.id}
+            onTabChange={setActiveTab}
+          />
         </div>
 
         {/* Quick Stats */}
