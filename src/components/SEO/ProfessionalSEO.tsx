@@ -96,6 +96,12 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     ogLocale.content = 'es_AR';
     document.head.appendChild(ogLocale);
 
+    // WhatsApp specific meta tags (uses Open Graph)
+    const ogSiteNameWhatsApp = document.createElement('meta');
+    ogSiteNameWhatsApp.setAttribute('property', 'og:site_name');
+    ogSiteNameWhatsApp.content = 'Chequealo - Profesionales y Servicios en Argentina';
+    document.head.appendChild(ogSiteNameWhatsApp);
+
     // Twitter Card tags
     const twitterCard = document.createElement('meta');
     twitterCard.setAttribute('name', 'twitter:card');
@@ -125,7 +131,11 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     // Handle image URL - ensure it's absolute
     let imageUrl = professional.image_url;
     
-    if (imageUrl) {
+    // If no image, use default professional image
+    if (!imageUrl) {
+      imageUrl = 'https://www.chequealo.ar/images/default-professional-og.jpg';
+      console.log('Using default professional image:', imageUrl);
+    } else {
       console.log('Original image URL:', imageUrl);
       
       // Handle Supabase Storage URLs
@@ -160,7 +170,9 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       }
 
       console.log('Final image URL for og:image:', imageUrl);
-      
+    }
+    
+    if (imageUrl) {
       const ogImage = document.createElement('meta');
       ogImage.setAttribute('property', 'og:image');
       ogImage.content = imageUrl;
@@ -175,18 +187,23 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       // Add image dimensions for better Facebook display
       const ogImageWidth = document.createElement('meta');
       ogImageWidth.setAttribute('property', 'og:image:width');
-      ogImageWidth.content = '800';
+      ogImageWidth.content = '1200';
       document.head.appendChild(ogImageWidth);
 
       const ogImageHeight = document.createElement('meta');
       ogImageHeight.setAttribute('property', 'og:image:height');
-      ogImageHeight.content = '800';
+      ogImageHeight.content = '1200';
       document.head.appendChild(ogImageHeight);
 
       const ogImageType = document.createElement('meta');
       ogImageType.setAttribute('property', 'og:image:type');
       ogImageType.content = 'image/jpeg';
       document.head.appendChild(ogImageType);
+
+      const ogImageAlt = document.createElement('meta');
+      ogImageAlt.setAttribute('property', 'og:image:alt');
+      ogImageAlt.content = `Foto de perfil de ${professional.full_name}, ${professional.profession} en ${professional.location}`;
+      document.head.appendChild(ogImageAlt);
 
       // Twitter image
       const twitterImage = document.createElement('meta');
@@ -198,8 +215,6 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       twitterImageAlt.setAttribute('name', 'twitter:image:alt');
       twitterImageAlt.content = `Foto de ${professional.full_name}`;
       document.head.appendChild(twitterImageAlt);
-    } else {
-      console.log('No image URL available for this professional');
     }
 
     // Canonical URL
