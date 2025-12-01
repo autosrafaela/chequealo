@@ -15,6 +15,7 @@ import { PerformanceMonitor } from '@/components/analytics/PerformanceMonitor';
 import { CategoriesManager } from '@/components/admin/CategoriesManager';
 import { SitemapManager } from '@/components/admin/SitemapManager';
 import UserManagementPanel from '@/components/admin/UserManagementPanel';
+import { CarouselManager } from '@/components/admin/CarouselManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -573,7 +574,7 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-12">
+          <TabsList className="grid w-full grid-cols-[repeat(13,minmax(0,1fr))]">
             <TabsTrigger value="professionals">Profesionales</TabsTrigger>
             <TabsTrigger value="categories">Categorías</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -586,6 +587,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="business">BI</TabsTrigger>
             <TabsTrigger value="performance">Monitor</TabsTrigger>
             <TabsTrigger value="seo">SEO</TabsTrigger>
+            <TabsTrigger value="carousel">Carrusel</TabsTrigger>
           </TabsList>
 
           <TabsContent value="professionals">
@@ -890,6 +892,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="seo">
             <SitemapManager />
+          </TabsContent>
+
+          <TabsContent value="carousel">
+            <CarouselManager />
           </TabsContent>
         </Tabs>
       </div>

@@ -6,6 +6,7 @@ import OnboardingTour from "@/components/OnboardingTour";
 import ContextualTips from "@/components/ContextualTips";
 import BadgeSystem from "@/components/BadgeSystem";
 import RankingSystem from "@/components/RankingSystem";
+import { HeaderCarousel } from "@/components/HeaderCarousel";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -14,6 +15,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      
+      {/* Hero Carousel */}
+      <div className="container mx-auto px-4 py-6">
+        <HeaderCarousel />
+      </div>
+      
       <Hero />
       <ServiceCategories />
       <LatestProfessionals />
