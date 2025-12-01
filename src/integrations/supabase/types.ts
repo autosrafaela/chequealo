@@ -1019,6 +1019,36 @@ export type Database = {
         }
         Relationships: []
       }
+      redirect_analytics: {
+        Row: {
+          created_at: string
+          from_path: string
+          id: string
+          referrer: string | null
+          timestamp: string
+          to_path: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          from_path: string
+          id?: string
+          referrer?: string | null
+          timestamp?: string
+          to_path: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          from_path?: string
+          id?: string
+          referrer?: string | null
+          timestamp?: string
+          to_path?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       review_likes: {
         Row: {
           created_at: string
