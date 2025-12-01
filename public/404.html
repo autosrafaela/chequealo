@@ -1,94 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <base href="/">
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <meta name="google-site-verification" content="E7c8QYGDHMV1lv_63AxgNcLZLgxU1TEeU6f_dPuSgwE" />
-    
-    <!-- iOS Specific Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Chequealo" />
-    <meta name="format-detection" content="telephone=no" />
-    
-    <title>Chequealo - Encontrá Profesionales y Servicios en Argentina</title>
-    <meta name="description" content="Plataforma líder para encontrar profesionales verificados cerca de tu ubicación. Plomeros, electricistas, mecánicos y más servicios en Argentina.">
-    <meta name="author" content="Chequealo" />
-    <meta name="keywords" content="profesionales, servicios, argentina, plomero, electricista, mecánico, presupuestos, geolocalización">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://chequealo.ar" />
-    <meta property="og:title" content="Chequealo - Encontrá Profesionales y Servicios en Argentina" />
-    <meta property="og:description" content="Plataforma líder para encontrar profesionales verificados cerca de tu ubicación. Plomeros, electricistas, mecánicos y más servicios en Argentina." />
-    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/d1XJ3p1TAfRRjkYmtl7tV8N5dY72/social-images/social-1760158329097-1024.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:site_name" content="Chequealo" />
-    <meta property="og:locale" content="es_AR" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Chequealo - Encontrá Profesionales y Servicios en Argentina" />
-    <meta name="twitter:description" content="Plataforma líder para encontrar profesionales verificados cerca de tu ubicación. Plomeros, electricistas, mecánicos y más servicios en Argentina." />
-    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/d1XJ3p1TAfRRjkYmtl7tV8N5dY72/social-images/social-1760158329097-1024.jpg" />
-    <meta name="twitter:site" content="@chequealo" />
-
-    <!-- WhatsApp & Generic Social Media -->
-    <meta property="og:image:alt" content="Chequealo - Plataforma de profesionales verificados" />
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <script>
+    // Simple redirect to home without creating loops
+    window.location.replace('/');
+  </script>
 </head>
-
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Service Worker control: disable in Lovable preview and ALL iOS/Mobile Safari browsers
-      if ('serviceWorker' in navigator) {
-        const isLovablePreview = /lovable\.(dev|app|project\.com)$/.test(location.hostname) || location.hostname.includes('lovable');
-        
-        // Detect iOS/Mobile Safari - more comprehensive detection
-        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || 
-                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
-        const isMobileSafari = isIOS && isSafari;
-        const isIOSChrome = /CriOS/.test(navigator.userAgent);
-        
-        // Disable SW on Lovable preview, iOS Safari, and iOS Chrome
-        if (isLovablePreview || isMobileSafari || isIOSChrome || isIOS) {
-          // Unregister any existing SW and clear caches aggressively
-          navigator.serviceWorker.getRegistrations().then((regs) => {
-            regs.forEach((r) => {
-              r.unregister();
-              console.log('Service Worker desregistrado');
-            });
-          });
-          
-          if ('caches' in window) {
-            caches.keys().then((keys) => {
-              keys.forEach((k) => {
-                caches.delete(k);
-                console.log('Cache eliminado:', k);
-              });
-            });
-          }
-          
-          console.log('✓ Service Worker deshabilitado para iOS/Safari/Chrome');
-          console.log('Plataforma:', navigator.userAgent);
-        } else {
-          // Only register SW on non-iOS devices
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js')
-              .then((registration) => {
-                console.log('Service Worker registrado exitosamente:', registration.scope);
-              })
-              .catch((error) => {
-                console.log('Error al registrar Service Worker:', error);
-              });
-          });
-        }
-      }
-    </script>
-  </body>
+<body>
+  Redirecting...
+</body>
 </html>
