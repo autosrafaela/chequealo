@@ -1,11 +1,12 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NotificationSystem from "@/components/NotificationSystem";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
 import { MultipleFloatingChats } from "@/components/MultipleFloatingChats";
+import { RedirectWithTracking } from "@/components/RedirectWithTracking";
 
 import Index from "./pages/Index";
 import Search from "./pages/Search";
@@ -39,10 +40,10 @@ const App = () => (
       <MultipleFloatingChats />
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/inicio" element={<Navigate to="/" replace />} />
-        <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="/principal" element={<Navigate to="/" replace />} />
-        <Route path="/index" element={<Navigate to="/" replace />} />
+        <Route path="/inicio" element={<RedirectWithTracking from="/inicio" to="/" />} />
+        <Route path="/home" element={<RedirectWithTracking from="/home" to="/" />} />
+        <Route path="/principal" element={<RedirectWithTracking from="/principal" to="/" />} />
+        <Route path="/index" element={<RedirectWithTracking from="/index" to="/" />} />
         <Route path="/search" element={<Search />} />
         <Route path="/ai-search" element={<AISearch />} />
         <Route path="/auth" element={<Auth />} />
