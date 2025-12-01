@@ -1,13 +1,1 @@
-# Cloudflare Pages SPA routing
-# Force HTTPS and non-www
-https://www.chequealo.ar/* https://chequealo.ar/:splat 301!
-
-# Professional profiles - serve index.html but maintain URL
-/professional/* /index.html 200
-/profesional/* /index.html 200
-
-# API routes (if any) - prevent these from being caught by SPA fallback
-/api/* 200
-
-# All other routes - SPA fallback
-/* /index.html 200
+/*    /index.html   200
