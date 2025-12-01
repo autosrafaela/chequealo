@@ -133,7 +133,7 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     
     // If no image, use default professional image
     if (!imageUrl) {
-      imageUrl = 'https://www.chequealo.ar/images/default-professional-og.jpg';
+      imageUrl = 'https://chequealo.ar/images/default-professional-og.jpg';
       console.log('Using default professional image:', imageUrl);
     } else {
       console.log('Original image URL:', imageUrl);
