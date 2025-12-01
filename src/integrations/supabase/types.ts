@@ -1908,6 +1908,10 @@ export type Database = {
     }
     Functions: {
       add_user_admin_role: { Args: { _email: string }; Returns: undefined }
+      award_badges_and_notify: {
+        Args: { user_id_param: string }
+        Returns: undefined
+      }
       check_and_award_badges: {
         Args: { user_id_param: string }
         Returns: undefined
