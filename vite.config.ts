@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
   const isLovable = process.env.LOVABLE_DEPLOY === 'true';
   
   return {
-    base: (isGhPages && !isLovable) ? '/chequealo/' : '/',
+    base: '/',
     server: {
       host: "::",
       port: 8080,
@@ -29,6 +29,12 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
+      assetsDir: 'assets',
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
     },
     optimizeDeps: {
       include: [
