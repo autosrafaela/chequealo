@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Trophy, Lock, TrendingUp, Target, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { BadgeCelebrationModal } from './BadgeCelebrationModal';
 
 interface BadgeData {
   badge_id: string;
@@ -32,6 +33,8 @@ export const AchievementsBadges: React.FC<AchievementsBadgesProps> = ({ userId }
   const [loading, setLoading] = useState(true);
   const [totalPoints, setTotalPoints] = useState(0);
   const [filter, setFilter] = useState<'all' | 'earned' | 'progress'>('all');
+  const [celebrationBadge, setCelebrationBadge] = useState<BadgeData | null>(null);
+  const previousEarnedBadgesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const effectiveUserId = userId || user?.id;
@@ -85,6 +88,24 @@ export const AchievementsBadges: React.FC<AchievementsBadgesProps> = ({ userId }
         .reduce((sum, b) => sum + b.badge_points, 0);
       
       setTotalPoints(earnedPoints);
+
+      // Check for newly earned badges
+      const currentEarnedBadges = new Set(
+        badgesData.filter(b => b.is_earned).map(b => b.badge_id)
+      );
+
+      // Detect new badges (earned now but not in previous state)
+      const newBadges = badgesData.filter(
+        b => b.is_earned && !previousEarnedBadgesRef.current.has(b.badge_id)
+      );
+
+      if (newBadges.length > 0 && previousEarnedBadgesRef.current.size > 0) {
+        // Show celebration for the first new badge
+        setCelebrationBadge(newBadges[0]);
+      }
+
+      // Update the ref with current earned badges
+      previousEarnedBadgesRef.current = currentEarnedBadges;
 
     } catch (error: any) {
       console.error('Error fetching badges:', error);
@@ -158,7 +179,30 @@ export const AchievementsBadges: React.FC<AchievementsBadgesProps> = ({ userId }
   const totalCount = badges.length;
 
   return (
-    <Card>
+    <>
+      <BadgeCelebrationModal
+        isOpen={celebrationBadge !== null}
+        onClose={() => setCelebrationBadge(null)}
+        badge={
+          celebrationBadge
+            ? {
+                name: celebrationBadge.badge_name,
+                description: celebrationBadge.badge_description,
+                icon: celebrationBadge.badge_icon,
+                points: celebrationBadge.badge_points,
+                rarity: celebrationBadge.rarity || 'common',
+              }
+            : {
+                name: '',
+                description: '',
+                icon: '',
+                points: 0,
+                rarity: 'common',
+              }
+        }
+      />
+
+      <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -307,5 +351,6 @@ export const AchievementsBadges: React.FC<AchievementsBadgesProps> = ({ userId }
         )}
       </CardContent>
     </Card>
+    </>
   );
 };
