@@ -222,57 +222,163 @@ const ProfessionalProfile = () => {
   };
 
   const handleShare = async () => {
+    const shareUrl = window.location.href;
     const shareData = {
       title: `${professional.full_name} - ${professional.profession}`,
       text: `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location}`,
-      url: window.location.href,
+      url: shareUrl,
     };
 
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        toast.success('Contenido compartido exitosamente');
       } catch (error) {
-        console.log('Error sharing:', error);
+        // User cancelled or error occurred
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          // Fallback to clipboard
+          try {
+            await navigator.clipboard.writeText(shareUrl);
+            toast.success('Enlace copiado al portapapeles');
+          } catch (clipboardError) {
+            toast.error('No se pudo compartir el enlace');
+          }
+        }
       }
     } else {
       // Fallback: copy to clipboard
       try {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText(shareUrl);
         toast.success('Enlace copiado al portapapeles');
       } catch (error) {
+        console.error('Error copying to clipboard:', error);
         toast.error('No se pudo copiar el enlace');
       }
     }
   };
 
   const shareToWhatsApp = () => {
-    const message = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location} - ${window.location.href}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    try {
+      const shareUrl = window.location.href;
+      const message = `🔍 *${professional.full_name}* - ${professional.profession}\n📍 ${professional.location}\n⭐ Rating: ${professional.rating || 'N/A'}/5\n\nMira su perfil completo aquí: ${shareUrl}`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      
+      // Try to open WhatsApp, fallback to web version
+      const opened = window.open(whatsappUrl, '_blank');
+      
+      if (!opened) {
+        // If popup blocked, copy to clipboard
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Enlace copiado. Pégalo en WhatsApp');
+      } else {
+        toast.success('Abriendo WhatsApp...');
+      }
+    } catch (error) {
+      console.error('Error sharing to WhatsApp:', error);
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('Enlace copiado. Pégalo en WhatsApp');
+    }
   };
 
   const shareToFacebook = () => {
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
-    window.open(facebookUrl, '_blank', 'width=600,height=400');
+    try {
+      const shareUrl = window.location.href;
+      const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+      const opened = window.open(facebookUrl, '_blank', 'width=600,height=400');
+      
+      if (!opened) {
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Enlace copiado. Pégalo en Facebook');
+      } else {
+        toast.success('Abriendo Facebook...');
+      }
+    } catch (error) {
+      console.error('Error sharing to Facebook:', error);
+      navigator.clipboard.writeText(window.location.href);
+      toast.error('No se pudo abrir Facebook. Enlace copiado al portapapeles');
+    }
   };
 
   const shareToTwitter = () => {
-    const text = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location}`;
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
-    window.open(twitterUrl, '_blank', 'width=600,height=400');
+    try {
+      const shareUrl = window.location.href;
+      const text = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location} ⭐ ${professional.rating || 'N/A'}/5`;
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+      const opened = window.open(twitterUrl, '_blank', 'width=600,height=400');
+      
+      if (!opened) {
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Enlace copiado. Pégalo en X (Twitter)');
+      } else {
+        toast.success('Abriendo X (Twitter)...');
+      }
+    } catch (error) {
+      console.error('Error sharing to Twitter:', error);
+      navigator.clipboard.writeText(window.location.href);
+      toast.error('No se pudo abrir X. Enlace copiado al portapapeles');
+    }
   };
 
-  const shareToInstagram = () => {
-    // Instagram doesn't have direct URL sharing, so we copy to clipboard with a message
-    navigator.clipboard.writeText(window.location.href);
-    toast.success('Enlace copiado. Puedes pegarlo en tu historia de Instagram');
+  const shareToInstagram = async () => {
+    try {
+      const shareUrl = window.location.href;
+      const message = `🔍 ${professional.full_name} - ${professional.profession}\n📍 ${professional.location}\n⭐ ${professional.rating || 'N/A'}/5\n\nVer perfil: ${shareUrl}`;
+      
+      // Instagram doesn't have direct URL sharing API
+      // Try Web Share API first (works on mobile)
+      if (navigator.share && /android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
+        try {
+          await navigator.share({
+            title: `${professional.full_name} - ${professional.profession}`,
+            text: message,
+            url: shareUrl,
+          });
+          toast.success('Compartiendo en Instagram...');
+          return;
+        } catch (shareError) {
+          // User cancelled or not supported
+        }
+      }
+      
+      // Fallback: copy formatted message to clipboard
+      await navigator.clipboard.writeText(message);
+      toast.success('Mensaje copiado. Pégalo en tu historia o publicación de Instagram', {
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error('Error sharing to Instagram:', error);
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Enlace copiado. Compártelo en Instagram');
+      } catch (clipboardError) {
+        toast.error('No se pudo copiar el enlace');
+      }
+    }
   };
 
   const shareToEmail = () => {
-    const subject = `Conoce a ${professional.full_name} - ${professional.profession}`;
-    const body = `Te recomiendo a ${professional.full_name}, ${professional.profession} en ${professional.location}.\n\nPuedes ver su perfil aquí: ${window.location.href}`;
-    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
+    try {
+      const shareUrl = window.location.href;
+      const subject = `Conoce a ${professional.full_name} - ${professional.profession}`;
+      const body = `Hola,\n\nTe recomiendo a ${professional.full_name}, ${professional.profession} en ${professional.location}.\n\n` +
+                   `⭐ Rating: ${professional.rating || 'N/A'}/5 (${professional.review_count || 0} opiniones)\n\n` +
+                   `Puedes ver su perfil completo aquí:\n${shareUrl}\n\n` +
+                   `Saludos!`;
+      
+      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoUrl;
+      
+      // Show confirmation after a brief delay (email client should open)
+      setTimeout(() => {
+        toast.success('Abriendo cliente de email...');
+      }, 500);
+    } catch (error) {
+      console.error('Error sharing via email:', error);
+      navigator.clipboard.writeText(window.location.href);
+      toast.error('No se pudo abrir el email. Enlace copiado al portapapeles');
+    }
   };
 
   const formatPrice = (priceFrom: number | null, priceTo: number | null) => {

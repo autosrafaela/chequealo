@@ -91,6 +91,11 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     ogSiteName.content = 'Chequealo';
     document.head.appendChild(ogSiteName);
 
+    const ogLocale = document.createElement('meta');
+    ogLocale.setAttribute('property', 'og:locale');
+    ogLocale.content = 'es_AR';
+    document.head.appendChild(ogLocale);
+
     // Twitter Card tags
     const twitterCard = document.createElement('meta');
     twitterCard.setAttribute('name', 'twitter:card');
@@ -106,6 +111,16 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     twitterDescription.setAttribute('name', 'twitter:description');
     twitterDescription.content = description;
     document.head.appendChild(twitterDescription);
+
+    const twitterSite = document.createElement('meta');
+    twitterSite.setAttribute('name', 'twitter:site');
+    twitterSite.content = '@chequealoar';
+    document.head.appendChild(twitterSite);
+
+    const twitterCreator = document.createElement('meta');
+    twitterCreator.setAttribute('name', 'twitter:creator');
+    twitterCreator.content = '@chequealoar';
+    document.head.appendChild(twitterCreator);
 
     // Handle image URL - ensure it's absolute
     let imageUrl = professional.image_url;
@@ -259,6 +274,11 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
 
       const twitterMetaTags = document.querySelectorAll('meta[name^="twitter:"]');
       twitterMetaTags.forEach(tag => {
+        if (tag.parentNode) tag.remove();
+      });
+
+      const whatsappMetaTags = document.querySelectorAll('meta[property^="og:image"], meta[property^="og:title"], meta[property^="og:description"]');
+      whatsappMetaTags.forEach(tag => {
         if (tag.parentNode) tag.remove();
       });
     };
