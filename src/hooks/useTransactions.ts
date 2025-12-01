@@ -52,11 +52,17 @@ export const useTransactions = () => {
       setLoading(true);
 
       // Get professional ID
-      const { data: professional } = await supabase
+      const { data: professional, error: profError } = await supabase
         .from('professionals')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (profError) {
+        console.error('Error fetching professional:', profError);
+        toast.error('Error al cargar el perfil profesional');
+        return;
+      }
 
       if (!professional) {
         setTransactions([]);
@@ -112,9 +118,12 @@ export const useTransactions = () => {
       }
       
       setStats(stats);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching transactions:', error);
-      toast.error('Error al cargar las transacciones');
+      // Solo mostrar error si no es un problema de perfil inexistente
+      if (error?.code !== 'PGRST116') {
+        toast.error('Error al cargar transacciones');
+      }
     } finally {
       setLoading(false);
     }
@@ -155,13 +164,16 @@ export const useTransactions = () => {
 
     try {
       // Get professional ID
-      const { data: professional } = await supabase
+      const { data: professional, error: profError } = await supabase
         .from('professionals')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (!professional) return false;
+      if (profError || !professional) {
+        toast.error('No se encontró el perfil profesional');
+        return false;
+      }
 
       const { error } = await supabase
         .from('transactions')
