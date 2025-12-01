@@ -40,6 +40,9 @@ const App = () => (
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/inicio" element={<Navigate to="/" replace />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        <Route path="/principal" element={<Navigate to="/" replace />} />
+        <Route path="/index" element={<Navigate to="/" replace />} />
         <Route path="/search" element={<Search />} />
         <Route path="/ai-search" element={<AISearch />} />
         <Route path="/auth" element={<Auth />} />
