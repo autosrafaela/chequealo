@@ -16,6 +16,7 @@ import { TransactionManager } from "@/components/TransactionManager";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfessionalContact } from "@/hooks/useProfessionalContact";
 import { toast } from "sonner";
+import defaultAvatar from "@/assets/default-avatar.png";
 import { 
   Star, 
   MapPin, 
@@ -402,7 +403,10 @@ const ProfessionalProfile = () => {
               {/* Left Column - Avatar and Basic Info */}
               <div className="flex flex-col items-center lg:items-start">
                 <Avatar className="w-32 h-32 mb-4">
-                  <AvatarImage src={professional.image_url || undefined} alt={`Foto de ${professional.full_name}`} />
+                  <AvatarImage 
+                    src={professional.image_url || defaultAvatar} 
+                    alt={`Foto de ${professional.full_name}`} 
+                  />
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold text-3xl">
                     {getInitials(professional.full_name) || <User className="h-16 w-16" />}
                   </AvatarFallback>
