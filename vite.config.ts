@@ -4,45 +4,23 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const isGhPages =
-    mode === 'ghpages' ||
-    process.env.VITE_DEPLOY_TARGET === 'ghpages' ||
-    process.env.GITHUB_PAGES === 'true';
-  
-  const isLovable = process.env.LOVABLE_DEPLOY === 'true';
-  
-  return {
-    base: '/',
-    server: {
-      host: "::",
-      port: 8080,
+export default defineConfig(({ mode }) => ({
+  base: '/',
+  server: {
+    host: "::",
+    port: 8080,
+  },
+  plugins: [
+    react(),
+    mode === 'development' && componentTagger(),
+  ].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
-    plugins: [
-      react(),
-      mode === 'development' && componentTagger(),
-    ].filter(Boolean),
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
-    },
-    build: {
-      outDir: 'dist',
-      assetsDir: 'assets',
-      rollupOptions: {
-        output: {
-          manualChunks: undefined
-        }
-      }
-    },
-    optimizeDeps: {
-      include: [
-        "react",
-        "react-dom",
-        "react/jsx-runtime",
-        "react/jsx-dev-runtime",
-      ],
-    },
-  };
-});
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets'
+  }
+}));
