@@ -19,6 +19,7 @@ import { ProfessionManager } from '@/components/ProfessionManager';
 import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
 import { ProfileCompletionProgress } from '@/components/ProfileCompletionProgress';
+import { AchievementsBadges } from '@/components/AchievementsBadges';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import ChatInterface from '@/components/ChatInterface';
 import { supabase } from '@/integrations/supabase/client';
@@ -668,6 +669,9 @@ const ProfessionalDashboard = () => {
                   />
                 </CardContent>
               </Card>
+
+              {/* Insignias y Logros */}
+              <AchievementsBadges userId={user?.id} />
             </div>
           </TabsContent>
 
