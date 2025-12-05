@@ -55,7 +55,7 @@ const Pricing = () => {
       name: "Plan Premium",
       price: 24990,
       originalPrice: null,
-      description: "Para profesionales que buscan máxima visibilidad",
+      description: "Para profesionales que buscan máxima visibilidad y crecimiento en redes",
       icon: <Crown className="h-8 w-8 text-yellow-500" />,
       popular: false,
       features: [
@@ -68,7 +68,25 @@ const Pricing = () => {
         "Acceso beta a nuevas funciones",
         "Gestor de cuenta dedicado"
       ],
-      limitations: []
+      limitations: [],
+      socialPackages: [
+        {
+          title: "📸 Posts Colaborador (IG Collab)",
+          description: "Carouseles 'Top 5 de Rafaela' y 'Trabajo del mes'. El post sale en Chequealo y en tu perfil (doble alcance)"
+        },
+        {
+          title: "🎬 Reels/Stories con plantilla",
+          description: "4 plantillas listas: antes/después, testimonio, promo -10% con seña, urgencias 24/7. Solo subís fotos + texto"
+        },
+        {
+          title: "⭐ Pack Stories Destacadas",
+          description: "6 covers + stickers 'Verificado por Chequealo' para armar Highlights: Precios, Reseñas, Turnos, Urgencias, Trabajos, Garantía"
+        },
+        {
+          title: "🎟️ Cupones Traqueables",
+          description: "Códigos tipo CHEQ-TUEMPRESA para usar en bio y posts. Medimos con UTM el tráfico que generás"
+        }
+      ]
     }
   ];
 
@@ -158,6 +176,23 @@ const Pricing = () => {
                         </div>
                       ))}
                     </div>
+
+                    {/* Social Media Packages - Solo para Premium */}
+                    {plan.socialPackages && plan.socialPackages.length > 0 && (
+                      <div className="border-t pt-4">
+                        <p className="text-sm font-semibold text-primary mb-3">
+                          🚀 Pack Marketing Redes Sociales:
+                        </p>
+                        <div className="space-y-3">
+                          {plan.socialPackages.map((pkg: { title: string; description: string }, pkgIndex: number) => (
+                            <div key={pkgIndex} className="bg-primary/5 rounded-lg p-3">
+                              <p className="text-sm font-medium">{pkg.title}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{pkg.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="pt-6">
                       <Link to="/register">
