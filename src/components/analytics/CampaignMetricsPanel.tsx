@@ -31,19 +31,19 @@ interface CampaignMetrics {
 const CampaignMetricsPanel = () => {
   const [dateRange, setDateRange] = useState('7d');
   
-  // Fetch redirect analytics for UTM tracking
-  const { data: redirectData, isLoading, refetch } = useQuery({
-    queryKey: ['campaign-metrics', dateRange],
+  // Fetch campaign events
+  const { data: campaignEvents, isLoading, refetch } = useQuery({
+    queryKey: ['campaign-events', dateRange],
     queryFn: async () => {
       const daysAgo = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 1;
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysAgo);
       
       const { data, error } = await supabase
-        .from('redirect_analytics')
+        .from('campaign_events')
         .select('*')
-        .gte('timestamp', startDate.toISOString())
-        .order('timestamp', { ascending: false });
+        .gte('created_at', startDate.toISOString())
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data || [];
@@ -73,9 +73,9 @@ const CampaignMetricsPanel = () => {
     {
       campaign: 'Urgencias 24/7',
       source: 'Meta Ads',
-      visits: redirectData?.filter(r => r.to_path?.includes('/urgencias')).length || 0,
+      visits: campaignEvents?.filter(e => e.campaign === 'urgencias24' && e.event_type === 'page_view').length || 0,
       leads: contactData?.filter(c => c.is_express).length || 0,
-      whatsappClicks: 0, // Would need separate tracking
+      whatsappClicks: campaignEvents?.filter(e => e.campaign === 'urgencias24' && e.event_type === 'whatsapp_click').length || 0,
       turnos: 0,
       senas: 0,
       revenue: 0
@@ -83,9 +83,9 @@ const CampaignMetricsPanel = () => {
     {
       campaign: 'Promo CHEQ10',
       source: 'Meta Ads',
-      visits: redirectData?.filter(r => r.to_path?.includes('/promo')).length || 0,
+      visits: campaignEvents?.filter(e => e.campaign === 'cheq10' && e.event_type === 'page_view').length || 0,
       leads: contactData?.filter(c => c.budget_range).length || 0,
-      whatsappClicks: 0,
+      whatsappClicks: campaignEvents?.filter(e => e.campaign === 'cheq10' && e.event_type === 'whatsapp_click').length || 0,
       turnos: 0,
       senas: 0,
       revenue: 0
@@ -93,9 +93,9 @@ const CampaignMetricsPanel = () => {
     {
       campaign: 'Seña Online',
       source: 'Meta Ads',
-      visits: redirectData?.filter(r => r.to_path?.includes('/sena')).length || 0,
+      visits: campaignEvents?.filter(e => e.campaign === 'sena20' && e.event_type === 'page_view').length || 0,
       leads: 0,
-      whatsappClicks: 0,
+      whatsappClicks: campaignEvents?.filter(e => e.campaign === 'sena20' && e.event_type === 'whatsapp_click').length || 0,
       turnos: 0,
       senas: 0,
       revenue: 0
@@ -104,8 +104,10 @@ const CampaignMetricsPanel = () => {
 
   // Summary metrics
   const totalVisits = campaignMetrics.reduce((sum, c) => sum + c.visits, 0);
+  const totalWhatsAppClicks = campaignMetrics.reduce((sum, c) => sum + c.whatsappClicks, 0);
   const totalLeads = contactData?.length || 0;
   const conversionRate = totalVisits > 0 ? ((totalLeads / totalVisits) * 100).toFixed(1) : '0';
+  const whatsappRate = totalVisits > 0 ? ((totalWhatsAppClicks / totalVisits) * 100).toFixed(1) : '0';
 
   const MetricCard = ({ 
     title, 
@@ -167,12 +169,18 @@ const CampaignMetricsPanel = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard 
           title="Visitas Totales" 
           value={totalVisits}
           subtitle="Landing pages"
           icon={Users}
+        />
+        <MetricCard 
+          title="Clics WhatsApp" 
+          value={totalWhatsAppClicks}
+          subtitle={`${whatsappRate}% de visitas`}
+          icon={MessageSquare}
         />
         <MetricCard 
           title="Leads Generados" 

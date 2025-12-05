@@ -3,38 +3,37 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Tag, Percent, CheckCircle2, Copy, Sparkles } from 'lucide-react';
+import { Gift, Tag, Percent, CheckCircle2, Copy, Sparkles, MessageCircle } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
+import { useCampaignTracking } from '@/hooks/useCampaignTracking';
+
+const CAMPAIGN_ID = 'cheq10';
 
 const PromoDescuento = () => {
   const [searchParams] = useSearchParams();
   const [copied, setCopied] = useState(false);
   const cupon = searchParams.get('cupon') || 'CHEQ10';
+  const { trackWhatsAppClick, trackPageView, trackEvent } = useCampaignTracking();
   
   useEffect(() => {
-    // Track UTM parameters
-    const utm = {
-      source: searchParams.get('utm_source'),
-      medium: searchParams.get('utm_medium'),
-      campaign: searchParams.get('utm_campaign'),
-      content: searchParams.get('utm_content'),
-      cupon: cupon,
-    };
-    
-    if (utm.source) {
-      console.log('Campaign tracking:', utm);
-      localStorage.setItem('chequealo_utm', JSON.stringify(utm));
-      localStorage.setItem('chequealo_cupon', cupon);
-    }
-  }, [searchParams, cupon]);
+    trackPageView(CAMPAIGN_ID);
+    localStorage.setItem('chequealo_cupon', cupon);
+  }, [trackPageView, cupon]);
 
   const handleCopyCupon = () => {
     navigator.clipboard.writeText(cupon);
     setCopied(true);
     toast.success('¡Cupón copiado!');
+    trackEvent({ eventType: 'cta_click', campaign: CAMPAIGN_ID, metadata: { action: 'copy_coupon', coupon: cupon } });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleWhatsAppClick = () => {
+    trackWhatsAppClick(CAMPAIGN_ID, undefined, '5493424000000');
+    const message = encodeURIComponent(`Hola! Quiero usar mi cupón ${cupon} para obtener 10% de descuento.`);
+    window.open(`https://wa.me/5493424000000?text=${message}`, '_blank');
   };
 
   return (
@@ -86,16 +85,26 @@ const PromoDescuento = () => {
             </CardContent>
           </Card>
           
-          <Button 
-            size="lg" 
-            asChild
-            className="mt-8 bg-white text-purple-600 hover:bg-white/90 text-xl px-8 py-6 rounded-full shadow-2xl"
-          >
-            <Link to="/search">
-              <Sparkles className="h-6 w-6 mr-2" />
-              Buscar Profesionales
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <Button 
+              size="lg" 
+              onClick={handleWhatsAppClick}
+              className="bg-green-500 hover:bg-green-600 text-white text-xl px-8 py-6 rounded-full"
+            >
+              <MessageCircle className="h-6 w-6 mr-2" />
+              Consultar por WhatsApp
+            </Button>
+            <Button 
+              size="lg" 
+              asChild
+              className="bg-white text-purple-600 hover:bg-white/90 text-xl px-8 py-6 rounded-full shadow-2xl"
+            >
+              <Link to="/search">
+                <Sparkles className="h-6 w-6 mr-2" />
+                Buscar Profesionales
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 

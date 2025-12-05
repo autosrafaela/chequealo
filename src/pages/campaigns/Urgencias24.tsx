@@ -3,30 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Phone, Clock, Shield, Zap, CheckCircle2, MessageCircle } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
+import { useCampaignTracking } from '@/hooks/useCampaignTracking';
+
+const CAMPAIGN_ID = 'urgencias24';
 
 const Urgencias24 = () => {
-  const [searchParams] = useSearchParams();
+  const { trackWhatsAppClick, trackPageView } = useCampaignTracking();
   
   useEffect(() => {
-    // Track UTM parameters
-    const utm = {
-      source: searchParams.get('utm_source'),
-      medium: searchParams.get('utm_medium'),
-      campaign: searchParams.get('utm_campaign'),
-      content: searchParams.get('utm_content'),
-      term: searchParams.get('utm_term'),
-    };
-    
-    if (utm.source) {
-      console.log('Campaign tracking:', utm);
-      // Store in localStorage for conversion tracking
-      localStorage.setItem('chequealo_utm', JSON.stringify(utm));
-    }
-  }, [searchParams]);
+    trackPageView(CAMPAIGN_ID);
+  }, [trackPageView]);
 
   const handleWhatsAppClick = () => {
+    trackWhatsAppClick(CAMPAIGN_ID, undefined, '5493424000000');
     const message = encodeURIComponent('Hola! Necesito un servicio URGENTE 24/7. Vi su publicidad en redes.');
     window.open(`https://wa.me/5493424000000?text=${message}`, '_blank');
   };
