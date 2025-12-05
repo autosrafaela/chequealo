@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Download, Share2, Instagram, MessageCircle, Loader2 } from 'lucide-react';
+import { Download, Share2, Instagram, MessageCircle, Loader2, Link2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ProfileShareCardProps {
   professional: {
@@ -23,6 +24,23 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   const [generating, setGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const getProfileUrl = () => {
+    return `${window.location.origin}/professional/${professional.id}`;
+  };
+
+  const copyLinkToClipboard = async () => {
+    const profileUrl = getProfileUrl();
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setLinkCopied(true);
+      toast.success('¡Link copiado! Ahora pegalo como sticker de enlace');
+      setTimeout(() => setLinkCopied(false), 3000);
+    } catch (err) {
+      toast.error('No se pudo copiar el link');
+    }
+  };
 
   const loadImage = (src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
@@ -219,33 +237,13 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
         }
       }
 
-      // Profile URL - prominently displayed
-      const profileUrl = `chequealo.ar/professional/${professional.id}`;
-      
-      // URL Box background
-      const urlBoxY = 1380;
-      ctx.save();
-      roundRect(ctx, 60, urlBoxY, canvas.width - 120, 100, 20);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.restore();
-
-      // Link icon and URL
-      ctx.fillStyle = '#fff';
-      ctx.font = '36px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('🔗 ' + profileUrl, canvas.width / 2, urlBoxY + 60);
-
-      // CTA section
-      const ctaY = 1520;
+      // CTA section - clean design without URL text
+      const ctaY = 1400;
       
       // CTA background
       ctx.save();
-      roundRect(ctx, 80, ctaY, canvas.width - 160, 160, 30);
-      const ctaGradient = ctx.createLinearGradient(80, ctaY, canvas.width - 80, ctaY + 160);
+      roundRect(ctx, 80, ctaY, canvas.width - 160, 200, 30);
+      const ctaGradient = ctx.createLinearGradient(80, ctaY, canvas.width - 80, ctaY + 200);
       ctaGradient.addColorStop(0, '#6366f1');
       ctaGradient.addColorStop(1, '#8b5cf6');
       ctx.fillStyle = ctaGradient;
@@ -253,23 +251,33 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       ctx.restore();
 
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 44px Arial';
+      ctx.font = 'bold 52px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('¡Contactá ahora!', canvas.width / 2, ctaY + 65);
+      ctx.fillText('¡Contactame!', canvas.width / 2, ctaY + 80);
       
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = '32px Arial';
-      ctx.fillText('Visitá el link para ver el perfil completo', canvas.width / 2, ctaY + 120);
+      ctx.font = '36px Arial';
+      ctx.fillText('Tocá el link de esta historia', canvas.width / 2, ctaY + 140);
+      
+      // Arrow pointing up (where link sticker would go)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.font = '48px Arial';
+      ctx.fillText('👆', canvas.width / 2, ctaY + 190);
 
       // Chequealo branding at bottom
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 48px Arial';
+      ctx.font = 'bold 56px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('CHEQUEALO', canvas.width / 2, 1760);
+      ctx.fillText('CHEQUEALO', canvas.width / 2, 1720);
       
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.font = '32px Arial';
+      ctx.fillText('Profesionales verificados', canvas.width / 2, 1790);
+      
+      // Website hint
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '28px Arial';
-      ctx.fillText('Profesionales verificados en Argentina', canvas.width / 2, 1820);
+      ctx.fillText('chequealo.ar', canvas.width / 2, 1850);
 
       // Generate data URL
       const dataUrl = canvas.toDataURL('image/png');
@@ -284,10 +292,6 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     }
   };
 
-  const getProfileUrl = () => {
-    return `${window.location.origin}/professional/${professional.id}`;
-  };
-
   const downloadImage = async () => {
     if (!generatedImage) return;
     
@@ -295,6 +299,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     const profileUrl = getProfileUrl();
     try {
       await navigator.clipboard.writeText(profileUrl);
+      setLinkCopied(true);
     } catch (err) {
       console.log('Could not copy URL to clipboard');
     }
@@ -306,7 +311,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     link.click();
     document.body.removeChild(link);
     
-    toast.success('Imagen descargada y link copiado. ¡Pegá el link en tu historia!', {
+    toast.success('Imagen descargada y link copiado. ¡Pegalo como sticker de enlace!', {
       duration: 5000,
     });
   };
@@ -421,37 +426,70 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           {/* Share buttons */}
           {generatedImage && (
             <div className="space-y-3">
-              <Button 
-                onClick={shareToWhatsAppStatus}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Compartir en WhatsApp Status
-              </Button>
+              {/* Copy Link Button - prominently displayed */}
+              <Alert className="bg-primary/10 border-primary/20">
+                <Link2 className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  <strong>Paso importante:</strong> Copiá el link y pegalo como <strong>sticker de enlace</strong> en tu historia para que sea clickeable.
+                </AlertDescription>
+              </Alert>
               
               <Button 
-                onClick={shareToInstagramStory}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                onClick={copyLinkToClipboard}
+                variant="secondary"
+                className="w-full"
               >
-                <Instagram className="h-4 w-4 mr-2" />
-                Compartir en Instagram Story
+                {linkCopied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2 text-green-500" />
+                    ¡Link copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copiar Link del Perfil
+                  </>
+                )}
               </Button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  onClick={shareToWhatsAppStatus}
+                  className="bg-green-600 hover:bg-green-700"
+                  size="sm"
+                >
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  WhatsApp
+                </Button>
+                
+                <Button 
+                  onClick={shareToInstagramStory}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  size="sm"
+                >
+                  <Instagram className="h-4 w-4 mr-1" />
+                  Instagram
+                </Button>
+              </div>
               
               <Button 
                 onClick={downloadImage}
                 variant="outline"
                 className="w-full"
+                size="sm"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Descargar Imagen
+                Solo descargar imagen
               </Button>
 
               <Button 
                 onClick={() => {
                   setGeneratedImage(null);
+                  setLinkCopied(false);
                 }}
                 variant="ghost"
                 className="w-full text-muted-foreground"
+                size="sm"
               >
                 Regenerar tarjeta
               </Button>
@@ -459,7 +497,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           )}
 
           <p className="text-xs text-muted-foreground text-center">
-            La tarjeta incluye tu foto, nombre, profesión, ubicación y rating para que tus seguidores vean tu perfil completo.
+            Usá el <strong>sticker de enlace</strong> en Instagram/WhatsApp para que tus seguidores puedan tocar y ver tu perfil.
           </p>
         </div>
       </DialogContent>
