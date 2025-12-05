@@ -28,6 +28,11 @@ import FAQ from "./pages/FAQ";
 import Pricing from "./pages/Pricing";
 import AISearch from "./pages/AISearch";
 
+// Campaign Landing Pages
+import Urgencias24 from "./pages/campaigns/Urgencias24";
+import PromoDescuento from "./pages/campaigns/PromoDescuento";
+import SenaOnline from "./pages/campaigns/SenaOnline";
+
 const App = () => (
   <TooltipProvider>
     <InAppBrowserBanner />
@@ -61,6 +66,10 @@ const App = () => (
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/test-results" element={<TestResults />} />
+        {/* Campaign Landing Pages */}
+        <Route path="/urgencias" element={<Urgencias24 />} />
+        <Route path="/promo" element={<PromoDescuento />} />
+        <Route path="/sena" element={<SenaOnline />} />
         {/* SEO-friendly URLs - Must be after all other routes with 3+ segments */}
         <Route path="/p/:profession/:location/:name" element={<SeoLanding />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
