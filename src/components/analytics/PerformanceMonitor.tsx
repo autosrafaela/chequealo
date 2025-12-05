@@ -46,6 +46,32 @@ interface RealTimeMetrics {
   errorCount: number;
 }
 
+interface CloudflareMetrics {
+  totals: {
+    requests: number;
+    pageViews: number;
+    uniqueVisitors: number;
+    bandwidth: number;
+    threats: number;
+  };
+  today: {
+    requests: number;
+    pageViews: number;
+    uniqueVisitors: number;
+    bandwidth: number;
+    threats: number;
+  };
+  dailyData: Array<{
+    date: string;
+    requests: number;
+    uniqueVisitors: number;
+  }>;
+  period: {
+    start: string;
+    end: string;
+  };
+}
+
 export const PerformanceMonitor = () => {
   const [metrics, setMetrics] = useState<SystemMetrics>({
     responseTime: 0,
@@ -77,6 +103,30 @@ export const PerformanceMonitor = () => {
 
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [cloudflareMetrics, setCloudflareMetrics] = useState<CloudflareMetrics | null>(null);
+  const [cloudflareLoading, setCloudflareLoading] = useState(false);
+
+  // Obtener métricas de Cloudflare
+  const fetchCloudflareMetrics = async () => {
+    try {
+      setCloudflareLoading(true);
+      const { data, error } = await supabase.functions.invoke('cloudflare-analytics');
+      
+      if (error) {
+        console.error('Error fetching Cloudflare metrics:', error);
+        return;
+      }
+      
+      if (data && !data.error) {
+        setCloudflareMetrics(data);
+        console.log('Cloudflare metrics loaded:', data);
+      }
+    } catch (error) {
+      console.error('Error calling cloudflare-analytics:', error);
+    } finally {
+      setCloudflareLoading(false);
+    }
+  };
 
   // Medir latencia real de la base de datos
   const measureDbLatency = async (): Promise<number> => {
@@ -225,8 +275,16 @@ export const PerformanceMonitor = () => {
 
   const refreshMetrics = async () => {
     setLoading(true);
-    await fetchRealMetrics();
+    await Promise.all([fetchRealMetrics(), fetchCloudflareMetrics()]);
     setLoading(false);
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const getHealthStatus = (value: number, thresholds: { good: number; warning: number }) => {
@@ -250,6 +308,7 @@ export const PerformanceMonitor = () => {
 
   useEffect(() => {
     fetchRealMetrics();
+    fetchCloudflareMetrics();
     
     const interval = setInterval(() => {
       if (!loading) {
@@ -257,8 +316,18 @@ export const PerformanceMonitor = () => {
       }
     }, 30000); // Refresh every 30 seconds
 
-    return () => clearInterval(interval);
-  }, [fetchRealMetrics, loading]);
+    // Cloudflare cada 5 minutos
+    const cfInterval = setInterval(() => {
+      if (!cloudflareLoading) {
+        fetchCloudflareMetrics();
+      }
+    }, 5 * 60 * 1000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(cfInterval);
+    };
+  }, [fetchRealMetrics, loading, cloudflareLoading]);
 
   return (
     <div className="space-y-6">
@@ -384,6 +453,84 @@ export const PerformanceMonitor = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cloudflare Analytics */}
+      {cloudflareMetrics && (
+        <Card className="border-orange-500/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-orange-500" />
+              Cloudflare Analytics (Últimos 30 días)
+            </CardTitle>
+            <CardDescription>
+              Métricas reales de tráfico web desde Cloudflare
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
+              <div className="text-center p-4 bg-orange-500/10 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">
+                  {cloudflareMetrics.totals.uniqueVisitors.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">Visitantes Únicos</p>
+              </div>
+              <div className="text-center p-4 bg-blue-500/10 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
+                  {cloudflareMetrics.totals.requests.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">Total Solicitudes</p>
+              </div>
+              <div className="text-center p-4 bg-green-500/10 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {cloudflareMetrics.totals.pageViews.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">Vistas de Página</p>
+              </div>
+              <div className="text-center p-4 bg-purple-500/10 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">
+                  {formatBytes(cloudflareMetrics.totals.bandwidth)}
+                </div>
+                <p className="text-xs text-muted-foreground">Ancho de Banda</p>
+              </div>
+              <div className="text-center p-4 bg-red-500/10 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">
+                  {cloudflareMetrics.totals.threats.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">Amenazas Bloqueadas</p>
+              </div>
+            </div>
+            
+            {cloudflareMetrics.today && (
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                <h4 className="font-medium mb-2">Hoy</h4>
+                <div className="grid gap-2 grid-cols-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Visitantes: </span>
+                    <span className="font-medium">{cloudflareMetrics.today.uniqueVisitors.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Solicitudes: </span>
+                    <span className="font-medium">{cloudflareMetrics.today.requests.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Bandwidth: </span>
+                    <span className="font-medium">{formatBytes(cloudflareMetrics.today.bandwidth)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {cloudflareLoading && !cloudflareMetrics && (
+        <Card className="border-orange-500/20">
+          <CardContent className="py-8 text-center">
+            <RefreshCw className="h-6 w-6 animate-spin mx-auto text-orange-500" />
+            <p className="text-sm text-muted-foreground mt-2">Cargando métricas de Cloudflare...</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Performance Charts */}
       <div className="grid gap-4 md:grid-cols-2">
