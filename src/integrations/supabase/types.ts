@@ -606,12 +606,16 @@ export type Database = {
           budget_range: string | null
           created_at: string
           email: string
+          followup_count: number | null
           id: string
           is_express: boolean
+          last_followup_at: string | null
           message: string
           name: string
           phone: string | null
           professional_id: string
+          reengaged: boolean | null
+          reengaged_at: string | null
           service_type: string | null
           status: string
           type: string
@@ -622,12 +626,16 @@ export type Database = {
           budget_range?: string | null
           created_at?: string
           email: string
+          followup_count?: number | null
           id?: string
           is_express?: boolean
+          last_followup_at?: string | null
           message: string
           name: string
           phone?: string | null
           professional_id: string
+          reengaged?: boolean | null
+          reengaged_at?: string | null
           service_type?: string | null
           status?: string
           type: string
@@ -638,12 +646,16 @@ export type Database = {
           budget_range?: string | null
           created_at?: string
           email?: string
+          followup_count?: number | null
           id?: string
           is_express?: boolean
+          last_followup_at?: string | null
           message?: string
           name?: string
           phone?: string | null
           professional_id?: string
+          reengaged?: boolean | null
+          reengaged_at?: string | null
           service_type?: string | null
           status?: string
           type?: string
@@ -773,6 +785,75 @@ export type Database = {
           },
           {
             foreignKeyName: "favorites_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_coupons: {
+        Row: {
+          code: string
+          contact_request_id: string | null
+          created_at: string
+          discount_percentage: number
+          expires_at: string
+          id: string
+          professional_id: string
+          used_at: string | null
+        }
+        Insert: {
+          code: string
+          contact_request_id?: string | null
+          created_at?: string
+          discount_percentage?: number
+          expires_at: string
+          id?: string
+          professional_id: string
+          used_at?: string | null
+        }
+        Update: {
+          code?: string
+          contact_request_id?: string | null
+          created_at?: string
+          discount_percentage?: number
+          expires_at?: string
+          id?: string
+          professional_id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_coupons_contact_request_id_fkey"
+            columns: ["contact_request_id"]
+            isOneToOne: false
+            referencedRelation: "contact_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_coupons_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_coupons_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_coupons_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_coupons_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_with_contact"
