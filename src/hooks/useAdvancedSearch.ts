@@ -234,7 +234,14 @@ export const useAdvancedSearch = () => {
       }
 
       // Paso 10: Ordenar por relevancia o criterio seleccionado
+      // PRIORITY: Verified professionals always appear first within each sort criteria
       filteredData.sort((a, b) => {
+        // Primary sort: Verified professionals first
+        if (a.is_verified !== b.is_verified) {
+          return a.is_verified ? -1 : 1;
+        }
+        
+        // Secondary sort: By selected criteria
         if (currentFilters.sortBy === 'rating') {
           return (b.rating || 0) - (a.rating || 0);
         } else if (currentFilters.sortBy === 'reviews') {
