@@ -12,9 +12,11 @@ import {
   Globe, 
   RefreshCw,
   Server,
+  Users,
   Zap
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SystemMetrics {
   responseTime: number;
@@ -72,6 +74,43 @@ export const PerformanceMonitor = () => {
   ]);
 
   const [loading, setLoading] = useState(false);
+  const [uniqueVisitorsToday, setUniqueVisitorsToday] = useState(0);
+
+  const fetchUniqueVisitors = async () => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Contar usuarios únicos que interactuaron hoy (contact_requests, redirect_analytics, campaign_events)
+      const [contactsResult, redirectsResult, campaignResult] = await Promise.all([
+        supabase
+          .from('contact_requests')
+          .select('user_id')
+          .gte('created_at', today.toISOString()),
+        supabase
+          .from('redirect_analytics')
+          .select('user_agent')
+          .gte('created_at', today.toISOString()),
+        supabase
+          .from('campaign_events')
+          .select('user_agent')
+          .gte('created_at', today.toISOString())
+      ]);
+
+      // Contar visitantes únicos aproximados
+      const uniqueUserIds = new Set(contactsResult.data?.map(c => c.user_id) || []);
+      const uniqueUserAgents = new Set([
+        ...(redirectsResult.data?.map(r => r.user_agent) || []),
+        ...(campaignResult.data?.map(c => c.user_agent) || [])
+      ]);
+      
+      // Combinar métricas para aproximar visitantes únicos
+      const totalUnique = uniqueUserIds.size + uniqueUserAgents.size;
+      setUniqueVisitorsToday(totalUnique);
+    } catch (error) {
+      console.error('Error fetching unique visitors:', error);
+    }
+  };
 
   const refreshMetrics = async () => {
     setLoading(true);
@@ -120,9 +159,12 @@ export const PerformanceMonitor = () => {
   };
 
   useEffect(() => {
+    fetchUniqueVisitors();
+    
     const interval = setInterval(() => {
       if (!loading) {
         refreshMetrics();
+        fetchUniqueVisitors();
       }
     }, 30000); // Refresh every 30 seconds
 
@@ -165,7 +207,7 @@ export const PerformanceMonitor = () => {
       )}
 
       {/* System Health Overview */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tiempo de Respuesta</CardTitle>
@@ -221,6 +263,19 @@ export const PerformanceMonitor = () => {
             <div className="text-2xl font-bold">{metrics.activeConnections.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               En tiempo real
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Visitantes Únicos Hoy</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">{uniqueVisitorsToday.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              Basado en actividad del día
             </p>
           </CardContent>
         </Card>
