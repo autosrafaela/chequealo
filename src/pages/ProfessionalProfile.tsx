@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import { ProfessionalProfileEdit } from "@/components/ProfessionalProfileEdit";
 import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
 import { ContactRequestDialog } from "@/components/ContactRequestDialog";
+import { ExpressQuoteButton } from "@/components/ExpressQuoteButton";
 import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { TransactionManager } from "@/components/TransactionManager";
@@ -480,63 +481,74 @@ const ProfessionalProfile = () => {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <WhatsAppContactButton 
-                      phone={contactInfo?.phone || undefined}
-                      professionalName={professional.full_name}
-                    />
-                    <ContactRequestDialog 
-                      professionalId={professional.id}
-                      professionalName={professional.full_name}
-                      type="quote"
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={handleToggleFavorite}
-                      className={isFavorite ? 'text-red-500 border-red-200' : ''}
-                    >
-                      <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
-                    </Button>
+                  <div className="flex flex-col gap-3">
+                    {/* Express Quote - Only for verified professionals */}
+                    {professional.is_verified && (
+                      <ExpressQuoteButton 
+                        professionalId={professional.id}
+                        professionalName={professional.full_name}
+                        isVerified={professional.is_verified}
+                      />
+                    )}
                     
-                    {/* Share Dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          title="Compartir perfil"
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onClick={shareToWhatsApp} className="cursor-pointer">
-                          <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-                          WhatsApp
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={shareToFacebook} className="cursor-pointer">
-                          <Facebook className="h-4 w-4 mr-2 text-blue-600" />
-                          Facebook
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={shareToTwitter} className="cursor-pointer">
-                          <Twitter className="h-4 w-4 mr-2 text-blue-400" />
-                          X (Twitter)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={shareToInstagram} className="cursor-pointer">
-                          <Instagram className="h-4 w-4 mr-2 text-pink-600" />
-                          Instagram
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={shareToEmail} className="cursor-pointer">
-                          <Mail className="h-4 w-4 mr-2 text-gray-600" />
-                          Email
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleShare} className="cursor-pointer">
-                          <Share2 className="h-4 w-4 mr-2" />
-                          Compartir...
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <WhatsAppContactButton 
+                        phone={contactInfo?.phone || undefined}
+                        professionalName={professional.full_name}
+                      />
+                      <ContactRequestDialog 
+                        professionalId={professional.id}
+                        professionalName={professional.full_name}
+                        type="quote"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={handleToggleFavorite}
+                        className={isFavorite ? 'text-red-500 border-red-200' : ''}
+                      >
+                        <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                      </Button>
+                      
+                      {/* Share Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            title="Compartir perfil"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={shareToWhatsApp} className="cursor-pointer">
+                            <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                            WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareToFacebook} className="cursor-pointer">
+                            <Facebook className="h-4 w-4 mr-2 text-blue-600" />
+                            Facebook
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareToTwitter} className="cursor-pointer">
+                            <Twitter className="h-4 w-4 mr-2 text-blue-400" />
+                            X (Twitter)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareToInstagram} className="cursor-pointer">
+                            <Instagram className="h-4 w-4 mr-2 text-pink-600" />
+                            Instagram
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={shareToEmail} className="cursor-pointer">
+                            <Mail className="h-4 w-4 mr-2 text-gray-600" />
+                            Email
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleShare} className="cursor-pointer">
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Compartir...
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
 
                   {/* Contact Info */}

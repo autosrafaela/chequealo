@@ -360,6 +360,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          is_express: boolean
           message: string
           name: string
           phone: string | null
@@ -375,6 +376,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          is_express?: boolean
           message: string
           name: string
           phone?: string | null
@@ -390,6 +392,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          is_express?: boolean
           message?: string
           name?: string
           phone?: string | null
