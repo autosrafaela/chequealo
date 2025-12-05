@@ -223,26 +223,42 @@ export const BadgeSystem: React.FC<BadgeSystemProps> = ({
   if (compact) {
     const earnedBadges = badges.filter(b => b.earned_at);
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        {earnedBadges.slice(0, 5).map((badge) => {
-          const IconComponent = iconMap[badge.icon] || Award;
-          return (
-            <div
-              key={badge.id}
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs border ${rarityColors[badge.rarity as keyof typeof rarityColors]}`}
-              title={`${badge.name}: ${badge.description}`}
-            >
-              <IconComponent className="h-3 w-3" />
-              <span className="hidden sm:inline">{badge.name}</span>
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Trophy className="h-5 w-5 text-primary" />
+            Insignias Destacadas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {earnedBadges.length > 0 ? (
+            <div className="flex items-center gap-2 flex-wrap">
+              {earnedBadges.slice(0, 5).map((badge) => {
+                const IconComponent = iconMap[badge.icon] || Award;
+                return (
+                  <div
+                    key={badge.id}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs border ${rarityColors[badge.rarity as keyof typeof rarityColors]}`}
+                    title={`${badge.name}: ${badge.description}`}
+                  >
+                    <IconComponent className="h-3 w-3" />
+                    <span className="hidden sm:inline">{badge.name}</span>
+                  </div>
+                );
+              })}
+              {earnedBadges.length > 5 && (
+                <Badge variant="outline" className="text-xs">
+                  +{earnedBadges.length - 5} más
+                </Badge>
+              )}
             </div>
-          );
-        })}
-        {earnedBadges.length > 5 && (
-          <Badge variant="outline" className="text-xs">
-            +{earnedBadges.length - 5} más
-          </Badge>
-        )}
-      </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Iniciá sesión para ver tus insignias
+            </p>
+          )}
+        </CardContent>
+      </Card>
     );
   }
 
