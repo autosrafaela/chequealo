@@ -23,6 +23,7 @@ import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
 import { ProfileCompletionProgress } from '@/components/ProfileCompletionProgress';
 import { AchievementsBadges } from '@/components/AchievementsBadges';
 import { ProfessionalAnalytics } from '@/components/ProfessionalAnalytics';
+import { ZonaTodayManager } from '@/components/ZonaTodayManager';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import ChatInterface from '@/components/ChatInterface';
 import { supabase } from '@/integrations/supabase/client';
@@ -250,6 +251,15 @@ const ProfessionalDashboard = () => {
           <ProfileCompletionProgress 
             professionalId={professional?.id}
             onTabChange={setActiveTab}
+          />
+        </div>
+
+        {/* Zona Today Manager */}
+        <div className="mb-8">
+          <ZonaTodayManager 
+            professionalName={professional?.full_name || ''}
+            profession={professional?.profession || ''}
+            phone={professional?.phone}
           />
         </div>
 

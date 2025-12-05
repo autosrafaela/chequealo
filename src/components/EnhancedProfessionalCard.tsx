@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, MessageCircle, Heart, Shield, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFavorites } from '@/hooks/useFavorites';
+import { ZonaTodayBadge } from '@/components/ZonaTodayBadge';
+import { useActiveProRoutes } from '@/hooks/useProRoutes';
 
 interface Professional {
   id: string;
@@ -34,8 +36,13 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
 }) => {
   const navigate = useNavigate();
   const { favorites, toggleFavorite, loading: favoritesLoading } = useFavorites();
+  const { data: activeRoutes } = useActiveProRoutes();
   
   const isFavorite = favorites.includes(professional.id);
+  
+  // Check if this professional has "En tu zona hoy" active
+  const activeRoute = activeRoutes?.find(r => r.professional_id === professional.id);
+  const hasZonaToday = !!activeRoute;
 
   const handleCardClick = () => {
     navigate(`/professional/${professional.id}`);
@@ -154,6 +161,16 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
                 </div>
               )}
             </div>
+
+            {/* Zona Today Badge */}
+            {hasZonaToday && (
+              <div className="mb-2">
+                <ZonaTodayBadge 
+                  neighborhoods={activeRoute?.neighborhoods} 
+                  compact={compact}
+                />
+              </div>
+            )}
 
             {/* Badges and Status */}
             <div className="flex items-center justify-between">
