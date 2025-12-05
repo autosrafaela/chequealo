@@ -105,6 +105,35 @@ export const notifyNewContactRequest = async (
 };
 
 /**
+ * Create PRIORITY notification when an Express request is received
+ */
+export const notifyExpressRequest = async (
+  professionalId: string, 
+  clientName: string,
+  serviceType: string,
+  conversationId: string
+) => {
+  // Get professional's user_id
+  const { data: professional } = await supabase
+    .from('professionals')
+    .select('user_id')
+    .eq('id', professionalId)
+    .single();
+
+  if (!professional) return { data: null, error: 'Professional not found' };
+
+  const actionUrl = `/dashboard?tab=messages&conversation=${conversationId}`;
+
+  return await createNotification({
+    userId: professional.user_id,
+    title: '🚀 ¡SOLICITUD EXPRESS!',
+    message: `${clientName} necesita "${serviceType}" con URGENCIA. Responde rápido para ganar este cliente.`,
+    type: 'warning',
+    actionUrl
+  });
+};
+
+/**
  * Create notification when a professional gets verified
  */
 export const notifyProfessionalVerified = async (professionalUserId: string) => {
