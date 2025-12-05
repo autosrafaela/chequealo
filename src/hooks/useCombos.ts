@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Combo {
@@ -14,38 +14,25 @@ interface Combo {
   display_order: number;
 }
 
+const fetchCombos = async (professionalId: string): Promise<Combo[]> => {
+  const { data, error } = await supabase
+    .from('combos')
+    .select('*')
+    .eq('professional_id', professionalId)
+    .eq('is_active', true)
+    .order('display_order');
+
+  if (error) throw error;
+  return data || [];
+};
+
 export const useCombos = (professionalId: string | undefined) => {
-  const [combos, setCombos] = useState<Combo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    if (!professionalId) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchCombos = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('combos')
-          .select('*')
-          .eq('professional_id', professionalId)
-          .eq('is_active', true)
-          .order('display_order');
-
-        if (error) throw error;
-        setCombos(data || []);
-      } catch (err) {
-        console.error('Error fetching combos:', err);
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCombos();
-  }, [professionalId]);
+  const { data: combos = [], isLoading: loading, error } = useQuery({
+    queryKey: ['combos', professionalId],
+    queryFn: () => fetchCombos(professionalId!),
+    enabled: !!professionalId,
+    staleTime: 5 * 60 * 1000, // 5 minutos de caché
+  });
 
   return { combos, loading, error };
 };
