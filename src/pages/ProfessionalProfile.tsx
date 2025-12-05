@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { TransactionManager } from "@/components/TransactionManager";
 import { ComboCard } from "@/components/ComboCard";
 import { useCombos } from "@/hooks/useCombos";
+import { useProfessionalProfile } from "@/hooks/useProfessionalProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfessionalContact } from "@/hooks/useProfessionalContact";
 import { toast } from "sonner";
@@ -45,116 +47,53 @@ import { getProfessionalShareUrl } from "@/utils/utmHelpers";
 
 const ProfessionalProfile = () => {
   const { id } = useParams();
+  const queryClient = useQueryClient();
   const [isFavorite, setIsFavorite] = useState(false);
-  const [professional, setProfessional] = useState<any>(null);
-  const [services, setServices] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [workPhotos, setWorkPhotos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [contactInfo, setContactInfo] = useState<{ phone: string | null; email: string | null } | null>(null);
   const { getContactInfo, loading: contactLoading } = useProfessionalContact();
   const { combos } = useCombos(id);
+  
+  // Use React Query hook for cached data
+  const { 
+    professional, 
+    services, 
+    reviews, 
+    workPhotos, 
+    isLoading: loading,
+    isValidId,
+    refetchReviews 
+  } = useProfessionalProfile(id);
 
   useEffect(() => {
-    fetchProfessionalData();
     getCurrentUser();
   }, [id]);
+
+  // Update owner status and contact info when professional data changes
+  useEffect(() => {
+    if (professional && currentUser) {
+      const owner = !!(currentUser && professional.user_id && currentUser.id === professional.user_id);
+      setIsOwner(owner);
+      setContactInfo({
+        phone: professional.phone || null,
+        email: professional.email || null
+      });
+    }
+  }, [professional, currentUser]);
 
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUser(user);
   };
 
+  // Invalidate cache and refetch data
   const fetchProfessionalData = async () => {
-    try {
-      setLoading(true);
-
-      // Validate route param is a UUID to avoid 400 errors
-      const isUUID = (value: string) =>
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-
-      if (!id || typeof id !== 'string' || !isUUID(id)) {
-        setProfessional(null);
-        setServices([]);
-        setReviews([]);
-        setWorkPhotos([]);
-        setIsOwner(false);
-        toast.error('URL inválida: ID de profesional no válido');
-        return;
-      }
-
-      // Fetch professional data with contact information
-      const { data: professionalData, error: profError } = await supabase
-        .from('professionals_with_contact')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-
-      if (profError) throw profError;
-
-      if (!professionalData) {
-        setProfessional(null);
-        return;
-      }
-
-      setProfessional(professionalData);
-
-      // Check if current user is the owner using user_id from professionals_with_contact view
-      const { data: { user } } = await supabase.auth.getUser();
-      const owner = !!(user && professionalData.user_id && user.id === professionalData.user_id);
-      setIsOwner(owner);
-
-      // Get contact info from the view (now includes phone and email)
-      setContactInfo({
-        phone: professionalData.phone || null,
-        email: professionalData.email || null
-      });
-
-      // Fetch services
-      const { data: servicesData, error: servicesError } = await supabase
-        .from('professional_services')
-        .select('*')
-        .eq('professional_id', id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (servicesError) throw servicesError;
-      setServices(servicesData || []);
-
-      // Fetch reviews with responses
-      const { data: reviewsData, error: reviewsError } = await supabase
-        .from('reviews')
-        .select(`
-          *,
-          review_responses (
-            id,
-            response,
-            created_at
-          )
-        `)
-        .eq('professional_id', id)
-        .order('created_at', { ascending: false });
-
-      if (reviewsError) throw reviewsError;
-      setReviews(reviewsData || []);
-
-      // Fetch work photos
-      const { data: photosData, error: photosError } = await supabase
-        .from('work_photos')
-        .select('*')
-        .eq('professional_id', id)
-        .order('created_at', { ascending: false });
-
-      if (photosError) throw photosError;
-      setWorkPhotos(photosData || []);
-
-    } catch (error) {
-      console.error('Error fetching professional data:', error);
-      toast.error('Error al cargar los datos del profesional');
-    } finally {
-      setLoading(false);
+    if (id) {
+      queryClient.invalidateQueries({ queryKey: ['professional', id] });
+      queryClient.invalidateQueries({ queryKey: ['professional-services', id] });
+      queryClient.invalidateQueries({ queryKey: ['professional-reviews', id] });
+      queryClient.invalidateQueries({ queryKey: ['professional-photos', id] });
     }
   };
 
@@ -168,7 +107,7 @@ const ProfessionalProfile = () => {
       if (error) throw error;
 
       toast.success('Servicio eliminado');
-      fetchProfessionalData();
+      queryClient.invalidateQueries({ queryKey: ['professional-services', id] });
     } catch (error) {
       console.error('Error deleting service:', error);
       toast.error('Error al eliminar el servicio');
@@ -185,12 +124,23 @@ const ProfessionalProfile = () => {
       if (error) throw error;
 
       toast.success('Foto eliminada');
-      fetchProfessionalData();
+      queryClient.invalidateQueries({ queryKey: ['professional-photos', id] });
     } catch (error) {
       console.error('Error deleting photo:', error);
       toast.error('Error al eliminar la foto');
     }
   };
+
+  if (!isValidId) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center text-red-500">URL inválida: ID de profesional no válido</div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
