@@ -395,6 +395,105 @@ export type Database = {
         }
         Relationships: []
       }
+      combo_reservations: {
+        Row: {
+          combo_id: string | null
+          combo_title: string
+          created_at: string
+          deposit_amount: number
+          id: string
+          mercadopago_payment_id: string | null
+          mercadopago_preference_id: string | null
+          notes: string | null
+          payment_status: string
+          payout_date: string | null
+          payout_status: string
+          professional_id: string
+          total_price: number
+          updated_at: string
+          user_email: string
+          user_id: string
+          user_name: string
+          user_phone: string | null
+        }
+        Insert: {
+          combo_id?: string | null
+          combo_title: string
+          created_at?: string
+          deposit_amount: number
+          id?: string
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          notes?: string | null
+          payment_status?: string
+          payout_date?: string | null
+          payout_status?: string
+          professional_id: string
+          total_price: number
+          updated_at?: string
+          user_email: string
+          user_id: string
+          user_name: string
+          user_phone?: string | null
+        }
+        Update: {
+          combo_id?: string | null
+          combo_title?: string
+          created_at?: string
+          deposit_amount?: number
+          id?: string
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          notes?: string | null
+          payment_status?: string
+          payout_date?: string | null
+          payout_status?: string
+          professional_id?: string
+          total_price?: number
+          updated_at?: string
+          user_email?: string
+          user_id?: string
+          user_name?: string
+          user_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combo_reservations_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "combos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combo_reservations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combo_reservations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combo_reservations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combo_reservations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       combos: {
         Row: {
           created_at: string
@@ -1017,6 +1116,8 @@ export type Database = {
       professionals: {
         Row: {
           availability: string | null
+          bank_holder_name: string | null
+          cbu_cvu: string | null
           created_at: string
           description: string | null
           dni: string | null
@@ -1042,6 +1143,8 @@ export type Database = {
         }
         Insert: {
           availability?: string | null
+          bank_holder_name?: string | null
+          cbu_cvu?: string | null
           created_at?: string
           description?: string | null
           dni?: string | null
@@ -1067,6 +1170,8 @@ export type Database = {
         }
         Update: {
           availability?: string | null
+          bank_holder_name?: string | null
+          cbu_cvu?: string | null
           created_at?: string
           description?: string | null
           dni?: string | null

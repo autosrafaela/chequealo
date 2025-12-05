@@ -14,6 +14,7 @@ import { SubscriptionAlert } from '@/components/SubscriptionAlert';
 import { ServicesManager } from '@/components/ServicesManager';
 import { WorkPhotosManager } from '@/components/WorkPhotosManager';
 import { CombosManager } from '@/components/CombosManager';
+import { BankingInfoForm } from '@/components/BankingInfoForm';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
 import { ProfessionManager } from '@/components/ProfessionManager';
@@ -689,6 +690,9 @@ const ProfessionalDashboard = () => {
 
               {/* Insignias y Logros */}
               <AchievementsBadges userId={user?.id} />
+
+              {/* Datos Bancarios para Cobros */}
+              <BankingInfoForm professionalId={professional.id} />
             </div>
           </TabsContent>
 
