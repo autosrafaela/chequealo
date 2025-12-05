@@ -1,9 +1,19 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App.tsx";
 import "./index.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error('Failed to find root element');
@@ -21,10 +31,12 @@ if ('serviceWorker' in navigator) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <AuthProvider>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </AuthProvider>
+    </QueryClientProvider>
   </StrictMode>
 );
