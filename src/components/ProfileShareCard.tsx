@@ -219,13 +219,33 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
         }
       }
 
+      // Profile URL - prominently displayed
+      const profileUrl = `chequealo.ar/professional/${professional.id}`;
+      
+      // URL Box background
+      const urlBoxY = 1380;
+      ctx.save();
+      roundRect(ctx, 60, urlBoxY, canvas.width - 120, 100, 20);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      // Link icon and URL
+      ctx.fillStyle = '#fff';
+      ctx.font = '36px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔗 ' + profileUrl, canvas.width / 2, urlBoxY + 60);
+
       // CTA section
-      const ctaY = 1450;
+      const ctaY = 1520;
       
       // CTA background
       ctx.save();
-      roundRect(ctx, 80, ctaY, canvas.width - 160, 200, 30);
-      const ctaGradient = ctx.createLinearGradient(80, ctaY, canvas.width - 80, ctaY + 200);
+      roundRect(ctx, 80, ctaY, canvas.width - 160, 160, 30);
+      const ctaGradient = ctx.createLinearGradient(80, ctaY, canvas.width - 80, ctaY + 160);
       ctaGradient.addColorStop(0, '#6366f1');
       ctaGradient.addColorStop(1, '#8b5cf6');
       ctx.fillStyle = ctaGradient;
@@ -235,31 +255,21 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 44px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('¡Contactá ahora!', canvas.width / 2, ctaY + 70);
+      ctx.fillText('¡Contactá ahora!', canvas.width / 2, ctaY + 65);
       
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = '36px Arial';
-      ctx.fillText('Deslizá arriba para ver el perfil', canvas.width / 2, ctaY + 130);
-
-      // URL
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '32px Arial';
-      ctx.fillText(`chequealo.ar/professional/${professional.id.substring(0, 8)}...`, canvas.width / 2, ctaY + 175);
+      ctx.fillText('Visitá el link para ver el perfil completo', canvas.width / 2, ctaY + 120);
 
       // Chequealo branding at bottom
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 48px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('CHEQUEALO', canvas.width / 2, 1750);
+      ctx.fillText('CHEQUEALO', canvas.width / 2, 1760);
       
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.font = '28px Arial';
-      ctx.fillText('Profesionales verificados en Argentina', canvas.width / 2, 1810);
-
-      // Swipe up indicator
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.font = '60px Arial';
-      ctx.fillText('↑', canvas.width / 2, 1870);
+      ctx.fillText('Profesionales verificados en Argentina', canvas.width / 2, 1820);
 
       // Generate data URL
       const dataUrl = canvas.toDataURL('image/png');
@@ -274,8 +284,20 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     }
   };
 
-  const downloadImage = () => {
+  const getProfileUrl = () => {
+    return `${window.location.origin}/professional/${professional.id}`;
+  };
+
+  const downloadImage = async () => {
     if (!generatedImage) return;
+    
+    // Copy profile URL to clipboard
+    const profileUrl = getProfileUrl();
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+    } catch (err) {
+      console.log('Could not copy URL to clipboard');
+    }
     
     const link = document.createElement('a');
     link.download = `perfil-${professional.full_name.replace(/\s+/g, '-').toLowerCase()}.png`;
@@ -284,19 +306,21 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     link.click();
     document.body.removeChild(link);
     
-    toast.success('Imagen descargada. ¡Compartila en tu historia!');
+    toast.success('Imagen descargada y link copiado. ¡Pegá el link en tu historia!', {
+      duration: 5000,
+    });
   };
 
-  const shareToWhatsAppStatus = () => {
+  const shareToWhatsAppStatus = async () => {
     if (!generatedImage) {
       generateProfileCard();
       return;
     }
     
     // WhatsApp Status requires downloading the image first
-    downloadImage();
-    toast.success('Imagen descargada. Abrí WhatsApp → Estado → Elegí la imagen descargada', {
-      duration: 5000,
+    await downloadImage();
+    toast.success('Imagen descargada y link copiado. Abrí WhatsApp → Estado → Pegá el link junto a la imagen', {
+      duration: 6000,
     });
   };
 
@@ -327,9 +351,9 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     }
 
     // Fallback: download image
-    downloadImage();
-    toast.success('Imagen descargada. Abrí Instagram → Historia → Elegí la imagen descargada', {
-      duration: 5000,
+    await downloadImage();
+    toast.success('Imagen descargada y link copiado. Abrí Instagram → Historia → Pegá el link con el sticker de enlace', {
+      duration: 6000,
     });
   };
 
