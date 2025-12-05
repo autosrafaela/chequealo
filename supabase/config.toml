@@ -107,3 +107,6 @@ verify_jwt = false
 
 [functions.cold-lead-followup]
 verify_jwt = false
+
+[functions.create-agenda-payment]
+verify_jwt = true

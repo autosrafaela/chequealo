@@ -24,6 +24,7 @@ import { ProfileCompletionProgress } from '@/components/ProfileCompletionProgres
 import { AchievementsBadges } from '@/components/AchievementsBadges';
 import { ProfessionalAnalytics } from '@/components/ProfessionalAnalytics';
 import { ZonaTodayManager } from '@/components/ZonaTodayManager';
+import { AgendaManager } from '@/components/AgendaManager';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import ChatInterface from '@/components/ChatInterface';
 import { supabase } from '@/integrations/supabase/client';
@@ -600,7 +601,10 @@ const ProfessionalDashboard = () => {
           </TabsContent>
 
           <TabsContent value="calendar">
-            <AvailabilityCalendar />
+            <div className="space-y-6">
+              <AvailabilityCalendar />
+              <AgendaManager />
+            </div>
           </TabsContent>
 
           <TabsContent value="financial">

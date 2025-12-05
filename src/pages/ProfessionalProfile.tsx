@@ -16,6 +16,7 @@ import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { TransactionManager } from "@/components/TransactionManager";
 import { ComboCard } from "@/components/ComboCard";
+import { PublicAgendaGrid } from "@/components/PublicAgendaGrid";
 import { useCombos } from "@/hooks/useCombos";
 import { useProfessionalProfile } from "@/hooks/useProfessionalProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -612,6 +613,15 @@ const ProfessionalProfile = () => {
                     ))}
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Public Agenda Grid */}
+              {professional && (
+                <PublicAgendaGrid 
+                  professionalId={professional.id}
+                  professionalName={professional.full_name}
+                  depositAmount={500}
+                />
               )}
             </div>
           </TabsContent>

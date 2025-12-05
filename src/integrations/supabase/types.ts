@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_slots: {
+        Row: {
+          block_type: string
+          booked_by_email: string | null
+          booked_by_name: string | null
+          booked_by_phone: string | null
+          booked_by_user_id: string | null
+          booking_notes: string | null
+          created_at: string
+          deposit_amount: number | null
+          deposit_paid: boolean | null
+          hold_by_user_id: string | null
+          hold_expires_at: string | null
+          id: string
+          mercadopago_payment_id: string | null
+          mercadopago_preference_id: string | null
+          professional_id: string
+          slot_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          block_type: string
+          booked_by_email?: string | null
+          booked_by_name?: string | null
+          booked_by_phone?: string | null
+          booked_by_user_id?: string | null
+          booking_notes?: string | null
+          created_at?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          hold_by_user_id?: string | null
+          hold_expires_at?: string | null
+          id?: string
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          professional_id: string
+          slot_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          block_type?: string
+          booked_by_email?: string | null
+          booked_by_name?: string | null
+          booked_by_phone?: string | null
+          booked_by_user_id?: string | null
+          booking_notes?: string | null
+          created_at?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          hold_by_user_id?: string | null
+          hold_expires_at?: string | null
+          id?: string
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          professional_id?: string
+          slot_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       availability_slots: {
         Row: {
           created_at: string
@@ -2521,6 +2613,7 @@ export type Database = {
         Args: { access_type: string; prof_id: string }
         Returns: undefined
       }
+      release_expired_agenda_holds: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "professional"
