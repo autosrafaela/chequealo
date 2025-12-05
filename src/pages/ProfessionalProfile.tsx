@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Header from "@/components/Header";
 import { ProfessionalProfileEdit } from "@/components/ProfessionalProfileEdit";
 import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
@@ -17,6 +17,7 @@ import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { TransactionManager } from "@/components/TransactionManager";
 import { ComboCard } from "@/components/ComboCard";
 import { PublicAgendaGrid } from "@/components/PublicAgendaGrid";
+import { ProfileShareCard } from "@/components/ProfileShareCard";
 import { useCombos } from "@/hooks/useCombos";
 import { useProfessionalProfile } from "@/hooks/useProfessionalProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -500,6 +501,25 @@ const ProfessionalProfile = () => {
                             <Share2 className="h-4 w-4 mr-2" />
                             Compartir...
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <ProfileShareCard 
+                            professional={{
+                              id: professional.id,
+                              full_name: professional.full_name,
+                              profession: professional.profession,
+                              location: professional.location,
+                              rating: professional.rating,
+                              review_count: professional.review_count,
+                              image_url: professional.image_url,
+                              is_verified: professional.is_verified,
+                            }}
+                            trigger={
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
+                                <Camera className="h-4 w-4 mr-2 text-purple-600" />
+                                Compartir en Stories
+                              </DropdownMenuItem>
+                            }
+                          />
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
