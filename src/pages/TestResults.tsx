@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
+import { NotificationSoundTest } from '@/components/NotificationSoundTest';
 
 interface TestResult {
   name: string;
@@ -410,6 +411,9 @@ const TestResults = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Sound Test Panel */}
+        <NotificationSoundTest />
       </div>
     </div>
   );
