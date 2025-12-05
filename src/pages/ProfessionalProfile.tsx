@@ -38,6 +38,7 @@ import {
   Instagram
 } from "lucide-react";
 import { ProfessionalSEO } from "@/components/SEO/ProfessionalSEO";
+import { getProfessionalShareUrl } from "@/utils/utmHelpers";
 
 const ProfessionalProfile = () => {
   const { id } = useParams();
@@ -261,7 +262,7 @@ const ProfessionalProfile = () => {
 
   const shareToWhatsApp = () => {
     try {
-      const shareUrl = window.location.href;
+      const shareUrl = getProfessionalShareUrl(id!, 'wa', 'share');
       const message = `🔍 *${professional.full_name}* - ${professional.profession}\n📍 ${professional.location}\n⭐ Rating: ${professional.rating || 'N/A'}/5\n\nMira su perfil completo aquí: ${shareUrl}`;
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
       
@@ -278,14 +279,15 @@ const ProfessionalProfile = () => {
     } catch (error) {
       console.error('Error sharing to WhatsApp:', error);
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      const fallbackUrl = getProfessionalShareUrl(id!, 'wa', 'share');
+      navigator.clipboard.writeText(fallbackUrl);
       toast.success('Enlace copiado. Pégalo en WhatsApp');
     }
   };
 
   const shareToFacebook = () => {
     try {
-      const shareUrl = window.location.href;
+      const shareUrl = getProfessionalShareUrl(id!, 'fb', 'share');
       const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
       const opened = window.open(facebookUrl, '_blank', 'width=600,height=400');
       
@@ -297,14 +299,15 @@ const ProfessionalProfile = () => {
       }
     } catch (error) {
       console.error('Error sharing to Facebook:', error);
-      navigator.clipboard.writeText(window.location.href);
+      const fallbackUrl = getProfessionalShareUrl(id!, 'fb', 'share');
+      navigator.clipboard.writeText(fallbackUrl);
       toast.error('No se pudo abrir Facebook. Enlace copiado al portapapeles');
     }
   };
 
   const shareToTwitter = () => {
     try {
-      const shareUrl = window.location.href;
+      const shareUrl = getProfessionalShareUrl(id!, 'tw', 'share');
       const text = `Conoce a ${professional.full_name}, ${professional.profession} en ${professional.location} ⭐ ${professional.rating || 'N/A'}/5`;
       const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
       const opened = window.open(twitterUrl, '_blank', 'width=600,height=400');
@@ -317,14 +320,15 @@ const ProfessionalProfile = () => {
       }
     } catch (error) {
       console.error('Error sharing to Twitter:', error);
-      navigator.clipboard.writeText(window.location.href);
+      const fallbackUrl = getProfessionalShareUrl(id!, 'tw', 'share');
+      navigator.clipboard.writeText(fallbackUrl);
       toast.error('No se pudo abrir X. Enlace copiado al portapapeles');
     }
   };
 
   const shareToInstagram = async () => {
     try {
-      const shareUrl = window.location.href;
+      const shareUrl = getProfessionalShareUrl(id!, 'ig', 'share');
       const message = `🔍 ${professional.full_name} - ${professional.profession}\n📍 ${professional.location}\n⭐ ${professional.rating || 'N/A'}/5\n\nVer perfil: ${shareUrl}`;
       
       // Instagram doesn't have direct URL sharing API
@@ -351,7 +355,8 @@ const ProfessionalProfile = () => {
     } catch (error) {
       console.error('Error sharing to Instagram:', error);
       try {
-        await navigator.clipboard.writeText(window.location.href);
+        const fallbackUrl = getProfessionalShareUrl(id!, 'ig', 'share');
+        await navigator.clipboard.writeText(fallbackUrl);
         toast.success('Enlace copiado. Compártelo en Instagram');
       } catch (clipboardError) {
         toast.error('No se pudo copiar el enlace');
@@ -361,7 +366,7 @@ const ProfessionalProfile = () => {
 
   const shareToEmail = () => {
     try {
-      const shareUrl = window.location.href;
+      const shareUrl = getProfessionalShareUrl(id!, 'email', 'share');
       const subject = `Conoce a ${professional.full_name} - ${professional.profession}`;
       const body = `Hola,\n\nTe recomiendo a ${professional.full_name}, ${professional.profession} en ${professional.location}.\n\n` +
                    `⭐ Rating: ${professional.rating || 'N/A'}/5 (${professional.review_count || 0} opiniones)\n\n` +
@@ -377,7 +382,8 @@ const ProfessionalProfile = () => {
       }, 500);
     } catch (error) {
       console.error('Error sharing via email:', error);
-      navigator.clipboard.writeText(window.location.href);
+      const fallbackUrl = getProfessionalShareUrl(id!, 'email', 'share');
+      navigator.clipboard.writeText(fallbackUrl);
       toast.error('No se pudo abrir el email. Enlace copiado al portapapeles');
     }
   };
