@@ -14,6 +14,8 @@ import { ExpressQuoteButton } from "@/components/ExpressQuoteButton";
 import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { TransactionManager } from "@/components/TransactionManager";
+import { ComboCard } from "@/components/ComboCard";
+import { useCombos } from "@/hooks/useCombos";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfessionalContact } from "@/hooks/useProfessionalContact";
 import { toast } from "sonner";
@@ -53,6 +55,7 @@ const ProfessionalProfile = () => {
   const [isOwner, setIsOwner] = useState(false);
   const [contactInfo, setContactInfo] = useState<{ phone: string | null; email: string | null } | null>(null);
   const { getContactInfo, loading: contactLoading } = useProfessionalContact();
+  const { combos } = useCombos(id);
 
   useEffect(() => {
     fetchProfessionalData();
@@ -600,42 +603,67 @@ const ProfessionalProfile = () => {
 
           {/* Services Tab */}
           <TabsContent value="services">
-            <Card>
-              <CardHeader>
-                <CardTitle>Servicios Ofrecidos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {services.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {services.map((service) => (
-                      <div key={service.id} className="p-4 bg-gray-50 rounded-lg border">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium">{service.service_name}</h3>
-                          {isOwner && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => deleteService(service.id)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Servicios Ofrecidos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {services.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {services.map((service) => (
+                        <div key={service.id} className="p-4 bg-gray-50 rounded-lg border">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-medium">{service.service_name}</h3>
+                            {isOwner && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => deleteService(service.id)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                          {service.description && (
+                            <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
                           )}
+                          <p className="text-sm font-medium text-primary">
+                            {formatPrice(service.price_from, service.price_to)}
+                          </p>
                         </div>
-                        {service.description && (
-                          <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
-                        )}
-                        <p className="text-sm font-medium text-primary">
-                          {formatPrice(service.price_from, service.price_to)}
-                        </p>
-                      </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No hay servicios disponibles.</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Combos Section */}
+              {combos.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      🔥 Combos Especiales
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Paquetes con precios especiales - Reservá con seña
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {combos.map((combo) => (
+                      <ComboCard 
+                        key={combo.id} 
+                        combo={combo} 
+                        professionalName={professional?.full_name || ''} 
+                      />
                     ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No hay servicios disponibles.</p>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
 
           {/* Reviews Tab */}
