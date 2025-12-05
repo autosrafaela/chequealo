@@ -26,9 +26,12 @@ export const LatestProfessionals = () => {
     const fetchLatestProfessionals = async () => {
       try {
         // SECURITY: Using professionals_with_contact view to show contact info
+        // PRIORITY: Verified professionals appear first, then by creation date
         const { data, error } = await supabase
           .from('professionals_with_contact')
           .select('*')
+          .order('is_verified', { ascending: false })
+          .order('rating', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
           .limit(12);
 
