@@ -81,9 +81,12 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     ogDescription.content = description;
     document.head.appendChild(ogDescription);
 
+    // Generate canonical URL (always use chequealo.ar without www)
+    const canonicalUrl = `https://chequealo.ar/professional/${professional.id}`;
+    
     const ogUrl = document.createElement('meta');
     ogUrl.setAttribute('property', 'og:url');
-    ogUrl.content = window.location.href;
+    ogUrl.content = canonicalUrl;
     document.head.appendChild(ogUrl);
 
     const ogSiteName = document.createElement('meta');
@@ -129,47 +132,44 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     document.head.appendChild(twitterCreator);
 
     // Handle image URL - ensure it's absolute
+    const SUPABASE_PROJECT_ID = 'rolitmcxydholgsxpvwa';
+    const SUPABASE_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co`;
+    const DEFAULT_OG_IMAGE = 'https://chequealo.ar/images/default-professional-og.jpg';
+    
     let imageUrl = professional.image_url;
     
-    // If no image, use default professional image
-    if (!imageUrl) {
-      imageUrl = 'https://chequealo.ar/images/default-professional-og.jpg';
-      console.log('Using default professional image:', imageUrl);
+    // If no image or empty/null, use default professional image
+    if (!imageUrl || imageUrl.trim() === '') {
+      imageUrl = DEFAULT_OG_IMAGE;
     } else {
-      console.log('Original image URL:', imageUrl);
-      
-      // Handle Supabase Storage URLs
-      // Format: https://PROJECT.supabase.co/storage/v1/object/public/BUCKET/PATH
-      if (imageUrl.includes('/storage/v1/object/public/')) {
-        // If it already has the full Supabase URL, use it as is
-        if (imageUrl.startsWith('https://rolitmcxydholgsxpvwa.supabase.co')) {
-          // Already correct format
+      // Handle Supabase Storage URLs - various formats
+      if (imageUrl.includes('supabase.co')) {
+        // Already a full Supabase URL, use as is
+      } else if (imageUrl.includes('/storage/v1/object/public/')) {
+        // Partial Supabase path
+        if (imageUrl.startsWith('/')) {
+          imageUrl = `${SUPABASE_URL}${imageUrl}`;
+        } else {
+          imageUrl = `${SUPABASE_URL}/${imageUrl}`;
         }
-        // If it's a relative path from Supabase Storage
-        else if (imageUrl.startsWith('/storage/v1/object/public/')) {
-          imageUrl = `https://rolitmcxydholgsxpvwa.supabase.co${imageUrl}`;
-        }
-        // If it starts with storage/v1/object/public/ without leading slash
-        else if (imageUrl.startsWith('storage/v1/object/public/')) {
-          imageUrl = `https://rolitmcxydholgsxpvwa.supabase.co/${imageUrl}`;
-        }
+      } else if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+        // Legacy storage format
+        const cleanPath = imageUrl.replace(/^\//, '');
+        imageUrl = `${SUPABASE_URL}/storage/v1/object/public/${cleanPath}`;
+      } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        // Already absolute URL, use as is
+      } else if (imageUrl.startsWith('/')) {
+        // Relative path starting with /
+        imageUrl = `https://chequealo.ar${imageUrl}`;
+      } else {
+        // Relative path without /
+        imageUrl = `https://chequealo.ar/${imageUrl}`;
       }
-      // Legacy format: /storage/ or storage/
-      else if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
-        // Assume it's in the default bucket and convert to full URL
-        const cleanPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
-        imageUrl = `https://rolitmcxydholgsxpvwa.supabase.co/storage/v1/object/public/${cleanPath}`;
-      }
-      // If it's already a full URL (http or https), use it as is
-      else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-        // Already absolute URL
-      }
-      // Otherwise, assume it's a relative path to our domain
-      else {
-        imageUrl = `https://www.chequealo.ar${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-      }
-
-      console.log('Final image URL for og:image:', imageUrl);
+    }
+    
+    // Final validation - if URL seems invalid, use default
+    if (!imageUrl || !imageUrl.startsWith('http')) {
+      imageUrl = DEFAULT_OG_IMAGE;
     }
     
     if (imageUrl) {
@@ -217,13 +217,14 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       document.head.appendChild(twitterImageAlt);
     }
 
-    // Canonical URL
+    // Canonical URL (always use chequealo.ar without www)
     const canonical = document.createElement('link');
     canonical.rel = 'canonical';
-    canonical.href = window.location.href;
+    canonical.href = `https://chequealo.ar/professional/${professional.id}`;
     document.head.appendChild(canonical);
 
     // Structured Data (JSON-LD)
+    const professionalUrl = `https://chequealo.ar/professional/${professional.id}`;
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Person",
@@ -242,13 +243,10 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
         "bestRating": 5,
         "worstRating": 1
       },
-      "url": window.location.href,
+      "url": professionalUrl,
+      "image": imageUrl,
       "sameAs": []
     };
-
-    if (imageUrl) {
-      structuredData["image"] = imageUrl;
-    }
 
     if (professional.phone) {
       structuredData["telephone"] = professional.phone;
