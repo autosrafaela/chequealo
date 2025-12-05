@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { EnhancedProfessionalCard } from "@/components/EnhancedProfessionalCard";
+import { ProfessionalCardSkeleton } from "@/components/ProfessionalCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight } from "lucide-react";
@@ -65,14 +66,7 @@ export const LatestProfessionals = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, index) => (
-              <div key={index} className="animate-pulse">
-                <div className="bg-card rounded-lg p-6 space-y-4">
-                  <div className="w-16 h-16 bg-muted rounded-full mx-auto"></div>
-                  <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
-                  <div className="h-3 bg-muted rounded w-1/2 mx-auto"></div>
-                  <div className="h-3 bg-muted rounded w-2/3 mx-auto"></div>
-                </div>
-              </div>
+              <ProfessionalCardSkeleton key={index} compact />
             ))}
           </div>
         </div>

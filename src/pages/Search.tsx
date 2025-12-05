@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { SearchFilters } from '@/components/SearchFilters';
 import ProfessionalCard from '@/components/ProfessionalCard';
+import { ProfessionalCardSkeleton } from '@/components/ProfessionalCardSkeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon, Grid, List, SlidersHorizontal } from 'lucide-react';
@@ -130,18 +131,7 @@ const Search = () => {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4">
-                        <div className="w-16 h-16 bg-muted rounded-full"></div>
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-muted rounded w-3/4"></div>
-                          <div className="h-3 bg-muted rounded w-1/2"></div>
-                          <div className="h-3 bg-muted rounded w-full"></div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <ProfessionalCardSkeleton key={i} />
                 ))}
               </div>
             ) : professionals.length > 0 ? (
