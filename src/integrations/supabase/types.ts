@@ -1028,6 +1028,68 @@ export type Database = {
           },
         ]
       }
+      pro_routes: {
+        Row: {
+          boost_expires_at: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          neighborhoods: string[]
+          professional_id: string
+          route_date: string
+          updated_at: string
+        }
+        Insert: {
+          boost_expires_at?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          neighborhoods?: string[]
+          professional_id: string
+          route_date?: string
+          updated_at?: string
+        }
+        Update: {
+          boost_expires_at?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          neighborhoods?: string[]
+          professional_id?: string
+          route_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_routes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_routes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_routes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_routes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profession_categories: {
         Row: {
           created_at: string

@@ -57,6 +57,20 @@ export const useAdvancedSearch = () => {
     try {
       console.log('🔍 Buscando:', { query, filters: currentFilters });
       
+      // Fetch active "En tu zona hoy" routes for boost
+      const today = new Date().toISOString().split('T')[0];
+      const { data: activeRoutes } = await supabase
+        .from('pro_routes')
+        .select('professional_id, neighborhoods, boost_expires_at')
+        .eq('route_date', today)
+        .eq('is_active', true);
+      
+      const boostedProIds = new Set(
+        (activeRoutes || [])
+          .filter(r => r.boost_expires_at && new Date(r.boost_expires_at) > new Date())
+          .map(r => r.professional_id)
+      );
+      
       // Paso 1: Preparar query base para professionals
       // SECURITY: Using professionals_public_safe view to exclude sensitive data (email, phone, DNI)
       let professionalsQuery = supabase
@@ -171,6 +185,11 @@ export const useAdvancedSearch = () => {
       // Paso 8: Sistema de scoring para relevancia
       const scoredData = professionalsData.map(prof => {
         let score = 0;
+        
+        // BOOST: "En tu zona hoy" - highest priority boost (+50 points)
+        if (boostedProIds.has(prof.id)) {
+          score += 50;
+        }
         
         if (query && query.trim() !== '') {
           const searchTerms = query.toLowerCase().trim();
