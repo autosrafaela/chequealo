@@ -11,7 +11,8 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Camera, Upload, Star, Eye, Image } from 'lucide-react';
+import { Plus, Edit, Trash2, Camera, Upload, Star, Eye, Image, Instagram } from 'lucide-react';
+import { SocialContentGenerator } from '@/components/SocialContentGenerator';
 
 interface WorkPhoto {
   id: string;
@@ -45,6 +46,13 @@ export const WorkPhotosManager = () => {
     is_featured: false
   });
   const [professionalId, setProfessionalId] = useState<string | null>(null);
+  const [professionalData, setProfessionalData] = useState<{
+    full_name: string;
+    profession: string;
+    phone?: string;
+    location?: string;
+    image_url?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -81,16 +89,23 @@ export const WorkPhotosManager = () => {
 
   const fetchProfessionalAndPhotos = async () => {
     try {
-      // First get the professional ID
+      // First get the professional data
       const { data: professional, error: profError } = await supabase
         .from('professionals')
-        .select('id')
+        .select('id, full_name, profession, phone, location, image_url')
         .eq('user_id', user?.id)
         .single();
 
       if (profError) throw profError;
       
       setProfessionalId(professional.id);
+      setProfessionalData({
+        full_name: professional.full_name,
+        profession: professional.profession,
+        phone: professional.phone || undefined,
+        location: professional.location || undefined,
+        image_url: professional.image_url || undefined
+      });
 
       // Then get work photos
       const { data: photosData, error: photosError } = await supabase
@@ -612,7 +627,23 @@ export const WorkPhotosManager = () => {
                       <Star className={`h-4 w-4 ${photo.is_featured ? 'fill-current text-yellow-500' : ''}`} />
                     </Button>
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
+                      {professionalData && (
+                        <SocialContentGenerator
+                          professional={professionalData}
+                          workPhoto={{
+                            id: photo.id,
+                            image_url: photo.image_url,
+                            caption: photo.caption || undefined,
+                            work_type: photo.work_type || undefined
+                          }}
+                          trigger={
+                            <Button variant="ghost" size="sm" title="Generar Story para redes">
+                              <Instagram className="h-4 w-4 text-pink-500" />
+                            </Button>
+                          }
+                        />
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
