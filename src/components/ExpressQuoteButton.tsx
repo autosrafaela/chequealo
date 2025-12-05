@@ -114,10 +114,10 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
 
       if (messageError) throw messageError;
 
-      // 5. Notificar al profesional con urgencia
+      // 5. Notificar al profesional con URGENCIA (Push notification Express)
       try {
-        const { notifyNewContactRequest } = await import('@/utils/notificationHelpers');
-        await notifyNewContactRequest(professionalId, formData.name, 'quote', conversationId);
+        const { notifyExpressRequest } = await import('@/utils/notificationHelpers');
+        await notifyExpressRequest(professionalId, formData.name, formData.service_type || 'Servicio urgente', conversationId);
       } catch (notifError) {
         console.error('Error sending notification:', notifError);
       }
