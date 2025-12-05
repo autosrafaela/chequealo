@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.transcribe-audio]
 verify_jwt = true
+
+[functions.calculate-weekly-rankings]
+verify_jwt = false

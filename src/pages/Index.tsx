@@ -6,6 +6,7 @@ import OnboardingTour from "@/components/OnboardingTour";
 import ContextualTips from "@/components/ContextualTips";
 import BadgeSystem from "@/components/BadgeSystem";
 import RankingSystem from "@/components/RankingSystem";
+import { WeeklyRankings } from "@/components/WeeklyRankings";
 import { HeaderCarousel } from "@/components/HeaderCarousel";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
@@ -28,7 +29,11 @@ const Index = () => {
       {/* Gamification Section */}
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
+            🏆 Rankings y Logros
+          </h2>
+          <div className="grid lg:grid-cols-3 gap-8">
+            <WeeklyRankings maxItems={5} showFilters={true} />
             <BadgeSystem compact={true} />
             <RankingSystem limit={5} />
           </div>

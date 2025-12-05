@@ -1905,6 +1905,86 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_rankings: {
+        Row: {
+          avg_response_minutes: number | null
+          created_at: string
+          id: string
+          location: string
+          new_reviews_count: number | null
+          profession: string
+          professional_id: string
+          punctuality_score: number | null
+          rank_position: number
+          response_score: number | null
+          reviews_score: number | null
+          score: number
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          avg_response_minutes?: number | null
+          created_at?: string
+          id?: string
+          location: string
+          new_reviews_count?: number | null
+          profession: string
+          professional_id: string
+          punctuality_score?: number | null
+          rank_position: number
+          response_score?: number | null
+          reviews_score?: number | null
+          score?: number
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          avg_response_minutes?: number | null
+          created_at?: string
+          id?: string
+          location?: string
+          new_reviews_count?: number | null
+          profession?: string
+          professional_id?: string
+          punctuality_score?: number | null
+          rank_position?: number
+          response_score?: number | null
+          reviews_score?: number | null
+          score?: number
+          week_end?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_photos: {
         Row: {
           after_image_url: string | null
