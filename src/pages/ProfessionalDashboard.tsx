@@ -20,6 +20,7 @@ import { TransactionConfirmationCard } from '@/components/TransactionConfirmatio
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
 import { ProfileCompletionProgress } from '@/components/ProfileCompletionProgress';
 import { AchievementsBadges } from '@/components/AchievementsBadges';
+import { ProfessionalAnalytics } from '@/components/ProfessionalAnalytics';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import ChatInterface from '@/components/ChatInterface';
 import { supabase } from '@/integrations/supabase/client';
@@ -479,13 +480,17 @@ const ProfessionalDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-11 sticky top-4 z-10 bg-background">
+          <TabsList className="grid w-full grid-cols-12 sticky top-4 z-10 bg-background">
             <TabsTrigger value="requests">
               Solicitudes ({stats.totalRequests})
             </TabsTrigger>
             <TabsTrigger value="messages">
               <MessageCircle className="h-4 w-4 mr-2" />
               Mensajes
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
             </TabsTrigger>
             <TabsTrigger value="reviews">
               Reseñas ({stats.totalReviews})
@@ -557,6 +562,10 @@ const ProfessionalDashboard = () => {
 
           <TabsContent value="messages">
             <ChatInterface initialConversationId={conversationId} />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <ProfessionalAnalytics professionalId={professional.id} />
           </TabsContent>
 
           <TabsContent value="reviews">
