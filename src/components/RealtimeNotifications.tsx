@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 import { toast } from 'sonner';
 import { Bell, MessageCircle, Calendar, Star, AlertCircle } from 'lucide-react';
+import { playNotificationSound, initializeAudioContext } from '@/utils/notificationSound';
 
 interface RealtimeNotification {
   id: string;
@@ -62,6 +63,15 @@ export const RealtimeNotifications: React.FC = () => {
     // Only show toast for premium users or specific notification types
     if (!planLimits.advancedAnalytics && !['booking', 'reminder', 'message'].includes(notification.type)) {
       return;
+    }
+
+    // Play notification sound based on type
+    if (notification.title.includes('EXPRESS')) {
+      playNotificationSound('express');
+    } else if (notification.type === 'message') {
+      playNotificationSound('message');
+    } else {
+      playNotificationSound('contact');
     }
 
     toast(notification.title, {
@@ -142,6 +152,9 @@ export const RealtimeNotifications: React.FC = () => {
                       ? `/dashboard?tab=messages&conversation=${message.conversation_id}`
                       : `/user-dashboard?tab=messages&conversation=${message.conversation_id}`;
                     
+                    // Play message notification sound
+                    playNotificationSound('message');
+                    
                     toast('Nuevo mensaje', {
                       description: `Tienes un nuevo mensaje: ${message.content.substring(0, 50)}...`,
                       icon: <MessageCircle className="h-4 w-4" />,
@@ -175,6 +188,7 @@ export const RealtimeNotifications: React.FC = () => {
           // Show notification based on event type
           if (payload.eventType === 'INSERT' && booking && 'booking_date' in booking) {
             const bookingData = booking as any;
+            playNotificationSound('contact');
             toast('Nueva reserva', {
               description: `Nueva cita programada para ${new Date(bookingData.booking_date).toLocaleDateString()}`,
               icon: <Calendar className="h-4 w-4" />,
@@ -187,6 +201,7 @@ export const RealtimeNotifications: React.FC = () => {
                     'status' in payload.old && 'status' in payload.new && 
                     payload.old.status !== payload.new.status) {
             const newBooking = payload.new as any;
+            playNotificationSound('default');
             toast('Reserva actualizada', {
               description: `Estado de cita cambiado a: ${newBooking.status}`,
               icon: <Calendar className="h-4 w-4" />
