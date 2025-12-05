@@ -2,27 +2,25 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Shield, Percent, CheckCircle2, Calendar, Lock, ArrowRight } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { CreditCard, Shield, Percent, Calendar, Lock, ArrowRight, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
+import { useCampaignTracking } from '@/hooks/useCampaignTracking';
+
+const CAMPAIGN_ID = 'sena20';
 
 const SenaOnline = () => {
-  const [searchParams] = useSearchParams();
+  const { trackWhatsAppClick, trackPageView } = useCampaignTracking();
   
   useEffect(() => {
-    // Track UTM parameters
-    const utm = {
-      source: searchParams.get('utm_source'),
-      medium: searchParams.get('utm_medium'),
-      campaign: searchParams.get('utm_campaign'),
-      content: searchParams.get('utm_content'),
-    };
-    
-    if (utm.source) {
-      console.log('Campaign tracking:', utm);
-      localStorage.setItem('chequealo_utm', JSON.stringify(utm));
-    }
-  }, [searchParams]);
+    trackPageView(CAMPAIGN_ID);
+  }, [trackPageView]);
+
+  const handleWhatsAppClick = () => {
+    trackWhatsAppClick(CAMPAIGN_ID, undefined, '5493424000000');
+    const message = encodeURIComponent('Hola! Quiero reservar un turno con seña del 20% y obtener el 10% de descuento.');
+    window.open(`https://wa.me/5493424000000?text=${message}`, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,6 +43,14 @@ const SenaOnline = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              size="lg" 
+              onClick={handleWhatsAppClick}
+              className="bg-green-500 hover:bg-green-600 text-white text-xl px-8 py-6 rounded-full"
+            >
+              <MessageCircle className="h-6 w-6 mr-2" />
+              Consultar por WhatsApp
+            </Button>
             <Button 
               size="lg" 
               asChild
