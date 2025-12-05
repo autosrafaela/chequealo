@@ -13,6 +13,7 @@ import { SubscriptionPanel } from '@/components/SubscriptionPanel';
 import { SubscriptionAlert } from '@/components/SubscriptionAlert';
 import { ServicesManager } from '@/components/ServicesManager';
 import { WorkPhotosManager } from '@/components/WorkPhotosManager';
+import { CombosManager } from '@/components/CombosManager';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
 import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
 import { ProfessionManager } from '@/components/ProfessionManager';
@@ -498,6 +499,9 @@ const ProfessionalDashboard = () => {
             <TabsTrigger value="services">
               Servicios
             </TabsTrigger>
+            <TabsTrigger value="combos">
+              Combos
+            </TabsTrigger>
             <TabsTrigger value="portfolio">
               Portfolio
             </TabsTrigger>
@@ -574,6 +578,10 @@ const ProfessionalDashboard = () => {
 
           <TabsContent value="services">
             <ServicesManager />
+          </TabsContent>
+
+          <TabsContent value="combos">
+            {professional && <CombosManager professionalId={professional.id} maxCombos={3} />}
           </TabsContent>
 
           <TabsContent value="portfolio">

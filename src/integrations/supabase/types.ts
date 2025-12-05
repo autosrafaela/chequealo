@@ -395,6 +395,80 @@ export type Database = {
         }
         Relationships: []
       }
+      combos: {
+        Row: {
+          created_at: string
+          deposit_amount: number | null
+          deposit_percentage: number | null
+          description: string | null
+          display_order: number | null
+          id: string
+          includes: string[]
+          is_active: boolean
+          price_from: number
+          professional_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          includes?: string[]
+          is_active?: boolean
+          price_from: number
+          professional_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          includes?: string[]
+          is_active?: boolean
+          price_from?: number
+          professional_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_access_logs: {
         Row: {
           access_type: string
