@@ -322,9 +322,15 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       return;
     }
     
-    // WhatsApp Status requires downloading the image first
+    // Download image first
     await downloadImage();
-    toast.success('Imagen descargada y link copiado. Abrí WhatsApp → Estado → Pegá el link junto a la imagen', {
+    
+    // Open WhatsApp app
+    setTimeout(() => {
+      window.location.href = 'whatsapp://';
+    }, 500);
+    
+    toast.success('Imagen descargada y link copiado. Subí la imagen a tu Estado y pegá el link', {
       duration: 6000,
     });
   };
@@ -355,9 +361,15 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       }
     }
 
-    // Fallback: download image
+    // Fallback: download image and open Instagram
     await downloadImage();
-    toast.success('Imagen descargada y link copiado. Abrí Instagram → Historia → Pegá el link con el sticker de enlace', {
+    
+    // Open Instagram app
+    setTimeout(() => {
+      window.location.href = 'instagram://';
+    }, 500);
+    
+    toast.success('Imagen descargada y link copiado. Subila a tu Historia y pegá el link', {
       duration: 6000,
     });
   };
