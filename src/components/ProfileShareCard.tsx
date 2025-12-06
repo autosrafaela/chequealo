@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Download, Share2, Instagram, MessageCircle, Loader2, Link2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+
 
 interface ProfileShareCardProps {
   professional: {
@@ -427,12 +427,12 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           {generatedImage && (
             <div className="space-y-3">
               {/* Copy Link Button - prominently displayed */}
-              <Alert className="bg-primary/10 border-primary/20">
-                <Link2 className="h-4 w-4" />
-                <AlertDescription className="text-sm">
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <Link2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                <p className="text-sm">
                   <strong>Paso importante:</strong> Copiá el link y pegalo como <strong>sticker de enlace</strong> en tu historia para que sea clickeable.
-                </AlertDescription>
-              </Alert>
+                </p>
+              </div>
               
               <Button 
                 onClick={copyLinkToClipboard}
