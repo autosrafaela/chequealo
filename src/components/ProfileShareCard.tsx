@@ -185,12 +185,12 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
         ctx.restore();
       }
 
-      // Professional name
+      // Professional name - UPPERCASE for cleaner look
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 72px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText(professional.full_name, canvas.width / 2, photoY + photoSize + 60);
+      ctx.fillText(professional.full_name.toUpperCase(), canvas.width / 2, photoY + photoSize + 60);
 
       // Profession
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -325,14 +325,16 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     // Download image first
     await downloadImage();
     
-    // Open WhatsApp app
-    setTimeout(() => {
-      window.location.href = 'whatsapp://';
-    }, 500);
-    
     toast.success('Imagen descargada y link copiado. Subí la imagen a tu Estado y pegá el link', {
       duration: 6000,
     });
+    
+    // Open WhatsApp app directly with send intent
+    setTimeout(() => {
+      // Try to open WhatsApp with send intent for sharing
+      const whatsappUrl = 'whatsapp://send';
+      window.location.href = whatsappUrl;
+    }, 300);
   };
 
   const shareToInstagramStory = async () => {
