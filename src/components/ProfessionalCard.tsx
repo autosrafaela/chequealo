@@ -93,7 +93,7 @@ const ProfessionalCard = ({
           <div className="flex items-center space-x-4">
             {/* Avatar */}
             <Avatar className="w-16 h-16">
-              <AvatarImage src={image} alt={`Foto de ${name}`} />
+              <AvatarImage src={image} alt={name.toUpperCase()} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
                 {getInitials(name) || <User className="h-8 w-8" />}
               </AvatarFallback>
@@ -101,7 +101,7 @@ const ProfessionalCard = ({
             
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <h3 className="text-lg font-semibold text-foreground">{name}</h3>
+                <h3 className="text-lg font-semibold text-foreground uppercase">{name}</h3>
                 {isVerified && (
                   <Shield className="h-4 w-4 text-blue-500 flex-shrink-0" />
                 )}

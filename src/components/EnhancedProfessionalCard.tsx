@@ -87,7 +87,7 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
           {/* Avatar and Status */}
           <div className="relative flex-shrink-0">
             <Avatar className={compact ? "h-12 w-12" : "h-16 w-16"}>
-              <AvatarImage src={professional.image_url} alt={professional.full_name} />
+              <AvatarImage src={professional.image_url} alt={professional.full_name.toUpperCase()} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {professional.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
@@ -104,7 +104,7 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className={`font-semibold text-foreground truncate ${compact ? 'text-sm' : 'text-base'}`}>
+                  <h3 className={`font-semibold text-foreground truncate uppercase ${compact ? 'text-sm' : 'text-base'}`}>
                     {professional.full_name}
                   </h3>
                   {professional.is_verified && (

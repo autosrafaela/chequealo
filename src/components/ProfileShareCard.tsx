@@ -322,19 +322,37 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       return;
     }
     
-    // Download image first
+    // Try Web Share API first (allows sharing image directly)
+    if (navigator.share && navigator.canShare) {
+      try {
+        const response = await fetch(generatedImage);
+        const blob = await response.blob();
+        const file = new File([blob], `perfil-${professional.full_name}.png`, { type: 'image/png' });
+        
+        if (navigator.canShare({ files: [file] })) {
+          // Copy link first
+          await navigator.clipboard.writeText(getProfileUrl());
+          setLinkCopied(true);
+          
+          await navigator.share({
+            files: [file],
+            title: `${professional.full_name.toUpperCase()} - ${professional.profession}`,
+            text: `Mirá el perfil de ${professional.full_name.toUpperCase()} en Chequealo: ${getProfileUrl()}`,
+          });
+          toast.success('¡Link copiado! Pegalo en tu Estado de WhatsApp');
+          return;
+        }
+      } catch (error) {
+        console.log('Web Share cancelled or failed, falling back to download');
+      }
+    }
+
+    // Fallback: download image and copy link
     await downloadImage();
     
     toast.success('Imagen descargada y link copiado. Subí la imagen a tu Estado y pegá el link', {
       duration: 6000,
     });
-    
-    // Open WhatsApp app directly with send intent
-    setTimeout(() => {
-      // Try to open WhatsApp with send intent for sharing
-      const whatsappUrl = 'whatsapp://send';
-      window.location.href = whatsappUrl;
-    }, 300);
   };
 
   const shareToInstagramStory = async () => {
