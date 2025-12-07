@@ -396,6 +396,32 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           {/* Hidden canvas for generation */}
           <canvas ref={canvasRef} style={{ display: 'none' }} />
           
+          {/* Copy Link Button - ALWAYS visible */}
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+            <Link2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+            <p className="text-sm">
+              <strong>Paso importante:</strong> Copiá el link y pegalo como <strong>sticker de enlace</strong> en tu historia.
+            </p>
+          </div>
+          
+          <Button 
+            onClick={copyLinkToClipboard}
+            variant="secondary"
+            className="w-full"
+          >
+            {linkCopied ? (
+              <>
+                <Check className="h-4 w-4 mr-2 text-green-500" />
+                ¡Link copiado!
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Link del Perfil
+              </>
+            )}
+          </Button>
+          
           {/* Preview */}
           <div className="relative aspect-[9/16] bg-muted rounded-lg overflow-hidden max-h-[400px]">
             {generatedImage ? (
@@ -438,32 +464,6 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           {/* Share buttons */}
           {generatedImage && (
             <div className="space-y-3">
-              {/* Copy Link Button - prominently displayed */}
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                <Link2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                <p className="text-sm">
-                  <strong>Paso importante:</strong> Copiá el link y pegalo como <strong>sticker de enlace</strong> en tu historia para que sea clickeable.
-                </p>
-              </div>
-              
-              <Button 
-                onClick={copyLinkToClipboard}
-                variant="secondary"
-                className="w-full"
-              >
-                {linkCopied ? (
-                  <>
-                    <Check className="h-4 w-4 mr-2 text-green-500" />
-                    ¡Link copiado!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copiar Link del Perfil
-                  </>
-                )}
-              </Button>
-
               <div className="grid grid-cols-2 gap-2">
                 <Button 
                   onClick={shareToWhatsAppStatus}
