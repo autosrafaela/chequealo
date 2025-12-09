@@ -15,7 +15,8 @@ import {
   Star, 
   CreditCard,
   Zap,
-  Play
+  Play,
+  Users
 } from 'lucide-react';
 import { 
   playNotificationSound, 
@@ -50,8 +51,8 @@ const soundSettings: SoundSetting[] = [
   },
   {
     id: 'express',
-    label: 'Express/Urgente',
-    description: 'Solicitudes express y urgencias',
+    label: 'Express/Urgente ⚡',
+    description: 'Solicitudes express con vibración urgente',
     icon: <Zap className="h-4 w-4 text-amber-500" />,
     vibration: 'urgent'
   },
@@ -81,6 +82,13 @@ const soundSettings: SoundSetting[] = [
     label: 'Pagos',
     description: 'Pagos procesados',
     icon: <CreditCard className="h-4 w-4 text-green-500" />,
+    vibration: 'success'
+  },
+  {
+    id: 'new_professional',
+    label: 'Nuevo Profesional 🎉',
+    description: 'Cuando se suma un nuevo profesional',
+    icon: <Users className="h-4 w-4 text-primary" />,
     vibration: 'success'
   }
 ];

@@ -19,7 +19,8 @@ export type NotificationSoundType =
   | 'booking_reminder'
   | 'new_review'
   | 'payment'
-  | 'urgent';
+  | 'urgent'
+  | 'new_professional';
 
 export type VibrationPattern = 'short' | 'medium' | 'long' | 'urgent' | 'success';
 
@@ -121,6 +122,11 @@ export const playNotificationSound = (type: NotificationSoundType = 'default') =
       case 'urgent':
         // Urgent: 3 rapid high-pitched pulses
         playUrgentPulses(ctx);
+        break;
+
+      case 'new_professional':
+        // New professional: celebratory fanfare - 5 ascending notes
+        playNewProfessionalFanfare(ctx);
         break;
         
       default:
@@ -291,6 +297,33 @@ const playDefaultSound = (ctx: AudioContext) => {
   gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
   oscillator.start(ctx.currentTime);
   oscillator.stop(ctx.currentTime + 0.25);
+};
+
+// New professional fanfare - celebratory 5-note ascending melody
+const playNewProfessionalFanfare = (ctx: AudioContext) => {
+  const notes = [523, 587, 659, 784, 880]; // C5, D5, E5, G5, A5 - major pentatonic celebration
+  const duration = 0.1;
+  
+  notes.forEach((freq, index) => {
+    const { oscillator, gainNode } = createToneNodes(ctx);
+    const startTime = ctx.currentTime + (index * duration);
+    
+    oscillator.frequency.setValueAtTime(freq, startTime);
+    gainNode.gain.setValueAtTime(0.25, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 2);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration * 2);
+  });
+  
+  // Add a final sustained note for celebration effect
+  const { oscillator: finalOsc, gainNode: finalGain } = createToneNodes(ctx);
+  const finalStart = ctx.currentTime + (notes.length * duration);
+  finalOsc.frequency.setValueAtTime(1047, finalStart); // C6 - octave higher
+  finalGain.gain.setValueAtTime(0.2, finalStart);
+  finalGain.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.4);
+  finalOsc.start(finalStart);
+  finalOsc.stop(finalStart + 0.4);
 };
 
 /**
