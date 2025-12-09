@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 import { PasswordStrengthIndicator } from '@/components/ui/password-strength-indicator';
 import { validatePassword } from '@/utils/passwordValidation';
 import { getDashboardRoute } from '@/utils/redirectHelpers';
+import { notifyNewProfessionalToAllUsers } from '@/utils/notificationHelpers';
 import heroProfessionals from "@/assets/hero-professionals.jpg";
 import chequealoLogo from '@/assets/chequealo-transparent-logo.png';
 import { 
@@ -368,22 +369,35 @@ const Register = () => {
           }
 
           // Crear perfil profesional
-          const { error: profileError } = await supabase.from('professionals').insert({
+          const professionalName = formData.fullName || user.user_metadata?.full_name || 'Profesional';
+          const professionType = selectedServices[0] || 'Profesional';
+          
+          const { data: newProfessional, error: profileError } = await supabase.from('professionals').insert({
             user_id: user.id,
-            full_name: formData.fullName || user.user_metadata?.full_name,
+            full_name: professionalName,
             email: user.email || formData.email,
             phone: formData.phone || '',
             dni: formData.dni || '',
-            profession: selectedServices[0] || 'Profesional',
+            profession: professionType,
             location: formData.location || '',
             description: formData.description || '',
             availability: 'Disponible'
-          });
+          }).select('id').single();
 
           if (profileError) {
             toast.error('Error al crear perfil profesional: ' + profileError.message);
             setIsLoading(false);
             return;
+          }
+
+          // Notify all users about new professional (until 250 professionals)
+          if (newProfessional) {
+            notifyNewProfessionalToAllUsers(
+              newProfessional.id,
+              professionalName,
+              professionType,
+              user.id
+            );
           }
         }
 
@@ -465,17 +479,29 @@ const Register = () => {
         const { data: { user: newUser } } = await supabase.auth.getUser();
         if (newUser && userType === 'professional') {
           try {
-            await supabase.from('professionals').insert({
+            const professionType = selectedServices[0] || 'Profesional';
+            
+            const { data: createdProfessional } = await supabase.from('professionals').insert({
               user_id: newUser.id,
               full_name: formData.fullName,
               email: formData.email,
               phone: formData.phone || '',
               dni: formData.dni || '',
-              profession: selectedServices[0] || 'Profesional',
+              profession: professionType,
               location: formData.location || '',
               description: formData.description || '',
               availability: 'Disponible'
-            });
+            }).select('id').single();
+
+            // Notify all users about new professional (until 250 professionals)
+            if (createdProfessional) {
+              notifyNewProfessionalToAllUsers(
+                createdProfessional.id,
+                formData.fullName,
+                professionType,
+                newUser.id
+              );
+            }
           } catch (err) {
             console.error('Error creando perfil profesional:', err);
           }

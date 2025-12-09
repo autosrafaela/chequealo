@@ -396,3 +396,78 @@ export const createBulkNotifications = async (
     return { data: null, error };
   }
 };
+
+/**
+ * Notify all users when a new professional registers (until 250 professionals)
+ */
+export const notifyNewProfessionalToAllUsers = async (
+  professionalId: string,
+  professionalName: string,
+  profession: string,
+  excludeUserId?: string
+) => {
+  try {
+    // Check current professional count
+    const { count: professionalCount } = await supabase
+      .from('professionals')
+      .select('*', { count: 'exact', head: true });
+
+    // Only notify if less than 250 professionals
+    if (professionalCount && professionalCount >= 250) {
+      console.log('Professional count >= 250, skipping new professional notification');
+      return { data: null, notifiedCount: 0, skipped: true };
+    }
+
+    // Get all registered users (from profiles table)
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id');
+
+    if (!profiles || profiles.length === 0) {
+      console.log('No users to notify about new professional');
+      return { data: null, notifiedCount: 0 };
+    }
+
+    // Filter out the professional's own user ID
+    const userIds = profiles
+      .map(p => p.user_id)
+      .filter(id => id !== excludeUserId);
+
+    if (userIds.length === 0) {
+      return { data: null, notifiedCount: 0 };
+    }
+
+    // Create bulk notifications with special type for new professional sound
+    const notifications = userIds.map(userId => ({
+      user_id: userId,
+      title: '🎉 ¡Nuevo profesional en Chequealo!',
+      message: `${professionalName.toUpperCase()} se sumó como ${profession}. ¡Ya somos ${professionalCount} profesionales verificados!`,
+      type: 'success',
+      action_url: `/professional/${professionalId}`,
+      read: false
+    }));
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(notifications)
+      .select();
+
+    if (error) throw error;
+
+    // Send push notifications
+    if (data && data.length > 0) {
+      await sendPushNotification(
+        userIds,
+        '🎉 ¡Nuevo profesional en Chequealo!',
+        `${professionalName.toUpperCase()} se sumó como ${profession}`,
+        `/professional/${professionalId}`
+      );
+    }
+
+    console.log(`Notified ${userIds.length} users about new professional (total: ${professionalCount})`);
+    return { data, notifiedCount: userIds.length, professionalCount };
+  } catch (error) {
+    console.error('Error notifying about new professional:', error);
+    return { data: null, error, notifiedCount: 0 };
+  }
+};

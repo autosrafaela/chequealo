@@ -30,9 +30,14 @@ const getNotificationConfig = (notification: RealtimeNotification): {
 } => {
   const title = notification.title.toLowerCase();
   
-  // Check for express/urgent keywords first
-  if (title.includes('express') || title.includes('urgencia') || title.includes('urgente')) {
+  // Check for express/urgent keywords first - PRIORITY
+  if (title.includes('express') || title.includes('urgencia') || title.includes('urgente') || title.includes('🚀')) {
     return { sound: 'express', vibration: 'urgent' };
+  }
+
+  // Check for new professional celebration
+  if (title.includes('nuevo profesional') || title.includes('🎉')) {
+    return { sound: 'new_professional', vibration: 'success' };
   }
 
   switch (notification.type) {
@@ -53,7 +58,7 @@ const getNotificationConfig = (notification: RealtimeNotification): {
     case 'payment':
       return { sound: 'payment', vibration: 'success' };
     case 'warning':
-      return { sound: 'urgent', vibration: 'urgent' };
+      return { sound: 'express', vibration: 'urgent' };
     case 'error':
       return { sound: 'urgent', vibration: 'long' };
     case 'success':
