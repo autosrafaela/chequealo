@@ -68,7 +68,12 @@ export const triggerVibration = (pattern: VibrationPattern = 'short') => {
 export const playNotificationSound = (type: NotificationSoundType = 'default') => {
   // Check user preferences
   const soundEnabled = localStorage.getItem('notification_sound_enabled') !== 'false';
-  if (!soundEnabled) return;
+  if (!soundEnabled) {
+    console.log('[NotificationSound] Sound disabled by user preference');
+    return;
+  }
+
+  console.log('[NotificationSound] Playing sound type:', type);
 
   try {
     const ctx = getAudioContext();
@@ -333,12 +338,17 @@ export const playNotificationWithVibration = (
   soundType: NotificationSoundType = 'default',
   vibrationPattern: VibrationPattern = 'short'
 ) => {
+  console.log('[NotificationSound] playNotificationWithVibration called:', { soundType, vibrationPattern });
+  
   playNotificationSound(soundType);
   
   // Check vibration preferences
   const vibrationEnabled = localStorage.getItem('notification_vibration_enabled') !== 'false';
   if (vibrationEnabled) {
+    console.log('[NotificationSound] Triggering vibration:', vibrationPattern);
     triggerVibration(vibrationPattern);
+  } else {
+    console.log('[NotificationSound] Vibration disabled by user preference');
   }
 };
 
