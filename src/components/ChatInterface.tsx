@@ -275,7 +275,7 @@ const ChatInterface = ({ initialConversationId }: ChatInterfaceProps) => {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-sm truncate">
+                        <h3 className="font-semibold text-sm truncate uppercase">
                           {conversation.professionals?.full_name || 'Usuario'}
                         </h3>
                         {conversation.last_message_at && (

@@ -184,7 +184,7 @@ export const ReadyToRateTransactions = ({
                     {isProfessional ? (
                       <>Califica tu experiencia con este cliente</>
                     ) : (
-                      <>Califica a {transaction.professional?.full_name}</>
+                      <>Califica a <span className="uppercase">{transaction.professional?.full_name}</span></>
                     )}
                   </CardDescription>
                 </div>

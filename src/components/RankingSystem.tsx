@@ -260,7 +260,7 @@ export const RankingSystem: React.FC<RankingSystemProps> = ({
       {/* User Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold truncate">
+          <h3 className="font-semibold truncate uppercase">
             {isProfessional ? (
               <Link to={`/professional/${entry.professional_id}`} className="hover:text-primary">
                 {entry.name}

@@ -285,7 +285,7 @@ export const FloatingChatWindow = ({
                   {getInitials(getContactName())}
                 </AvatarFallback>
               </Avatar>
-              <span className="font-semibold text-sm">
+              <span className="font-semibold text-sm uppercase">
                 {getContactName()}
               </span>
             </div>
@@ -339,7 +339,7 @@ export const FloatingChatWindow = ({
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-semibold text-sm truncate">
+                          <h4 className="font-semibold text-sm truncate uppercase">
                             {conv.professionals?.full_name || 'Usuario'}
                           </h4>
                           {conv.last_message_at && (

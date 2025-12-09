@@ -262,7 +262,7 @@ export const ReviewManagementPanel = () => {
                     {review.profiles?.full_name?.charAt(0) || <User className="h-5 w-5" />}
                   </div>
                   <div>
-                    <h4 className="font-semibold">
+                    <h4 className="font-semibold uppercase">
                       {review.profiles?.full_name || 'Usuario anónimo'}
                     </h4>
                     <div className="flex items-center gap-2">

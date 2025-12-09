@@ -220,7 +220,7 @@ export const UserTransactionReviews = () => {
                       <h4 className="font-medium">{transaction.service_type}</h4>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <User className="h-3 w-3" />
-                        {transaction.professionals?.full_name} - {transaction.professionals?.profession}
+                        <span className="uppercase">{transaction.professionals?.full_name}</span> - {transaction.professionals?.profession}
                       </div>
                       {transaction.amount && (
                         <div className="text-sm font-semibold text-green-600">
@@ -274,7 +274,7 @@ export const UserTransactionReviews = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                Reseñar a {selectedTransaction?.professionals?.full_name}
+                Reseñar a <span className="uppercase">{selectedTransaction?.professionals?.full_name}</span>
               </DialogTitle>
             </DialogHeader>
             {selectedTransaction && (

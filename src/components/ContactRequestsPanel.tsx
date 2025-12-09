@@ -114,7 +114,7 @@ export const ContactRequestsPanel = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <User className="h-3 w-3 text-muted-foreground" />
-                  <span className="font-medium">{request.name}</span>
+                  <span className="font-medium uppercase">{request.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-3 w-3 text-muted-foreground" />
