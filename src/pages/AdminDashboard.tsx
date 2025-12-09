@@ -17,6 +17,7 @@ import { SitemapManager } from '@/components/admin/SitemapManager';
 import UserManagementPanel from '@/components/admin/UserManagementPanel';
 import { CarouselManager } from '@/components/admin/CarouselManager';
 import CampaignMetricsPanel from '@/components/analytics/CampaignMetricsPanel';
+import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -493,7 +494,10 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-200">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+            onClick={() => setActiveTab('contact-requests')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -575,7 +579,7 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-[repeat(14,minmax(0,1fr))]">
+          <TabsList className="grid w-full grid-cols-[repeat(15,minmax(0,1fr))]">
             <TabsTrigger value="professionals">Profesionales</TabsTrigger>
             <TabsTrigger value="categories">Categorías</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -584,6 +588,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="subscriptions">Suscripciones</TabsTrigger>
             <TabsTrigger value="plans">Planes</TabsTrigger>
             <TabsTrigger value="verifications">Verificaciones</TabsTrigger>
+            <TabsTrigger value="contact-requests">Solicitudes</TabsTrigger>
             <TabsTrigger value="users">Usuarios</TabsTrigger>
             <TabsTrigger value="settings">Configuración</TabsTrigger>
             <TabsTrigger value="business">BI</TabsTrigger>
@@ -878,6 +883,10 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="contact-requests">
+            <ContactRequestsPanel />
           </TabsContent>
 
           <TabsContent value="users">
