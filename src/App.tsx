@@ -10,6 +10,7 @@ import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
 import { MultipleFloatingChats } from "@/components/MultipleFloatingChats";
 import { RedirectWithTracking } from "@/components/RedirectWithTracking";
 import { InAppBrowserBanner } from "@/components/InAppBrowserBanner";
+import { NotificationActivationBanner } from "@/components/NotificationActivationBanner";
 import { PageLoader } from "@/components/ui/page-loader";
 
 // Critical path - load immediately (homepage)
@@ -43,6 +44,7 @@ const SenaOnline = lazy(() => import("./pages/campaigns/SenaOnline"));
 const App = () => (
   <TooltipProvider>
     <InAppBrowserBanner />
+    <NotificationActivationBanner />
     <Toaster />
     <Sonner />
     <NotificationSystem />
