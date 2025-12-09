@@ -31,7 +31,7 @@ export interface CreateNotificationProps {
   userId: string;
   title: string;
   message: string;
-  type?: 'success' | 'info' | 'warning' | 'error';
+  type?: 'success' | 'info' | 'warning' | 'error' | 'message' | 'zone_alert' | 'booking' | 'review' | 'payment';
   actionUrl?: string;
 }
 
@@ -98,7 +98,7 @@ export const notifyNewContactRequest = async (
   return await createNotification({
     userId: professional.user_id,
     title: requestType === 'contact' ? '🔔 Nueva solicitud de contacto' : '📋 Nueva solicitud de presupuesto',
-    message: `${clientName} te ha enviado una ${requestType === 'contact' ? 'solicitud de contacto' : 'solicitud de presupuesto'}. Haz clic para responder en el chat.`,
+    message: `${clientName.toUpperCase()} te ha enviado una ${requestType === 'contact' ? 'solicitud de contacto' : 'solicitud de presupuesto'}. Haz clic para responder en el chat.`,
     type: 'info',
     actionUrl
   });
@@ -127,7 +127,7 @@ export const notifyExpressRequest = async (
   return await createNotification({
     userId: professional.user_id,
     title: '🚀 ¡SOLICITUD EXPRESS!',
-    message: `${clientName} necesita "${serviceType}" con URGENCIA. Responde rápido para ganar este cliente.`,
+    message: `${clientName.toUpperCase()} necesita "${serviceType}" con URGENCIA. Responde rápido para ganar este cliente.`,
     type: 'warning',
     actionUrl
   });
@@ -180,8 +180,8 @@ export const notifyNewReview = async (professionalUserId: string, rating: number
   return await createNotification({
     userId: professionalUserId,
     title: '⭐ Nueva reseña recibida',
-    message: `${reviewerName} te dejó una reseña de ${rating} estrellas ${stars}`,
-    type: 'success',
+    message: `${reviewerName.toUpperCase()} te dejó una reseña de ${rating} estrellas ${stars}`,
+    type: 'review',
     actionUrl: '/dashboard'
   });
 };
@@ -201,9 +201,9 @@ export const notifyNewMessage = async (
   
   return await createNotification({
     userId: recipientUserId,
-    title: `💬 Mensaje de ${senderName}`,
+    title: `💬 Mensaje de ${senderName.toUpperCase()}`,
     message: messagePreview.length > 50 ? `${messagePreview.substring(0, 50)}...` : messagePreview,
-    type: 'message' as any,
+    type: 'message',
     actionUrl
   });
 };
@@ -216,7 +216,7 @@ export const notifyPaymentSuccess = async (userId: string, amount: number) => {
     userId,
     title: '💳 Pago procesado',
     message: `Tu pago de $${amount} ha sido procesado exitosamente`,
-    type: 'success',
+    type: 'payment',
     actionUrl: '/dashboard'
   });
 };
@@ -235,12 +235,38 @@ export const notifyPaymentFailed = async (userId: string, amount: number) => {
 };
 
 /**
+ * Create notification when booking is confirmed
+ */
+export const notifyBookingConfirmed = async (userId: string, professionalName: string, date: string) => {
+  return await createNotification({
+    userId,
+    title: '📅 Reserva confirmada',
+    message: `Tu cita con ${professionalName.toUpperCase()} para el ${date} ha sido confirmada`,
+    type: 'booking',
+    actionUrl: '/user-dashboard?tab=bookings'
+  });
+};
+
+/**
+ * Create notification for booking reminder
+ */
+export const notifyBookingReminder = async (userId: string, professionalName: string, timeUntil: string) => {
+  return await createNotification({
+    userId,
+    title: '⏰ Recordatorio de cita',
+    message: `Tu cita con ${professionalName.toUpperCase()} es en ${timeUntil}`,
+    type: 'booking',
+    actionUrl: '/user-dashboard?tab=bookings'
+  });
+};
+
+/**
  * Create welcome notification for new users
  */
 export const notifyWelcomeUser = async (userId: string, userName?: string) => {
   return await createNotification({
     userId,
-    title: `¡Bienvenido${userName ? `, ${userName}` : ''}! 👋`,
+    title: `¡Bienvenido${userName ? `, ${userName.toUpperCase()}` : ''}! 👋`,
     message: 'Tu cuenta ha sido creada exitosamente. Explora nuestra plataforma y encuentra los mejores profesionales',
     type: 'success'
   });
@@ -259,13 +285,87 @@ export const notifySystemMaintenance = async (userId: string, maintenanceDate: s
 };
 
 /**
+ * Notify users when a professional activates "En tu zona hoy"
+ * Notifies users who:
+ * 1. Have previously contacted the professional
+ * 2. Have the professional in their favorites
+ */
+export const notifyZoneTodayToInterested = async (
+  professionalId: string,
+  professionalName: string,
+  profession: string,
+  neighborhoods: string[]
+) => {
+  try {
+    // Get users who have contacted this professional
+    const { data: contactRequests } = await supabase
+      .from('contact_requests')
+      .select('user_id')
+      .eq('professional_id', professionalId)
+      .neq('user_id', null);
+
+    // Get users who have this professional in favorites
+    const { data: favorites } = await supabase
+      .from('favorites')
+      .select('user_id')
+      .eq('professional_id', professionalId);
+
+    // Combine and deduplicate user IDs
+    const contactUserIds = (contactRequests || []).map(r => r.user_id);
+    const favoriteUserIds = (favorites || []).map(f => f.user_id);
+    const allUserIds = [...new Set([...contactUserIds, ...favoriteUserIds])];
+
+    if (allUserIds.length === 0) {
+      console.log('No interested users to notify for zone today');
+      return { data: null, notifiedCount: 0 };
+    }
+
+    const neighborhoodList = neighborhoods.slice(0, 3).join(', ');
+    const hasMore = neighborhoods.length > 3 ? ` y ${neighborhoods.length - 3} más` : '';
+
+    // Create bulk notifications
+    const notifications = allUserIds.map(userId => ({
+      user_id: userId,
+      title: `📍 ${professionalName.toUpperCase()} está cerca hoy`,
+      message: `El ${profession} que contactaste está trabajando en ${neighborhoodList}${hasMore}. ¡Aprovecha para agendar!`,
+      type: 'zone_alert',
+      action_url: `/professional/${professionalId}`,
+      read: false
+    }));
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(notifications)
+      .select();
+
+    if (error) throw error;
+
+    // Send push notifications
+    if (data && data.length > 0) {
+      await sendPushNotification(
+        allUserIds,
+        `📍 ${professionalName.toUpperCase()} está cerca hoy`,
+        `El ${profession} está trabajando en ${neighborhoodList}${hasMore}`,
+        `/professional/${professionalId}`
+      );
+    }
+
+    console.log(`Notified ${allUserIds.length} users about zone today activation`);
+    return { data, notifiedCount: allUserIds.length };
+  } catch (error) {
+    console.error('Error notifying zone today interested users:', error);
+    return { data: null, error, notifiedCount: 0 };
+  }
+};
+
+/**
  * Bulk create notifications for multiple users
  */
 export const createBulkNotifications = async (
   userIds: string[],
   title: string,
   message: string,
-  type: 'success' | 'info' | 'warning' | 'error' = 'info',
+  type: 'success' | 'info' | 'warning' | 'error' | 'zone_alert' = 'info',
   actionUrl?: string
 ) => {
   try {

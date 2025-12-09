@@ -57,7 +57,7 @@ export const useProRoutes = () => {
 
       const { data: professional } = await supabase
         .from('professionals')
-        .select('id')
+        .select('id, full_name, profession')
         .eq('user_id', user.id)
         .single();
 
@@ -82,12 +82,30 @@ export const useProRoutes = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      
+      // Return professional info for notification
+      return { route: data, professional };
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
       queryClient.invalidateQueries({ queryKey: ['pro-route-today'] });
       queryClient.invalidateQueries({ queryKey: ['professionals'] });
       toast.success('¡Activaste "En tu zona hoy"! Tu perfil tendrá más visibilidad por 7 horas.');
+      
+      // Notify interested users (done async, don't wait)
+      if (result?.professional && result?.route) {
+        import('@/utils/notificationHelpers').then(({ notifyZoneTodayToInterested }) => {
+          notifyZoneTodayToInterested(
+            result.professional.id,
+            result.professional.full_name,
+            result.professional.profession,
+            result.route.neighborhoods
+          ).then((res) => {
+            if (res.notifiedCount > 0) {
+              console.log(`Notified ${res.notifiedCount} interested users about zone activation`);
+            }
+          });
+        });
+      }
     },
     onError: (error) => {
       console.error('Error activating route:', error);
