@@ -376,7 +376,7 @@ const ProfessionalProfile = () => {
 
                 <div className="text-center lg:text-left">
                   <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
-                    <h1 className="text-3xl font-bold text-foreground">{professional.full_name}</h1>
+                    <h1 className="text-3xl font-bold text-foreground uppercase">{professional.full_name}</h1>
                     {professional.is_verified && (
                       <Badge className="bg-emerald-500 text-white">
                         <Shield className="h-3 w-3 mr-1" />

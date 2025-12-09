@@ -251,7 +251,7 @@ const Header = () => {
                   {user ? (
                     <>
                       <div className="text-sm text-gray-600 mb-2">
-                        Hola, {profile?.full_name || 'Usuario'}
+                        Hola, <span className="uppercase">{profile?.full_name || 'Usuario'}</span>
                       </div>
                       
                       <Link to="/user-dashboard" onClick={() => setIsUserMenuOpen(false)}>

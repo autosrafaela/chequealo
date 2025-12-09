@@ -269,7 +269,7 @@ export const TransactionManager = () => {
                     <h4 className="font-medium">{transaction.service_type}</h4>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <User className="h-3 w-3" />
-                      {transaction.profiles?.full_name || 'Cliente desconocido'}
+                      <span className="uppercase">{transaction.profiles?.full_name || 'Cliente desconocido'}</span>
                     </div>
                     {transaction.amount && (
                       <div className="flex items-center gap-2 text-sm">

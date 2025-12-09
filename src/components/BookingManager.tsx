@@ -341,7 +341,7 @@ const BookingsList: React.FC<{
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{booking.client_name}</span>
+                    <span className="font-medium uppercase">{booking.client_name}</span>
                   </div>
                   {getStatusBadge(booking.status)}
                 </div>

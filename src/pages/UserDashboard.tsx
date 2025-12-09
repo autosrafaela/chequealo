@@ -760,7 +760,7 @@ const UserDashboard = () => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-3xl font-bold text-foreground uppercase">
                 {fullName || 'Mi Cuenta'}
               </h1>
               <p className="text-muted-foreground">
@@ -1104,7 +1104,7 @@ const UserDashboard = () => {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold">
+                              <h3 className="font-semibold uppercase">
                                 {request.professional?.full_name || 'Profesional no encontrado'}
                               </h3>
                               {getStatusBadge(request.status)}

@@ -150,7 +150,7 @@ const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propO
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-semibold text-gray-900">{professional.full_name}</h3>
+                      <h3 className="font-semibold text-gray-900 uppercase">{professional.full_name}</h3>
                       {professional.is_verified && (
                         <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
                           ✓ Verificado

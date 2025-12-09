@@ -252,7 +252,7 @@ export const EnhancedTransactionManager = () => {
                             <h4 className="font-semibold text-lg">{transaction.service_type}</h4>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <User className="h-4 w-4" />
-                              {transaction.profiles?.full_name || 'Cliente desconocido'}
+                              <span className="uppercase">{transaction.profiles?.full_name || 'Cliente desconocido'}</span>
                             </div>
                             {transaction.amount && (
                               <div className="flex items-center gap-2 text-lg font-semibold text-green-600">
