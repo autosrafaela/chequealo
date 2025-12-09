@@ -18,24 +18,43 @@ export const usePWAInstall = () => {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    console.log('[PWA Debug] Initializing PWA install hook...');
+    console.log('[PWA Debug] User Agent:', navigator.userAgent);
+    console.log('[PWA Debug] Is standalone:', window.matchMedia('(display-mode: standalone)').matches);
+    
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
+      console.log('[PWA Debug] App already installed in standalone mode');
       setIsInstalled(true);
       return;
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('[PWA Debug] ✅ beforeinstallprompt event fired!');
+      console.log('[PWA Debug] Event:', e);
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
     const handleAppInstalled = () => {
+      console.log('[PWA Debug] ✅ App installed successfully!');
       setIsInstalled(true);
       setDeferredPrompt(null);
     };
 
+    console.log('[PWA Debug] Adding beforeinstallprompt listener...');
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Debug: Check if service worker is registered
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        console.log('[PWA Debug] Service Worker registrations:', regs.length);
+        regs.forEach((reg, i) => console.log(`[PWA Debug] SW ${i}:`, reg.scope));
+      });
+    } else {
+      console.log('[PWA Debug] Service Worker not supported');
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
