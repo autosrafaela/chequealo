@@ -27,7 +27,7 @@ interface IntelligentSearchProps {
 }
 
 export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
-  placeholder = "Describí lo que necesitás... Ej: 'mi aire acondicionado no enfría bien'",
+  placeholder = "Describí lo que necesitás...",
   onSearch,
   showSuggestions = true,
   className
@@ -50,12 +50,10 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
   } = useAISearch();
 
   useEffect(() => {
-    // Load initial suggestions
     loadInitialSuggestions();
   }, []);
 
   useEffect(() => {
-    // Generate AI suggestions when user types
     if (searchQuery.length > 2) {
       const debounceTimer = setTimeout(() => {
         generateAISuggestions(searchQuery);
@@ -68,30 +66,26 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
   }, [searchQuery]);
 
   const loadInitialSuggestions = () => {
-    // Load recent searches from localStorage
     const recentSearches = JSON.parse(localStorage.getItem('recent-searches') || '[]');
     
-    // Popular searches based on common needs
     const popularSearches = [
-      { text: 'Plomero para arreglar canilla que gotea', category: 'plomeria' },
-      { text: 'Electricista para instalar aire acondicionado', category: 'electricidad' },
-      { text: 'Mecánico para revisión general del auto', category: 'automotor' },
+      { text: 'Plomero para arreglar canilla', category: 'plomeria' },
+      { text: 'Electricista para aire acondicionado', category: 'electricidad' },
+      { text: 'Mecánico revisión general', category: 'automotor' },
       { text: 'Limpieza profunda de casa', category: 'limpieza' },
-      { text: 'Jardinero para mantenimiento de césped', category: 'jardineria' },
-      { text: 'Pintor para renovar habitación', category: 'pintura' }
     ];
 
     const initialSuggestions: SearchSuggestion[] = [
-      ...recentSearches.slice(0, 3).map((search: string) => ({
+      ...recentSearches.slice(0, 2).map((search: string) => ({
         id: `recent-${search}`,
         text: search,
         type: 'recent' as const
       })),
-      ...popularSearches.slice(0, 4).map((search, index) => ({
+      ...popularSearches.slice(0, 3).map((search, index) => ({
         id: `popular-${index}`,
         text: search.text,
         type: 'popular' as const,
-        metadata: { category: search.category, popularity: 100 - index * 10 }
+        metadata: { category: search.category }
       }))
     ];
 
@@ -110,7 +104,7 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
 
       setSuggestions(prev => [
         ...formattedSuggestions,
-        ...prev.filter(s => s.type !== 'ai').slice(0, 3)
+        ...prev.filter(s => s.type !== 'ai').slice(0, 2)
       ]);
     } catch (error) {
       console.error('Error generating AI suggestions:', error);
@@ -120,23 +114,18 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
   const handleSearch = async (query: string) => {
     if (!query.trim()) return;
 
-    // Save to recent searches
     const recentSearches = JSON.parse(localStorage.getItem('recent-searches') || '[]');
     const updatedRecent = [query, ...recentSearches.filter((s: string) => s !== query)].slice(0, 10);
     localStorage.setItem('recent-searches', JSON.stringify(updatedRecent));
 
     try {
-      // Always use intelligent search to enhance the query
       let finalQuery = query;
       
-      // Try intelligent search enhancement (uses AI + local parsing)
       const enhanced = await intelligentSearch(query);
       if (enhanced && enhanced !== query) {
         finalQuery = enhanced;
-        console.log('Query mejorada:', { original: query, enhanced: finalQuery });
       }
 
-      // Navigate to search results
       const params = new URLSearchParams();
       params.set('q', finalQuery);
       if (query !== finalQuery) {
@@ -154,7 +143,7 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
       console.error('Search error:', error);
       toast({
         title: "Error en búsqueda",
-        description: "Hubo un problema procesando tu búsqueda. Intentá de nuevo.",
+        description: "Hubo un problema. Intentá de nuevo.",
         variant: "destructive"
       });
     }
@@ -173,9 +162,7 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
 
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        // Here you would typically send the audio to a speech-to-text service
-        // For now, we'll show a placeholder
-        setSearchQuery('Búsqueda por voz en desarrollo...');
+        setSearchQuery('Búsqueda por voz...');
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -184,7 +171,7 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
 
       toast({
         title: "Grabando",
-        description: "Hablá ahora para buscar por voz"
+        description: "Hablá ahora para buscar"
       });
     } catch (error) {
       console.error('Error accessing microphone:', error);
@@ -229,19 +216,19 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => showSuggestions && setShowSuggestionsList(true)}
-            className="h-12 sm:h-14 text-base sm:text-lg px-4 sm:px-6 pr-24 bg-background/95 border-2 border-primary/20 rounded-xl placeholder:text-muted-foreground focus:border-primary transition-colors hero-search-bar"
+            className="h-10 sm:h-12 md:h-14 text-sm sm:text-base md:text-lg px-3 sm:px-4 md:px-6 pr-20 sm:pr-24 bg-background/95 border-2 border-primary/20 rounded-lg sm:rounded-xl placeholder:text-muted-foreground focus:border-primary transition-colors"
           />
           
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+          <div className="absolute right-1.5 sm:right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-0.5 sm:gap-1">
             {/* Voice search button */}
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
-              className={`h-8 w-8 p-0 ${isRecording ? 'text-destructive animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
+              className={`h-7 w-7 sm:h-8 sm:w-8 p-0 ${isRecording ? 'text-destructive animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
             >
-              {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              {isRecording ? <MicOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Mic className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             </Button>
 
             {/* Search button */}
@@ -249,12 +236,12 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
               type="submit"
               size="sm"
               disabled={aiLoading}
-              className="bg-primary hover:bg-primary/90 h-8 px-3"
+              className="bg-primary hover:bg-primary/90 h-7 sm:h-8 px-2 sm:px-3"
             >
               {aiLoading ? (
-                <Sparkles className="h-4 w-4 animate-spin" />
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
               ) : (
-                <Search className="h-4 w-4" />
+                <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               )}
             </Button>
           </div>
@@ -266,9 +253,9 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
         <div className="absolute top-full left-0 right-0 mt-1 z-10">
           <Card className="border-primary/20">
             <CardContent className="p-2">
-              <div className="flex items-center gap-2 text-sm text-primary">
-                <Sparkles className="h-4 w-4 animate-spin" />
-                Procesando con IA...
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-primary">
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                Procesando...
               </div>
             </CardContent>
           </Card>
@@ -278,30 +265,30 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
       {/* Suggestions dropdown */}
       {showSuggestionsList && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-2 z-20">
-          <Card className="border-primary/20 shadow-lg max-h-80 overflow-y-auto">
-            <CardContent className="p-2">
+          <Card className="border-primary/20 shadow-lg max-h-64 sm:max-h-80 overflow-y-auto">
+            <CardContent className="p-1.5 sm:p-2">
               {suggestions.map((suggestion) => {
                 const Icon = getSuggestionIcon(suggestion.type);
                 return (
                   <div
                     key={suggestion.id}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="flex items-center gap-3 p-2 hover:bg-primary/5 rounded-md cursor-pointer transition-colors"
+                    className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-primary/5 rounded-md cursor-pointer transition-colors"
                   >
-                    <Icon className={`h-4 w-4 ${
+                    <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0 ${
                       suggestion.type === 'ai' ? 'text-primary' : 'text-muted-foreground'
                     }`} />
                     
-                    <span className="flex-1 text-sm">{suggestion.text}</span>
+                    <span className="flex-1 text-xs sm:text-sm truncate">{suggestion.text}</span>
                     
                     {suggestion.type === 'ai' && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-[9px] sm:text-xs px-1 sm:px-1.5">
                         IA
                       </Badge>
                     )}
                     
                     {suggestion.type === 'popular' && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-[9px] sm:text-xs px-1 sm:px-1.5 hidden sm:inline-flex">
                         Popular
                       </Badge>
                     )}
@@ -309,9 +296,9 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
                 );
               })}
               
-              <div className="mt-2 pt-2 border-t text-center">
-                <p className="text-xs text-muted-foreground">
-                  💡 Tip: Describí tu problema en detalle para mejores resultados
+              <div className="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t text-center">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                  💡 Describí tu problema para mejores resultados
                 </p>
               </div>
             </CardContent>

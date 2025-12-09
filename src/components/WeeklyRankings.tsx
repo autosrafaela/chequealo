@@ -56,7 +56,6 @@ export const WeeklyRankings = ({
   }, [selectedLocation, selectedProfession]);
 
   const loadFilters = async () => {
-    // Get unique locations and professions from rankings
     const { data } = await supabase
       .from('weekly_rankings')
       .select('location, profession');
@@ -72,7 +71,6 @@ export const WeeklyRankings = ({
   const loadRankings = async () => {
     setLoading(true);
     try {
-      // Get current week's start date
       const now = new Date();
       const dayOfWeek = now.getDay();
       const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -115,13 +113,13 @@ export const WeeklyRankings = ({
   const getRankIcon = (position: number) => {
     switch (position) {
       case 1:
-        return <Trophy className="h-5 w-5 text-yellow-500" />;
+        return <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />;
       case 2:
-        return <Medal className="h-5 w-5 text-gray-400" />;
+        return <Medal className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />;
       case 3:
-        return <Award className="h-5 w-5 text-amber-600" />;
+        return <Award className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />;
       default:
-        return <span className="text-sm font-bold text-muted-foreground">#{position}</span>;
+        return <span className="text-xs sm:text-sm font-bold text-muted-foreground">#{position}</span>;
     }
   };
 
@@ -135,8 +133,8 @@ export const WeeklyRankings = ({
   if (loading) {
     return (
       <Card>
-        <CardContent className="py-8 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <CardContent className="py-6 sm:py-8 flex justify-center">
+          <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-muted-foreground" />
         </CardContent>
       </Card>
     );
@@ -144,20 +142,20 @@ export const WeeklyRankings = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-yellow-500" />
+      <CardHeader className="pb-2 sm:pb-4">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
           Top del Barrio
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Ranking semanal basado en reseñas, tiempo de respuesta y puntualidad
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Ranking semanal de profesionales
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         {showFilters && (
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[160px] text-xs sm:text-sm h-9 sm:h-10">
                 <SelectValue placeholder="Ubicación" />
               </SelectTrigger>
               <SelectContent>
@@ -169,11 +167,11 @@ export const WeeklyRankings = ({
             </Select>
 
             <Select value={selectedProfession} onValueChange={setSelectedProfession}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[160px] text-xs sm:text-sm h-9 sm:h-10">
                 <SelectValue placeholder="Profesión" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las profesiones</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {professions.map(prof => (
                   <SelectItem key={prof} value={prof}>{prof}</SelectItem>
                 ))}
@@ -183,71 +181,71 @@ export const WeeklyRankings = ({
         )}
 
         {rankings.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Trophy className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p>No hay rankings disponibles para esta semana</p>
-            <p className="text-xs mt-1">Los rankings se calculan semanalmente</p>
+          <div className="text-center py-6 sm:py-8 text-muted-foreground">
+            <Trophy className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-20" />
+            <p className="text-sm sm:text-base">No hay rankings disponibles</p>
+            <p className="text-[10px] sm:text-xs mt-1">Los rankings se calculan semanalmente</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {rankings.map((entry) => (
               <Link
                 key={entry.id}
                 to={`/professional/${entry.professional_id}`}
                 className="block"
               >
-                <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors hover:bg-accent ${
+                <div className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg transition-colors hover:bg-accent ${
                   entry.rank_position === 1 ? 'bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800' : 
                   entry.rank_position === 2 ? 'bg-gray-50 dark:bg-gray-900/50' :
                   entry.rank_position === 3 ? 'bg-amber-50 dark:bg-amber-950/20' : ''
                 }`}>
-                  <div className="flex items-center justify-center w-8">
+                  <div className="flex items-center justify-center w-6 sm:w-8">
                     {getRankIcon(entry.rank_position)}
                   </div>
                   
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                     <AvatarImage src={entry.professionals?.image_url || ''} />
-                    <AvatarFallback>
+                    <AvatarFallback className="text-xs sm:text-sm">
                       {entry.professionals?.full_name?.charAt(0) || '?'}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate uppercase">
+                    <p className="font-medium truncate uppercase text-xs sm:text-sm">
                       {entry.professionals?.full_name || 'Profesional'}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Badge variant="secondary" className="text-xs">
+                    <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
+                      <Badge variant="secondary" className="text-[9px] sm:text-xs px-1 sm:px-1.5 py-0">
                         {entry.profession}
                       </Badge>
-                      <span>{entry.location}</span>
+                      <span className="hidden sm:inline">{entry.location}</span>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                      <span className="text-sm font-medium">
+                  <div className="flex flex-col items-end gap-0.5 sm:gap-1">
+                    <div className="flex items-center gap-0.5 sm:gap-1">
+                      <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs sm:text-sm font-medium">
                         {entry.professionals?.rating?.toFixed(1) || '0.0'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-xs text-muted-foreground">
                       <span className="flex items-center gap-0.5">
-                        <MessageCircle className="h-3 w-3" />
+                        <MessageCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         {entry.new_reviews_count}
                       </span>
-                      <span className="flex items-center gap-0.5">
-                        <Clock className="h-3 w-3" />
+                      <span className="hidden sm:flex items-center gap-0.5">
+                        <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         {formatResponseTime(entry.avg_response_minutes)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-primary">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm sm:text-lg font-bold text-primary">
                       {Math.round(entry.score)}
                     </p>
-                    <p className="text-xs text-muted-foreground">pts</p>
+                    <p className="text-[9px] sm:text-xs text-muted-foreground">pts</p>
                   </div>
                 </div>
               </Link>
@@ -255,8 +253,8 @@ export const WeeklyRankings = ({
           </div>
         )}
 
-        <p className="text-xs text-center text-muted-foreground pt-2">
-          Actualizado semanalmente • Lunes a Domingo
+        <p className="text-[10px] sm:text-xs text-center text-muted-foreground pt-1 sm:pt-2">
+          Actualizado semanalmente
         </p>
       </CardContent>
     </Card>
