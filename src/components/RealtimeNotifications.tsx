@@ -3,19 +3,65 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 import { toast } from 'sonner';
-import { Bell, MessageCircle, Calendar, Star, AlertCircle } from 'lucide-react';
-import { playNotificationSound, initializeAudioContext } from '@/utils/notificationSound';
+import { Bell, MessageCircle, Calendar, Star, AlertCircle, MapPin, CreditCard, Zap } from 'lucide-react';
+import { 
+  playNotificationSound, 
+  playNotificationWithVibration, 
+  initializeAudioContext,
+  NotificationSoundType,
+  VibrationPattern 
+} from '@/utils/notificationSound';
 
 interface RealtimeNotification {
   id: string;
   user_id: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'reminder' | 'message' | 'booking' | 'review';
+  type: 'info' | 'success' | 'warning' | 'error' | 'reminder' | 'message' | 'booking' | 'review' | 'zone_alert' | 'payment';
   read: boolean;
   action_url?: string;
   created_at: string;
 }
+
+// Map notification types to sounds and vibrations
+const getNotificationConfig = (notification: RealtimeNotification): { 
+  sound: NotificationSoundType; 
+  vibration: VibrationPattern;
+} => {
+  const title = notification.title.toLowerCase();
+  
+  // Check for express/urgent keywords first
+  if (title.includes('express') || title.includes('urgencia') || title.includes('urgente')) {
+    return { sound: 'express', vibration: 'urgent' };
+  }
+
+  switch (notification.type) {
+    case 'message':
+      return { sound: 'message', vibration: 'short' };
+    case 'booking':
+      if (title.includes('confirmad')) {
+        return { sound: 'booking_confirmed', vibration: 'success' };
+      }
+      if (title.includes('recordatorio')) {
+        return { sound: 'booking_reminder', vibration: 'medium' };
+      }
+      return { sound: 'booking_confirmed', vibration: 'medium' };
+    case 'review':
+      return { sound: 'new_review', vibration: 'success' };
+    case 'zone_alert':
+      return { sound: 'zone_alert', vibration: 'medium' };
+    case 'payment':
+      return { sound: 'payment', vibration: 'success' };
+    case 'warning':
+      return { sound: 'urgent', vibration: 'urgent' };
+    case 'error':
+      return { sound: 'urgent', vibration: 'long' };
+    case 'success':
+      return { sound: 'contact', vibration: 'success' };
+    default:
+      return { sound: 'default', vibration: 'short' };
+  }
+};
 
 export const RealtimeNotifications: React.FC = () => {
   const { user } = useAuth();
@@ -31,16 +77,17 @@ export const RealtimeNotifications: React.FC = () => {
         return <Calendar className="h-4 w-4" />;
       case 'review':
         return <Star className="h-4 w-4" />;
+      case 'zone_alert':
+        return <MapPin className="h-4 w-4 text-primary" />;
+      case 'payment':
+        return <CreditCard className="h-4 w-4 text-green-500" />;
       case 'warning':
+        return <Zap className="h-4 w-4 text-amber-500" />;
       case 'error':
-        return <AlertCircle className="h-4 w-4" />;
+        return <AlertCircle className="h-4 w-4 text-destructive" />;
       default:
         return <Bell className="h-4 w-4" />;
     }
-  };
-
-  const getToastVariant = (type: string): 'default' | 'destructive' => {
-    return type === 'error' || type === 'warning' ? 'destructive' : 'default';
   };
 
   const handleNotificationClick = (notification: RealtimeNotification) => {
@@ -60,19 +107,17 @@ export const RealtimeNotifications: React.FC = () => {
   };
 
   const showNotificationToast = (notification: RealtimeNotification) => {
-    // Only show toast for premium users or specific notification types
-    if (!planLimits.advancedAnalytics && !['booking', 'reminder', 'message'].includes(notification.type)) {
-      return;
-    }
+    // Get sound and vibration config
+    const config = getNotificationConfig(notification);
+    
+    // Play sound with vibration
+    playNotificationWithVibration(config.sound, config.vibration);
 
-    // Play notification sound based on type
-    if (notification.title.includes('EXPRESS')) {
-      playNotificationSound('express');
-    } else if (notification.type === 'message') {
-      playNotificationSound('message');
-    } else {
-      playNotificationSound('contact');
-    }
+    // Determine toast duration based on type
+    const duration = notification.type === 'zone_alert' ? 8000 
+      : notification.type === 'booking' ? 10000 
+      : ['warning', 'error'].includes(notification.type) ? 8000 
+      : 5000;
 
     toast(notification.title, {
       description: notification.message,
@@ -81,7 +126,7 @@ export const RealtimeNotifications: React.FC = () => {
         label: "Ver",
         onClick: () => handleNotificationClick(notification)
       } : undefined,
-      duration: notification.type === 'reminder' ? 10000 : 5000,
+      duration,
     });
   };
 
@@ -89,6 +134,15 @@ export const RealtimeNotifications: React.FC = () => {
     if (!user || isSubscribed) return;
 
     console.log('Setting up realtime notifications for user:', user.id);
+
+    // Initialize audio context on first interaction
+    const handleFirstInteraction = () => {
+      initializeAudioContext();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('touchstart', handleFirstInteraction);
 
     // Subscribe to notifications table changes
     const notificationsChannel = supabase
@@ -132,28 +186,27 @@ export const RealtimeNotifications: React.FC = () => {
                 {
                   event: 'INSERT',
                   schema: 'public',
-                  table: 'messages',
-                  filter: `conversation_id=in.(select id from conversations where professional_id=${professional.id})`
+                  table: 'messages'
                 },
                 async (payload) => {
                   console.log('New message received:', payload);
-                  const message = payload.new;
+                  const message = payload.new as any;
                   
                   // Only show notification if message is not from current user
                   if (message.sender_id !== user.id) {
                     // Check if user is professional
-                    const { data: professional } = await supabase
+                    const { data: prof } = await supabase
                       .from('professionals')
                       .select('id')
                       .eq('user_id', user.id)
                       .single();
                     
-                    const redirectUrl = professional 
+                    const redirectUrl = prof 
                       ? `/dashboard?tab=messages&conversation=${message.conversation_id}`
                       : `/user-dashboard?tab=messages&conversation=${message.conversation_id}`;
                     
-                    // Play message notification sound
-                    playNotificationSound('message');
+                    // Play message notification sound with vibration
+                    playNotificationWithVibration('message', 'short');
                     
                     toast('Nuevo mensaje', {
                       description: `Tienes un nuevo mensaje: ${message.content.substring(0, 50)}...`,
@@ -188,7 +241,7 @@ export const RealtimeNotifications: React.FC = () => {
           // Show notification based on event type
           if (payload.eventType === 'INSERT' && booking && 'booking_date' in booking) {
             const bookingData = booking as any;
-            playNotificationSound('contact');
+            playNotificationWithVibration('booking_confirmed', 'success');
             toast('Nueva reserva', {
               description: `Nueva cita programada para ${new Date(bookingData.booking_date).toLocaleDateString()}`,
               icon: <Calendar className="h-4 w-4" />,
@@ -201,7 +254,7 @@ export const RealtimeNotifications: React.FC = () => {
                     'status' in payload.old && 'status' in payload.new && 
                     payload.old.status !== payload.new.status) {
             const newBooking = payload.new as any;
-            playNotificationSound('default');
+            playNotificationWithVibration('default', 'short');
             toast('Reserva actualizada', {
               description: `Estado de cita cambiado a: ${newBooking.status}`,
               icon: <Calendar className="h-4 w-4" />
@@ -211,15 +264,84 @@ export const RealtimeNotifications: React.FC = () => {
       )
       .subscribe();
 
+    // Subscribe to pro_routes for zone today alerts
+    const proRoutesChannel = supabase
+      .channel('pro_routes_channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pro_routes'
+        },
+        async (payload) => {
+          console.log('Pro route update received:', payload);
+          
+          // Only process INSERT or UPDATE where is_active becomes true
+          if (payload.eventType === 'INSERT' || 
+             (payload.eventType === 'UPDATE' && payload.new && 'is_active' in payload.new && payload.new.is_active)) {
+            const route = payload.new as any;
+            
+            // Check if current user has contacted or favorited this professional
+            const [contactCheck, favoriteCheck] = await Promise.all([
+              supabase
+                .from('contact_requests')
+                .select('id')
+                .eq('professional_id', route.professional_id)
+                .eq('user_id', user.id)
+                .limit(1),
+              supabase
+                .from('favorites')
+                .select('id')
+                .eq('professional_id', route.professional_id)
+                .eq('user_id', user.id)
+                .limit(1)
+            ]);
+
+            const hasContacted = (contactCheck.data?.length || 0) > 0;
+            const hasFavorited = (favoriteCheck.data?.length || 0) > 0;
+
+            if (hasContacted || hasFavorited) {
+              // Get professional info
+              const { data: professional } = await supabase
+                .from('professionals')
+                .select('full_name, profession')
+                .eq('id', route.professional_id)
+                .single();
+
+              if (professional) {
+                const neighborhoods = route.neighborhoods?.slice(0, 2).join(', ') || 'tu zona';
+                
+                playNotificationWithVibration('zone_alert', 'medium');
+                
+                toast(`📍 ${professional.full_name.toUpperCase()} está cerca`, {
+                  description: `El ${professional.profession} está trabajando en ${neighborhoods} hoy`,
+                  icon: <MapPin className="h-4 w-4 text-primary" />,
+                  duration: 8000,
+                  action: {
+                    label: "Ver perfil",
+                    onClick: () => window.location.href = `/professional/${route.professional_id}`
+                  }
+                });
+              }
+            }
+          }
+        }
+      )
+      .subscribe();
+
     // Cleanup on unmount
     return () => {
       console.log('Cleaning up realtime subscriptions');
       setIsSubscribed(false);
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
       notificationsChannel?.unsubscribe();
       messagesChannel?.unsubscribe();
       bookingsChannel?.unsubscribe();
+      proRoutesChannel?.unsubscribe();
     };
-  }, [user, planLimits.canReceiveMessages, planLimits.advancedAnalytics, isSubscribed]);
+  }, [user, planLimits.canReceiveMessages, isSubscribed]);
 
   // This component doesn't render anything visible
   return null;
