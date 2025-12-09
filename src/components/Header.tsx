@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Bell, User, MapPin, Search, Heart, Menu, X, BarChart3, LogOut, Shield } from "lucide-react";
+import { Bell, User, MapPin, Search, Heart, Menu, X, BarChart3, LogOut, Shield, Download } from "lucide-react";
+import { usePWAInstall } from "@/components/PWAInstallPrompt";
 import { Link, useNavigate } from "react-router-dom";
 import FilterDropdown from "./FilterDropdown";
 import NotificationCenter from "./NotificationCenter";
@@ -14,6 +15,7 @@ import chequealoLogo from "@/assets/chequealo-new-logo.png";
 const Header = () => {
   const { user, signOut, profile } = useAuth();
   const { isAdmin } = useUserRole();
+  const { canInstall, triggerInstall } = usePWAInstall();
   const navigate = useNavigate();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('latest');
@@ -339,6 +341,24 @@ const Header = () => {
                 <div className="px-4 py-2 bg-background">
                   <FavoritesPanel />
                 </div>
+
+                {/* Install App Button */}
+                {canInstall && (
+                  <div className="px-4 py-2 border-t bg-background">
+                    <Button
+                      onClick={() => {
+                        triggerInstall();
+                        setIsUserMenuOpen(false);
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Instalar App
+                    </Button>
+                  </div>
+                )}
 
                 {/* Mobile Filter */}
                 <div className="lg:hidden px-4 py-2 border-t bg-background">
