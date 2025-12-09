@@ -1,9 +1,8 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Download, Share2, Instagram, MessageCircle, Loader2, Link2, Copy, Check } from 'lucide-react';
+import { Share2, Loader2, Copy, Check, ExternalLink, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-
 
 interface ProfileShareCardProps {
   professional: {
@@ -18,6 +17,66 @@ interface ProfileShareCardProps {
   };
   trigger?: React.ReactNode;
 }
+
+interface ShareOptionProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  colorClass?: string;
+}
+
+const ShareOption = ({ icon, label, onClick, colorClass = "bg-muted" }: ShareOptionProps) => (
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${colorClass}`}
+  >
+    <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center">
+      {icon}
+    </div>
+    <span className="font-medium text-foreground">{label}</span>
+  </button>
+);
+
+const SectionHeader = ({ label }: { label: string }) => (
+  <div className="flex items-center gap-2 pt-4 pb-2">
+    <span className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">{label}</span>
+    <div className="flex-1 h-px bg-border" />
+  </div>
+);
+
+// Social media icons as SVG components
+const InstagramIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="url(#instagram-gradient)">
+    <defs>
+      <linearGradient id="instagram-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#FFDC80" />
+        <stop offset="25%" stopColor="#F77737" />
+        <stop offset="50%" stopColor="#F56040" />
+        <stop offset="75%" stopColor="#C13584" />
+        <stop offset="100%" stopColor="#833AB4" />
+      </linearGradient>
+    </defs>
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+  </svg>
+);
+
+const FacebookIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#1877F2">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
+const WhatsAppIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#25D366">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+);
+
+const TwitterIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#000000">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
 
 export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,7 +94,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     try {
       await navigator.clipboard.writeText(profileUrl);
       setLinkCopied(true);
-      toast.success('¡Link copiado! Ahora pegalo como sticker de enlace');
+      toast.success('¡Link copiado al portapapeles!');
       setTimeout(() => setLinkCopied(false), 3000);
     } catch (err) {
       toast.error('No se pudo copiar el link');
@@ -237,10 +296,9 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
         }
       }
 
-      // CTA section - clean design without URL text
+      // CTA section
       const ctaY = 1400;
       
-      // CTA background
       ctx.save();
       roundRect(ctx, 80, ctaY, canvas.width - 160, 200, 30);
       const ctaGradient = ctx.createLinearGradient(80, ctaY, canvas.width - 80, ctaY + 200);
@@ -259,7 +317,6 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       ctx.font = '36px Arial';
       ctx.fillText('Tocá el link de esta historia', canvas.width / 2, ctaY + 140);
       
-      // Arrow pointing up (where link sticker would go)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
       ctx.font = '48px Arial';
       ctx.fillText('👆', canvas.width / 2, ctaY + 190);
@@ -274,19 +331,17 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       ctx.font = '32px Arial';
       ctx.fillText('Profesionales verificados', canvas.width / 2, 1790);
       
-      // Website hint
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '28px Arial';
       ctx.fillText('chequealo.ar', canvas.width / 2, 1850);
 
-      // Generate data URL
       const dataUrl = canvas.toDataURL('image/png');
       setGeneratedImage(dataUrl);
       
-      toast.success('¡Tarjeta generada! Descargala para compartir');
+      toast.success('¡Imagen generada!');
     } catch (error) {
       console.error('Error generating profile card:', error);
-      toast.error('Error al generar la tarjeta');
+      toast.error('Error al generar la imagen');
     } finally {
       setGenerating(false);
     }
@@ -295,10 +350,8 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   const downloadImage = async () => {
     if (!generatedImage) return;
     
-    // Copy profile URL to clipboard
-    const profileUrl = getProfileUrl();
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(getProfileUrl());
       setLinkCopied(true);
     } catch (err) {
       console.log('Could not copy URL to clipboard');
@@ -311,68 +364,23 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     link.click();
     document.body.removeChild(link);
     
-    toast.success('Imagen descargada y link copiado. ¡Pegalo como sticker de enlace!', {
-      duration: 5000,
-    });
+    toast.success('Imagen descargada y link copiado');
   };
 
-  const shareToWhatsAppStatus = async () => {
-    if (!generatedImage) {
-      generateProfileCard();
-      return;
-    }
-    
-    // Try Web Share API first (allows sharing image directly)
-    if (navigator.share && navigator.canShare) {
-      try {
-        const response = await fetch(generatedImage);
-        const blob = await response.blob();
-        const file = new File([blob], `perfil-${professional.full_name}.png`, { type: 'image/png' });
-        
-        if (navigator.canShare({ files: [file] })) {
-          // Copy link first
-          await navigator.clipboard.writeText(getProfileUrl());
-          setLinkCopied(true);
-          
-          await navigator.share({
-            files: [file],
-            title: `${professional.full_name.toUpperCase()} - ${professional.profession}`,
-            text: `Mirá el perfil de ${professional.full_name.toUpperCase()} en Chequealo: ${getProfileUrl()}`,
-          });
-          toast.success('¡Link copiado! Pegalo en tu Estado de WhatsApp');
-          return;
-        }
-      } catch (error) {
-        console.log('Web Share cancelled or failed, falling back to download');
-      }
-    }
-
-    // Fallback: download image and copy link
-    await downloadImage();
-    
-    toast.success('Imagen descargada y link copiado. Subí la imagen a tu Estado y pegá el link', {
-      duration: 6000,
-    });
-  };
-
+  // Share functions
   const shareToInstagramStory = async () => {
     if (!generatedImage) {
-      generateProfileCard();
-      return;
+      await generateProfileCard();
     }
-
-    // Try Web Share API with files on mobile
+    
     if (navigator.share && navigator.canShare) {
       try {
-        const response = await fetch(generatedImage);
+        const response = await fetch(generatedImage!);
         const blob = await response.blob();
         const file = new File([blob], `perfil-${professional.full_name}.png`, { type: 'image/png' });
         
         if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: `${professional.full_name} - ${professional.profession}`,
-          });
+          await navigator.share({ files: [file] });
           toast.success('¡Compartiendo en Instagram!');
           return;
         }
@@ -381,17 +389,94 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       }
     }
 
-    // Fallback: download image and open Instagram
     await downloadImage();
+    setTimeout(() => { window.location.href = 'instagram://'; }, 500);
+    toast.success('Imagen descargada. Subila a tu Historia');
+  };
+
+  const shareToFacebookStory = async () => {
+    if (!generatedImage) {
+      await generateProfileCard();
+    }
     
-    // Open Instagram app
-    setTimeout(() => {
-      window.location.href = 'instagram://';
-    }, 500);
+    if (navigator.share && navigator.canShare) {
+      try {
+        const response = await fetch(generatedImage!);
+        const blob = await response.blob();
+        const file = new File([blob], `perfil-${professional.full_name}.png`, { type: 'image/png' });
+        
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file] });
+          return;
+        }
+      } catch (error) {
+        console.log('Web Share failed');
+      }
+    }
+
+    await downloadImage();
+    toast.success('Imagen descargada. Subila a tu Historia de Facebook');
+  };
+
+  const sendToWhatsAppContact = () => {
+    const message = `¡Mirá el perfil de ${professional.full_name.toUpperCase()}! ${professional.profession} en Chequealo: ${getProfileUrl()}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const shareToWhatsAppStatus = async () => {
+    if (!generatedImage) {
+      await generateProfileCard();
+    }
     
-    toast.success('Imagen descargada y link copiado. Subila a tu Historia y pegá el link', {
-      duration: 6000,
-    });
+    if (navigator.share && navigator.canShare) {
+      try {
+        const response = await fetch(generatedImage!);
+        const blob = await response.blob();
+        const file = new File([blob], `perfil-${professional.full_name}.png`, { type: 'image/png' });
+        
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.clipboard.writeText(getProfileUrl());
+          await navigator.share({
+            files: [file],
+            text: `Mirá el perfil de ${professional.full_name.toUpperCase()} en Chequealo: ${getProfileUrl()}`,
+          });
+          toast.success('¡Link copiado! Pegalo en tu Estado');
+          return;
+        }
+      } catch (error) {
+        console.log('Web Share failed');
+      }
+    }
+
+    await downloadImage();
+    toast.success('Imagen descargada. Subila a tu Estado de WhatsApp');
+  };
+
+  const shareToFacebookPost = () => {
+    const profileUrl = getProfileUrl();
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(profileUrl)}`, '_blank', 'width=600,height=400');
+  };
+
+  const shareToTwitter = () => {
+    const profileUrl = getProfileUrl();
+    const text = `Mirá el perfil de ${professional.full_name.toUpperCase()} en @Chequealo`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'width=600,height=400');
+  };
+
+  const openNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${professional.full_name.toUpperCase()} - ${professional.profession}`,
+          text: `Profesional verificado en Chequealo`,
+          url: getProfileUrl(),
+        });
+      } catch (error) {
+        toast.error('No se pudo abrir el menú de compartir');
+      }
+    } else {
+      copyLinkToClipboard();
+    }
   };
 
   return (
@@ -400,137 +485,142 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
         {trigger || (
           <Button variant="outline" size="sm" className="gap-2">
             <Share2 className="h-4 w-4" />
-            Compartir en Stories
+            Compartir
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Share2 className="h-5 w-5" />
-            Compartir Perfil en Stories
+          <DialogTitle className="text-lg font-bold text-center">
+            Compartir en Redes Sociales
           </DialogTitle>
+          <p className="text-sm text-muted-foreground text-center">
+            Compartí este perfil y aumentá su visibilidad
+          </p>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-1">
           {/* Hidden canvas for generation */}
           <canvas ref={canvasRef} style={{ display: 'none' }} />
           
-          {/* Copy Link Button - ALWAYS visible */}
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
-            <Link2 className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-            <p className="text-sm">
-              <strong>Paso importante:</strong> Copiá el link y pegalo como <strong>sticker de enlace</strong> en tu historia.
-            </p>
-          </div>
-          
-          <Button 
-            onClick={copyLinkToClipboard}
-            variant="secondary"
-            className="w-full"
-          >
-            {linkCopied ? (
-              <>
-                <Check className="h-4 w-4 mr-2 text-green-500" />
-                ¡Link copiado!
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar Link del Perfil
-              </>
-            )}
-          </Button>
-          
-          {/* Preview */}
-          <div className="relative aspect-[9/16] bg-muted rounded-lg overflow-hidden max-h-[400px]">
-            {generatedImage ? (
-              <img 
-                src={generatedImage} 
-                alt="Preview de tarjeta" 
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4 text-center">
-                <Share2 className="h-12 w-12 mb-4 opacity-50" />
-                <p className="text-sm">
-                  Generá una tarjeta de perfil para compartir en WhatsApp Status o Instagram Stories
-                </p>
+          {/* IMAGEN CON IA */}
+          <SectionHeader label="IMAGEN CON IA" />
+          <ShareOption
+            icon={
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                {generating ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Sparkles className="w-5 h-5 text-white" />}
               </div>
-            )}
+            }
+            label={generating ? "Generando..." : "Generar imagen para Stories"}
+            onClick={generateProfileCard}
+            colorClass="bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/20"
+          />
+          
+          {/* HISTORIAS */}
+          <SectionHeader label="HISTORIAS" />
+          <div className="space-y-2">
+            <ShareOption
+              icon={
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center p-2">
+                  <InstagramIcon />
+                </div>
+              }
+              label="Instagram Story"
+              onClick={shareToInstagramStory}
+              colorClass="bg-muted/50 hover:bg-muted border border-border/50"
+            />
+            <ShareOption
+              icon={
+                <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center">
+                  <FacebookIcon />
+                </div>
+              }
+              label="Facebook Story"
+              onClick={shareToFacebookStory}
+              colorClass="bg-muted/50 hover:bg-muted border border-border/50"
+            />
           </div>
-
-          {/* Generate button */}
-          {!generatedImage && (
+          
+          {/* WHATSAPP */}
+          <SectionHeader label="WHATSAPP" />
+          <div className="space-y-2">
+            <ShareOption
+              icon={
+                <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center">
+                  <WhatsAppIcon />
+                </div>
+              }
+              label="Enviar a contacto"
+              onClick={sendToWhatsAppContact}
+              colorClass="bg-muted/50 hover:bg-muted border border-border/50"
+            />
+            <ShareOption
+              icon={
+                <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center">
+                  <WhatsAppIcon />
+                </div>
+              }
+              label="Compartir en Estado"
+              onClick={shareToWhatsAppStatus}
+              colorClass="bg-muted/50 hover:bg-muted border border-border/50"
+            />
+          </div>
+          
+          {/* OTRAS REDES */}
+          <SectionHeader label="OTRAS REDES" />
+          <div className="space-y-2">
+            <ShareOption
+              icon={
+                <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center">
+                  <FacebookIcon />
+                </div>
+              }
+              label="Facebook (publicación)"
+              onClick={shareToFacebookPost}
+              colorClass="bg-muted/50 hover:bg-muted border border-border/50"
+            />
+            <ShareOption
+              icon={
+                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
+                  <TwitterIcon />
+                </div>
+              }
+              label="Twitter / X"
+              onClick={shareToTwitter}
+              colorClass="bg-muted/50 hover:bg-muted border border-border/50"
+            />
+          </div>
+          
+          {/* Footer section */}
+          <div className="pt-4 mt-4 border-t border-border space-y-3">
             <Button 
-              onClick={generateProfileCard} 
-              disabled={generating}
-              className="w-full"
+              onClick={copyLinkToClipboard}
+              variant="ghost"
+              className="w-full justify-start gap-3 h-12"
             >
-              {generating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Generando...
-                </>
+              {linkCopied ? (
+                <Check className="h-5 w-5 text-green-500" />
               ) : (
-                <>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Generar Tarjeta de Perfil
-                </>
+                <Copy className="h-5 w-5 text-muted-foreground" />
               )}
+              <span>{linkCopied ? '¡Link copiado!' : 'Copiar Link'}</span>
             </Button>
-          )}
-
-          {/* Share buttons */}
-          {generatedImage && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  onClick={shareToWhatsAppStatus}
-                  className="bg-green-600 hover:bg-green-700"
-                  size="sm"
-                >
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  WhatsApp
-                </Button>
-                
-                <Button 
-                  onClick={shareToInstagramStory}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                  size="sm"
-                >
-                  <Instagram className="h-4 w-4 mr-1" />
-                  Instagram
-                </Button>
-              </div>
-              
-              <Button 
-                onClick={downloadImage}
-                variant="outline"
-                className="w-full"
-                size="sm"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Solo descargar imagen
-              </Button>
-
-              <Button 
-                onClick={() => {
-                  setGeneratedImage(null);
-                  setLinkCopied(false);
-                }}
-                variant="ghost"
-                className="w-full text-muted-foreground"
-                size="sm"
-              >
-                Regenerar tarjeta
-              </Button>
+            
+            <Button 
+              onClick={openNativeShare}
+              className="w-full h-12 gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Más opciones
+            </Button>
+            
+            <div className="text-xs text-muted-foreground text-center pt-2">
+              <span className="block mb-1">Link del perfil:</span>
+              <span className="block truncate text-foreground/70 font-mono text-[10px] bg-muted px-2 py-1 rounded">
+                {getProfileUrl()}
+              </span>
             </div>
-          )}
-
-          <p className="text-xs text-muted-foreground text-center">
-            Usá el <strong>sticker de enlace</strong> en Instagram/WhatsApp para que tus seguidores puedan tocar y ver tu perfil.
-          </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
