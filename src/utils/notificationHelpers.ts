@@ -91,9 +91,10 @@ export const notifyNewContactRequest = async (
 
   if (!professional) return { data: null, error: 'Professional not found' };
 
+  // Use /dashboard (unified professional dashboard route)
   const actionUrl = conversationId
-    ? `/professional-dashboard?tab=messages&conversation=${conversationId}`
-    : '/professional-dashboard?tab=requests';
+    ? `/dashboard?tab=messages&conversation=${conversationId}`
+    : '/dashboard?tab=requests';
 
   return await createNotification({
     userId: professional.user_id,
@@ -196,7 +197,8 @@ export const notifyNewMessage = async (
   conversationId: string,
   isRecipientProfessional: boolean = false
 ) => {
-  const dashboardUrl = isRecipientProfessional ? '/professional-dashboard' : '/user-dashboard';
+  // Use /dashboard for professionals, /user-dashboard for clients
+  const dashboardUrl = isRecipientProfessional ? '/dashboard' : '/user-dashboard';
   const actionUrl = `${dashboardUrl}?tab=messages&conversation=${conversationId}`;
   
   return await createNotification({

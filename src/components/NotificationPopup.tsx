@@ -11,15 +11,22 @@ import {
   Star,
   MessageSquare,
   User,
-  CreditCard
+  CreditCard,
+  MapPin,
+  Calendar,
+  Zap
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { 
+  playNotificationWithVibration, 
+  NotificationSoundType, 
+  VibrationPattern 
+} from '@/utils/notificationSound';
 
 interface NotificationData {
   id: string;
   title: string;
   message: string;
-  type: 'success' | 'info' | 'warning' | 'error';
+  type: 'success' | 'info' | 'warning' | 'error' | 'message' | 'booking' | 'review' | 'zone_alert' | 'payment';
   action_url?: string;
   created_at: string;
 }
@@ -30,12 +37,75 @@ interface NotificationPopupProps {
   onMarkAsRead: (id: string) => void;
 }
 
+// Map notification types to sounds and vibrations
+const getNotificationConfig = (notification: NotificationData): { 
+  sound: NotificationSoundType; 
+  vibration: VibrationPattern;
+} => {
+  const title = notification.title.toLowerCase();
+  
+  // Check for express/urgent keywords first - PRIORITY
+  if (title.includes('express') || title.includes('urgencia') || title.includes('urgente') || title.includes('🚀')) {
+    console.log('[NotificationPopup] Playing EXPRESS sound');
+    return { sound: 'express', vibration: 'urgent' };
+  }
+
+  // Check for new professional celebration
+  if (title.includes('nuevo profesional') || title.includes('🎉')) {
+    console.log('[NotificationPopup] Playing NEW PROFESSIONAL fanfare');
+    return { sound: 'new_professional', vibration: 'success' };
+  }
+
+  switch (notification.type) {
+    case 'message':
+      console.log('[NotificationPopup] Playing MESSAGE sound');
+      return { sound: 'message', vibration: 'short' };
+    case 'booking':
+      if (title.includes('confirmad')) {
+        console.log('[NotificationPopup] Playing BOOKING CONFIRMED sound');
+        return { sound: 'booking_confirmed', vibration: 'success' };
+      }
+      if (title.includes('recordatorio')) {
+        console.log('[NotificationPopup] Playing BOOKING REMINDER sound');
+        return { sound: 'booking_reminder', vibration: 'medium' };
+      }
+      return { sound: 'booking_confirmed', vibration: 'medium' };
+    case 'review':
+      console.log('[NotificationPopup] Playing NEW REVIEW fanfare');
+      return { sound: 'new_review', vibration: 'success' };
+    case 'zone_alert':
+      console.log('[NotificationPopup] Playing ZONE ALERT sound');
+      return { sound: 'zone_alert', vibration: 'medium' };
+    case 'payment':
+      console.log('[NotificationPopup] Playing PAYMENT sound');
+      return { sound: 'payment', vibration: 'success' };
+    case 'warning':
+      console.log('[NotificationPopup] Playing WARNING/EXPRESS sound');
+      return { sound: 'express', vibration: 'urgent' };
+    case 'error':
+      console.log('[NotificationPopup] Playing URGENT sound');
+      return { sound: 'urgent', vibration: 'long' };
+    case 'success':
+      console.log('[NotificationPopup] Playing CONTACT/SUCCESS sound');
+      return { sound: 'contact', vibration: 'success' };
+    default:
+      console.log('[NotificationPopup] Playing DEFAULT sound');
+      return { sound: 'default', vibration: 'short' };
+  }
+};
+
 const NotificationPopup = ({ notification, onClose, onMarkAsRead }: NotificationPopupProps) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Play notification sound
-    playNotificationSound(notification.type);
+    console.log('[NotificationPopup] Received notification:', notification);
+    
+    // Get sound and vibration config
+    const config = getNotificationConfig(notification);
+    
+    // Play notification sound with vibration using the advanced system
+    console.log('[NotificationPopup] Playing sound:', config.sound, 'with vibration:', config.vibration);
+    playNotificationWithVibration(config.sound, config.vibration);
     
     // Animate in
     setIsVisible(true);
@@ -47,60 +117,6 @@ const NotificationPopup = ({ notification, onClose, onMarkAsRead }: Notification
 
     return () => clearTimeout(timer);
   }, []);
-
-  const playNotificationSound = (type: string) => {
-    try {
-      const audio = new Audio();
-      
-      // Different sounds for different notification types
-      switch (type) {
-        case 'success':
-          // Success sound frequency
-          playTone(800, 200, 0.3);
-          setTimeout(() => playTone(1000, 200, 0.3), 100);
-          break;
-        case 'info':
-          // Info sound
-          playTone(600, 300, 0.2);
-          break;
-        case 'warning':
-          // Warning sound
-          playTone(400, 400, 0.3);
-          setTimeout(() => playTone(450, 200, 0.3), 200);
-          break;
-        case 'error':
-          // Error sound
-          playTone(300, 500, 0.4);
-          break;
-        default:
-          playTone(600, 300, 0.2);
-      }
-    } catch (error) {
-      console.log('Could not play notification sound:', error);
-    }
-  };
-
-  const playTone = (frequency: number, duration: number, volume: number) => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + duration / 1000);
-    } catch (error) {
-      console.log('Web Audio API not supported');
-    }
-  };
 
   const handleClose = () => {
     setIsVisible(false);
@@ -116,12 +132,24 @@ const NotificationPopup = ({ notification, onClose, onMarkAsRead }: Notification
 
   const handleActionClick = () => {
     if (notification.action_url) {
-      window.open(notification.action_url, '_blank');
+      console.log('[NotificationPopup] Navigating to:', notification.action_url);
+      // Navigate in same window instead of opening new tab
+      window.location.href = notification.action_url;
     }
     handleMarkAsRead();
   };
 
   const getIcon = () => {
+    const title = notification.title.toLowerCase();
+    
+    // Check for specific keywords first
+    if (title.includes('express') || title.includes('🚀')) {
+      return <Zap className="h-5 w-5 text-amber-500" />;
+    }
+    if (title.includes('zona') || title.includes('📍')) {
+      return <MapPin className="h-5 w-5 text-primary" />;
+    }
+    
     switch (notification.type) {
       case 'success':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
@@ -129,12 +157,29 @@ const NotificationPopup = ({ notification, onClose, onMarkAsRead }: Notification
         return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
       case 'error':
         return <AlertTriangle className="h-5 w-5 text-red-500" />;
+      case 'message':
+        return <MessageSquare className="h-5 w-5 text-blue-500" />;
+      case 'booking':
+        return <Calendar className="h-5 w-5 text-purple-500" />;
+      case 'review':
+        return <Star className="h-5 w-5 text-yellow-500" />;
+      case 'zone_alert':
+        return <MapPin className="h-5 w-5 text-primary" />;
+      case 'payment':
+        return <CreditCard className="h-5 w-5 text-green-500" />;
       default:
         return <Info className="h-5 w-5 text-blue-500" />;
     }
   };
 
   const getBadgeColor = () => {
+    const title = notification.title.toLowerCase();
+    
+    // Special badges for express/urgent
+    if (title.includes('express') || title.includes('🚀')) {
+      return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white';
+    }
+    
     switch (notification.type) {
       case 'success':
         return 'bg-green-500 text-white';
@@ -142,8 +187,41 @@ const NotificationPopup = ({ notification, onClose, onMarkAsRead }: Notification
         return 'bg-yellow-500 text-white';
       case 'error':
         return 'bg-red-500 text-white';
+      case 'message':
+        return 'bg-blue-500 text-white';
+      case 'booking':
+        return 'bg-purple-500 text-white';
+      case 'review':
+        return 'bg-yellow-400 text-black';
+      case 'zone_alert':
+        return 'bg-primary text-primary-foreground';
+      case 'payment':
+        return 'bg-green-600 text-white';
       default:
         return 'bg-blue-500 text-white';
+    }
+  };
+
+  const getTypeLabel = () => {
+    const title = notification.title.toLowerCase();
+    
+    if (title.includes('express') || title.includes('🚀')) {
+      return 'EXPRESS';
+    }
+    
+    switch (notification.type) {
+      case 'message':
+        return 'MENSAJE';
+      case 'booking':
+        return 'CITA';
+      case 'review':
+        return 'RESEÑA';
+      case 'zone_alert':
+        return 'ZONA';
+      case 'payment':
+        return 'PAGO';
+      default:
+        return notification.type.toUpperCase();
     }
   };
 
@@ -159,14 +237,14 @@ const NotificationPopup = ({ notification, onClose, onMarkAsRead }: Notification
             <div className="flex items-center gap-2">
               {getIcon()}
               <Badge className={getBadgeColor()}>
-                {notification.type.toUpperCase()}
+                {getTypeLabel()}
               </Badge>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              className="h-6 w-6 p-0 hover:bg-gray-100"
+              className="h-6 w-6 p-0 hover:bg-muted"
             >
               <X className="h-4 w-4" />
             </Button>

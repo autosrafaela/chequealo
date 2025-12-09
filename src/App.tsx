@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NotificationSystem from "@/components/NotificationSystem";
+import RealtimeNotifications from "@/components/RealtimeNotifications";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
 import { MultipleFloatingChats } from "@/components/MultipleFloatingChats";
@@ -45,6 +46,7 @@ const App = () => (
     <Toaster />
     <Sonner />
     <NotificationSystem />
+    <RealtimeNotifications />
     <PWAInstallPrompt />
     <IOSInstallInstructions />
     <FloatingWhatsAppWidget />
