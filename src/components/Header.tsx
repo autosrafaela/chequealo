@@ -23,6 +23,7 @@ const Header = () => {
   const [selectedCity, setSelectedCity] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isProfessional, setIsProfessional] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   useEffect(() => {
     checkIfProfessional();
@@ -65,7 +66,7 @@ const Header = () => {
   const handleProvinceChange = (provinceValue: string) => {
     console.log('Province changed to:', provinceValue);
     setSelectedProvince(provinceValue);
-    setSelectedCity(''); // Reset city when province changes
+    setSelectedCity('');
   };
 
   const handleSearchTermChange = (value: string) => {
@@ -105,17 +106,13 @@ const Header = () => {
     }
   ];
 
-  // Handle Enter key press in search input
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
   };
 
-  // Remove unused handlers  
-  const handleRemoveFavorite = () => {
-    // This is now handled by the FavoritesPanel itself
-  };
+  const handleRemoveFavorite = () => {};
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -138,44 +135,49 @@ const Header = () => {
     
     const searchUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
     navigate(searchUrl);
+    setShowMobileSearch(false);
   };
 
   return (
     <header className="bg-navy shadow-lg border-b border-navy-light sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center mr-6">
-            <img src={chequealoLogo} alt="Chequealo" className="h-12 w-auto" />
+      <div className="container mx-auto px-2 sm:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16">
+          {/* Logo - Responsive */}
+          <Link to="/" className="flex items-center flex-shrink-0">
+            <img 
+              src={chequealoLogo} 
+              alt="Chequealo" 
+              className="h-8 sm:h-10 md:h-12 w-auto" 
+            />
           </Link>
 
-          {/* Main Search Section */}
-          <div className="flex items-center flex-1 max-w-5xl mx-4">
-            {/* Location Display - Hidden on small screens */}
+          {/* Desktop Search Section - Hidden on mobile */}
+          <div className="hidden md:flex items-center flex-1 max-w-4xl mx-4">
+            {/* Location Display - Hidden on smaller screens */}
             <div className="hidden xl:flex items-center space-x-1 text-navy-foreground mr-4">
               <MapPin className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Rafaela, Santa Fe</span>
             </div>
 
-            {/* Main Search Container - Increased width */}
+            {/* Main Search Container */}
             <div className="flex-1 bg-card rounded-lg shadow-sm border p-1">
               <div className="flex items-center">
-                {/* Search Input for Service/Professional - Increased space */}
+                {/* Search Input */}
                 <div className="flex-1 relative">
-                  <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                   <input
                     type="text"
-                    placeholder="Ej: plomero, gasista, grúa"
+                    placeholder="Ej: plomero, gasista"
                     value={searchTerm}
                     onChange={(e) => handleSearchTermChange(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="w-full pl-16 pr-4 py-3 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm font-medium"
+                    className="w-full pl-12 pr-2 py-2.5 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm font-medium"
                   />
                 </div>
 
-                {/* Province Select - Reduced space */}
+                {/* Province Select */}
                 <select 
-                  className="hidden md:block px-2 py-3 bg-transparent border-l text-foreground text-sm focus:outline-none cursor-pointer flex-1"
+                  className="hidden lg:block px-2 py-2.5 bg-transparent border-l text-foreground text-sm focus:outline-none cursor-pointer w-32"
                   value={selectedProvince}
                   onChange={(e) => handleProvinceChange(e.target.value)}
                 >
@@ -187,9 +189,9 @@ const Header = () => {
                   ))}
                 </select>
 
-                {/* City Select - Reduced space */}
+                {/* City Select */}
                 <select 
-                  className="hidden lg:block px-2 py-3 bg-transparent border-l border-gray-200 text-gray-700 text-sm focus:outline-none cursor-pointer flex-1"
+                  className="hidden xl:block px-2 py-2.5 bg-transparent border-l border-border text-foreground text-sm focus:outline-none cursor-pointer w-28"
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                   disabled={!selectedProvince}
@@ -205,175 +207,215 @@ const Header = () => {
                 {/* Search Button */}
                 <Button 
                   onClick={handleSearch}
-                  className="ml-2 bg-primary hover:bg-primary/90 px-8 py-3 h-auto rounded-md"
+                  className="ml-2 bg-primary hover:bg-primary/90 px-4 py-2.5 h-auto rounded-md"
                 >
-                  <Search className="h-6 w-6" />
-                  <span className="hidden sm:inline ml-2">Buscar</span>
+                  <Search className="h-5 w-5" />
+                  <span className="hidden lg:inline ml-2">Buscar</span>
                 </Button>
               </div>
             </div>
 
-            {/* Filter Dropdown - Reduced space */}
+            {/* Filter Dropdown */}
             <div className="hidden lg:block ml-2">
               <FilterDropdown
                 options={filterOptions}
                 selected={selectedFilter}
                 onSelect={setSelectedFilter}
-                placeholder="Ordenar por..."
+                placeholder="Ordenar..."
               />
             </div>
           </div>
 
-          {/* User Menu Button (Hamburger) */}
-          <div className="flex items-center gap-2">
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Mobile Search Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden text-navy-foreground p-2"
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+
             {/* Notification Center */}
-            {user && (
-              <NotificationCenter />
-            )}
+            {user && <NotificationCenter />}
             
+            {/* User Menu */}
             <div className="relative">
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-navy-foreground"
+                className="text-navy-foreground p-2"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
-                {isUserMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {isUserMenuOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <Menu className="h-5 w-5 sm:h-6 sm:w-6" />}
               </Button>
 
               {/* User Menu Dropdown */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[60]">
-                  <div className="px-4 py-2 border-b border-gray-100">
-                    <h3 className="font-medium text-gray-900">Menú de Usuario</h3>
+                <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-popover rounded-lg shadow-lg border border-border py-2 z-[60]">
+                  <div className="px-4 py-2 border-b border-border">
+                    <h3 className="font-medium text-popover-foreground">Menú de Usuario</h3>
                   </div>
                 
-                {/* Auth and Professional Navigation */}
-                <div className="px-4 py-2 space-y-2 border-b border-gray-100">
-                  {user ? (
-                    <>
-                      <div className="text-sm text-gray-600 mb-2">
-                        Hola, <span className="uppercase">{profile?.full_name || 'Usuario'}</span>
-                      </div>
-                      
-                      <Link to="/user-dashboard" onClick={() => setIsUserMenuOpen(false)}>
-                        <Button variant="outline" size="sm" className="w-full border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white">
-                          <User className="h-4 w-4 mr-2" />
-                          Mi Cuenta
-                        </Button>
-                      </Link>
-
-                      {(isAdmin || (user?.email?.toLowerCase() === 'autosrafaela@gmail.com')) && (
-                        <Link to="/admin" onClick={() => setIsUserMenuOpen(false)}>
-                          <Button variant="outline" size="sm" className="w-full border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white">
-                            <Shield className="h-4 w-4 mr-2" />
-                            Admin
+                  {/* Auth and Navigation */}
+                  <div className="px-4 py-2 space-y-2 border-b border-border">
+                    {user ? (
+                      <>
+                        <div className="text-sm text-muted-foreground mb-2">
+                          Hola, <span className="uppercase font-medium">{profile?.full_name || 'Usuario'}</span>
+                        </div>
+                        
+                        <Link to="/user-dashboard" onClick={() => setIsUserMenuOpen(false)}>
+                          <Button variant="outline" size="sm" className="w-full justify-start border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white">
+                            <User className="h-4 w-4 mr-2" />
+                            Mi Cuenta
                           </Button>
                         </Link>
-                      )}
-                      
-                      {isProfessional && (
-                        <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)}>
-                          <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                            <BarChart3 className="h-4 w-4 mr-2" />
-                            Mi Dashboard
+
+                        {(isAdmin || (user?.email?.toLowerCase() === 'autosrafaela@gmail.com')) && (
+                          <Link to="/admin" onClick={() => setIsUserMenuOpen(false)}>
+                            <Button variant="outline" size="sm" className="w-full justify-start border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white">
+                              <Shield className="h-4 w-4 mr-2" />
+                              Admin
+                            </Button>
+                          </Link>
+                        )}
+                        
+                        {isProfessional && (
+                          <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)}>
+                            <Button variant="outline" size="sm" className="w-full justify-start border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                              <BarChart3 className="h-4 w-4 mr-2" />
+                              Mi Dashboard
+                            </Button>
+                          </Link>
+                        )}
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full justify-start" 
+                          onClick={handleSignOut}
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Cerrar Sesión
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Link to="/auth" onClick={() => setIsUserMenuOpen(false)}>
+                          <Button variant="outline" size="sm" className="w-full justify-start border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                            <User className="h-4 w-4 mr-2" />
+                            Iniciar Sesión
                           </Button>
                         </Link>
-                      )}
-                      
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full" 
-                        onClick={handleSignOut}
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Cerrar Sesión
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Link to="/auth" onClick={() => setIsUserMenuOpen(false)}>
-                        <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                          <User className="h-4 w-4 mr-2" />
-                          Iniciar Sesión
-                        </Button>
-                      </Link>
-                      <Link to="/register" onClick={() => setIsUserMenuOpen(false)}>
-                        <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
-                          Registrarse
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                </div>
-                
-                {/* Mobile Location Selectors */}
-                <div className="md:hidden px-4 py-2 space-y-2 border-b border-gray-100">
-                  <select 
-                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                    value={selectedProvince}
-                    onChange={(e) => handleProvinceChange(e.target.value)}
-                  >
-                    <option value="">Seleccionar Provincia</option>
-                    {Object.keys(provinceCityMap).map((province) => (
-                      <option key={province} value={province}>
-                        {province.charAt(0).toUpperCase() + province.slice(1).replace('-', ' ')}
-                      </option>
-                    ))}
-                  </select>
-                  <select 
-                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                    value={selectedCity}
-                    onChange={(e) => setSelectedCity(e.target.value)}
-                    disabled={!selectedProvince}
-                  >
-                    <option value="">Seleccionar Ciudad</option>
-                    {getCitiesForProvince(selectedProvince).map((city) => (
-                      <option key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Favorites - Now uses real data */}
-                <div className="px-4 py-2 bg-background">
-                  <FavoritesPanel />
-                </div>
-
-                {/* Install App Button */}
-                {canInstall && (
-                  <div className="px-4 py-2 border-t bg-background">
-                    <Button
-                      onClick={() => {
-                        triggerInstall();
-                        setIsUserMenuOpen(false);
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                        <Link to="/register" onClick={() => setIsUserMenuOpen(false)}>
+                          <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
+                            Registrarse
+                          </Button>
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Mobile Location Selectors */}
+                  <div className="lg:hidden px-4 py-3 space-y-2 border-b border-border">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Ubicación</p>
+                    <select 
+                      className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                      value={selectedProvince}
+                      onChange={(e) => handleProvinceChange(e.target.value)}
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      Instalar App
-                    </Button>
+                      <option value="">Seleccionar Provincia</option>
+                      {Object.keys(provinceCityMap).map((province) => (
+                        <option key={province} value={province}>
+                          {province.charAt(0).toUpperCase() + province.slice(1).replace('-', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                    <select 
+                      className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+                      value={selectedCity}
+                      onChange={(e) => setSelectedCity(e.target.value)}
+                      disabled={!selectedProvince}
+                    >
+                      <option value="">Seleccionar Ciudad</option>
+                      {getCitiesForProvince(selectedProvince).map((city) => (
+                        <option key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                )}
 
-                {/* Mobile Filter */}
-                <div className="lg:hidden px-4 py-2 border-t bg-background">
-                  <FilterDropdown
-                    options={filterOptions}
-                    selected={selectedFilter}
-                    onSelect={setSelectedFilter}
-                    placeholder="Ordenar por..."
-                  />
+                  {/* Favorites */}
+                  <div className="px-4 py-2 border-b border-border">
+                    <FavoritesPanel />
+                  </div>
+
+                  {/* Install App Button */}
+                  {canInstall && (
+                    <div className="px-4 py-2 border-b border-border">
+                      <Button
+                        onClick={() => {
+                          triggerInstall();
+                          setIsUserMenuOpen(false);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Instalar App
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Mobile Filter */}
+                  <div className="lg:hidden px-4 py-2">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Ordenar por</p>
+                    <FilterDropdown
+                      options={filterOptions}
+                      selected={selectedFilter}
+                      onSelect={setSelectedFilter}
+                      placeholder="Ordenar por..."
+                    />
                   </div>
                 </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Mobile Search Expanded */}
+        {showMobileSearch && (
+          <div className="md:hidden pb-3 animate-in slide-in-from-top-2">
+            <div className="bg-card rounded-lg shadow-sm border p-2">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Buscar profesional..."
+                    value={searchTerm}
+                    onChange={(e) => handleSearchTermChange(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="w-full pl-10 pr-2 py-2.5 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm"
+                    autoFocus
+                  />
+                </div>
+                <Button 
+                  onClick={handleSearch}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 px-4"
+                >
+                  Buscar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
