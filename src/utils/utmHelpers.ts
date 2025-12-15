@@ -42,7 +42,8 @@ export function getProfessionalShareUrl(
   source: UTMSource, 
   medium: UTMMedium = 'share'
 ): string {
-  const baseUrl = `${window.location.origin}/professional/${professionalId}`;
+  // Always use https://chequealo.ar for better compatibility with WhatsApp/Instagram link detection
+  const baseUrl = `https://chequealo.ar/professional/${professionalId}`;
   return generateUTMUrl(baseUrl, { source, medium, professionalId });
 }
 

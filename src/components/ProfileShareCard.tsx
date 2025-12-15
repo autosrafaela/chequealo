@@ -86,7 +86,8 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   const [linkCopied, setLinkCopied] = useState(false);
 
   const getProfileUrl = () => {
-    return `${window.location.origin}/professional/${professional.id}`;
+    // Always use https:// for better compatibility with WhatsApp/Instagram link detection
+    return `https://chequealo.ar/professional/${professional.id}`;
   };
 
   const copyLinkToClipboard = async () => {
@@ -419,7 +420,8 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   };
 
   const sendToWhatsAppContact = () => {
-    const message = `¡Mirá el perfil de ${professional.full_name.toUpperCase()}! ${professional.profession} en Chequealo: ${getProfileUrl()}`;
+    const profileUrl = getProfileUrl();
+    const message = `¡Mirá el perfil de ${professional.full_name.toUpperCase()}! ${professional.profession} en Chequealo 🔗 ${profileUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -435,10 +437,11 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
         const file = new File([blob], `perfil-${professional.full_name}.png`, { type: 'image/png' });
         
         if (navigator.canShare({ files: [file] })) {
-          await navigator.clipboard.writeText(getProfileUrl());
+          const profileUrl = getProfileUrl();
+          await navigator.clipboard.writeText(profileUrl);
           await navigator.share({
             files: [file],
-            text: `Mirá el perfil de ${professional.full_name.toUpperCase()} en Chequealo: ${getProfileUrl()}`,
+            text: `Mirá el perfil de ${professional.full_name.toUpperCase()} en Chequealo 🔗 ${profileUrl}`,
           });
           toast.success('¡Link copiado! Pegalo en tu Estado');
           return;
