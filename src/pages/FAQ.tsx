@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SEOHead, generateFAQSchema } from "@/components/SEO/SEOHead";
 
 const FAQ = () => {
   const clientFAQs = [
@@ -76,9 +77,19 @@ const FAQ = () => {
     }
   ];
 
+  const faqsForSchema = [...clientFAQs, ...professionalFAQs];
+  const faqSchema = generateFAQSchema(faqsForSchema);
+
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <SEOHead 
+        title="Preguntas Frecuentes - Chequealo | Centro de Ayuda"
+        description="Encontrá respuestas a las preguntas más comunes sobre Chequealo. Información para clientes y profesionales sobre cómo usar la plataforma."
+        canonical="/faq"
+        structuredData={faqSchema}
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
       
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-b from-primary/10 to-background">
@@ -177,6 +188,7 @@ const FAQ = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

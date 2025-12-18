@@ -3,11 +3,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Header from "@/components/Header";
 import { Search, MessageSquare, Star, UserCheck, MapPin, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SEOHead, generateBreadcrumbSchema } from "@/components/SEO/SEOHead";
 
 const HowItWorks = () => {
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Inicio', url: '/' },
+    { name: 'Cómo Funciona', url: '/how-it-works' }
+  ]);
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <SEOHead 
+        title="Cómo Funciona Chequealo - Guía para Clientes y Profesionales"
+        description="Descubrí cómo usar Chequealo para encontrar profesionales verificados o para ofrecer tus servicios. Guía paso a paso para clientes y profesionales."
+        canonical="/how-it-works"
+        structuredData={breadcrumbSchema}
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
       
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-b from-primary/10 to-background">
@@ -238,6 +250,7 @@ const HowItWorks = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

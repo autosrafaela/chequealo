@@ -1,10 +1,17 @@
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SEOHead } from "@/components/SEO/SEOHead";
 
 const PrivacyPolicy = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <SEOHead 
+        title="Política de Privacidad - Chequealo"
+        description="Política de privacidad y protección de datos personales de Chequealo. Conocé cómo protegemos tu información."
+        canonical="/privacy"
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -112,6 +119,7 @@ const PrivacyPolicy = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
