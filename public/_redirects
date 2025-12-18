@@ -1,0 +1,32 @@
+# Chequealo - Cloudflare Pages Redirects
+# https://developers.cloudflare.com/pages/platform/redirects/
+
+# Legacy URL redirects (301 = permanent)
+/inicio /  301
+/home /  301
+/principal /  301
+/index /  301
+/index.html /  301
+
+# Old professional URL patterns
+/profesional/* /professional/:splat 301
+/prof/* /professional/:splat 301
+
+# Old search patterns
+/buscar /search 301
+/busqueda /search 301
+
+# Spanish to English route redirects
+/terminos /terms 301
+/privacidad /privacy 301
+/precios /pricing 301
+/como-funciona /how-it-works 301
+/preguntas-frecuentes /faq 301
+
+# Campaign redirects
+/campana/urgencias /urgencias 301
+/campana/promo /promo 301
+/campana/sena /sena 301
+
+# SPA fallback - all other routes serve index.html
+/* /index.html 200

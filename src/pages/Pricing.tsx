@@ -4,8 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Zap, Shield, TrendingUp, Crown, Users, BarChart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SEOHead, generateBreadcrumbSchema } from "@/components/SEO/SEOHead";
 
 const Pricing = () => {
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Inicio', url: '/' },
+    { name: 'Planes y Precios', url: '/pricing' }
+  ]);
   const plans = [
     {
       id: "basic",
@@ -109,8 +114,15 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <SEOHead 
+        title="Planes y Precios - Chequealo | Suscripción para Profesionales"
+        description="Conocé los planes de Chequealo para profesionales. 90 días gratis de prueba. Planes desde $8.990/mes. Aumentá tu visibilidad y conseguí más clientes."
+        canonical="/pricing"
+        structuredData={breadcrumbSchema}
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
       
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-b from-primary/10 to-background">
@@ -386,6 +398,7 @@ const Pricing = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

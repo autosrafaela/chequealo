@@ -11,11 +11,26 @@ import { HeaderCarousel } from "@/components/HeaderCarousel";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SEOHead, generateOrganizationSchema, generateWebsiteSchema } from "@/components/SEO/SEOHead";
 
 const Index = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      generateOrganizationSchema(),
+      generateWebsiteSchema()
+    ]
+  };
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <SEOHead 
+        title="Chequealo - Encontrá Profesionales de Confianza en Argentina"
+        description="Plataforma líder para encontrar profesionales verificados en Argentina. Electricistas, plomeros, albañiles y más servicios de confianza con reseñas reales."
+        canonical="/"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
       
       {/* Hero Carousel */}
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
@@ -157,6 +172,7 @@ const Index = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 

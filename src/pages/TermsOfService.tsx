@@ -1,10 +1,17 @@
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SEOHead } from "@/components/SEO/SEOHead";
 
 const TermsOfService = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <SEOHead 
+        title="Términos de Servicio - Chequealo"
+        description="Términos y condiciones de uso de la plataforma Chequealo. Regulaciones para usuarios y profesionales."
+        canonical="/terms"
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -172,6 +179,7 @@ const TermsOfService = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

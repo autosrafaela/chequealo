@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Search as SearchIcon, Grid, List, SlidersHorizontal } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
+import { SEOHead } from '@/components/SEO/SEOHead';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -63,9 +64,15 @@ const Search = () => {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="container mx-auto px-4 py-8">
+    <>
+      <SEOHead 
+        title="Buscar Profesionales - Electricistas, Plomeros y Más | Chequealo"
+        description="Encontrá profesionales verificados en Argentina. Filtrá por ubicación, profesión y calificaciones. Electricistas, plomeros, albañiles y más servicios."
+        canonical="/search"
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
         {/* Filters Top Bar */}
         <div className="mb-6">
           <SearchFilters
@@ -175,6 +182,7 @@ const Search = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
