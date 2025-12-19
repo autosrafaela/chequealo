@@ -1,29 +1,50 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Send push notification to users
+ * Send push notification to users via Edge Function
+ * This function NO LONGER depends on user session - it uses the Edge Function's service role
  */
-const sendPushNotification = async (
+export const sendPushNotification = async (
   userIds: string[],
   title: string,
   message: string,
   actionUrl?: string
 ) => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+  if (!userIds || userIds.length === 0) {
+    console.log('[notificationHelpers] No userIds provided, skipping push notification');
+    return;
+  }
 
-    await supabase.functions.invoke('send-push-notification', {
+  console.log('[notificationHelpers] Sending push notification:', {
+    userIdsCount: userIds.length,
+    title: title.substring(0, 50),
+    actionUrl
+  });
+
+  try {
+    const { data, error } = await supabase.functions.invoke('send-push-notification', {
       body: {
         userIds,
         title,
         body: message,
         url: actionUrl,
-        icon: '/icon-192.png'
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: `notification-${Date.now()}`,
+        requireInteraction: title.toLowerCase().includes('urgente') || title.toLowerCase().includes('express')
       }
     });
+
+    if (error) {
+      console.error('[notificationHelpers] Push notification error:', error);
+    } else {
+      console.log('[notificationHelpers] Push notification sent successfully:', data);
+    }
+    
+    return { data, error };
   } catch (error) {
-    console.error('Error sending push notification:', error);
+    console.error('[notificationHelpers] Error sending push notification:', error);
+    return { data: null, error };
   }
 };
 
@@ -36,7 +57,7 @@ export interface CreateNotificationProps {
 }
 
 /**
- * Create a new notification for a user
+ * Create a new notification for a user and send push notification
  */
 export const createNotification = async ({
   userId,
@@ -45,6 +66,13 @@ export const createNotification = async ({
   type = 'info',
   actionUrl
 }: CreateNotificationProps) => {
+  if (!userId) {
+    console.error('[notificationHelpers] createNotification called without userId');
+    return { data: null, error: 'userId is required' };
+  }
+
+  console.log('[notificationHelpers] Creating notification:', { userId, title, type });
+
   try {
     const { data, error } = await supabase
       .from('notifications')
@@ -59,16 +87,28 @@ export const createNotification = async ({
       .select()
       .single();
 
-    if (error) throw error;
-    
-    // Send push notification
-    if (data) {
-      await sendPushNotification([userId], title, message, actionUrl);
+    if (error) {
+      console.error('[notificationHelpers] Error inserting notification:', error);
+      throw error;
     }
+    
+    console.log('[notificationHelpers] Notification created in DB:', data.id);
+    
+    // Send push notification - this runs independently of DB insert success
+    // Don't await to avoid blocking, but log the result
+    sendPushNotification([userId], title, message, actionUrl)
+      .then(result => {
+        if (result?.error) {
+          console.warn('[notificationHelpers] Push notification failed but DB notification was created');
+        }
+      })
+      .catch(err => {
+        console.warn('[notificationHelpers] Push notification error (non-blocking):', err);
+      });
     
     return { data, error: null };
   } catch (error) {
-    console.error('Error creating notification:', error);
+    console.error('[notificationHelpers] Error creating notification:', error);
     return { data: null, error };
   }
 };
@@ -82,6 +122,8 @@ export const notifyNewContactRequest = async (
   requestType: 'contact' | 'quote',
   conversationId?: string
 ) => {
+  console.log('[notificationHelpers] notifyNewContactRequest:', { professionalId, clientName, requestType });
+  
   // Get professional's user_id
   const { data: professional } = await supabase
     .from('professionals')
@@ -89,9 +131,11 @@ export const notifyNewContactRequest = async (
     .eq('id', professionalId)
     .single();
 
-  if (!professional) return { data: null, error: 'Professional not found' };
+  if (!professional) {
+    console.error('[notificationHelpers] Professional not found:', professionalId);
+    return { data: null, error: 'Professional not found' };
+  }
 
-  // Use /dashboard (unified professional dashboard route)
   const actionUrl = conversationId
     ? `/dashboard?tab=messages&conversation=${conversationId}`
     : '/dashboard?tab=requests';
@@ -114,14 +158,18 @@ export const notifyExpressRequest = async (
   serviceType: string,
   conversationId: string
 ) => {
-  // Get professional's user_id
+  console.log('[notificationHelpers] notifyExpressRequest:', { professionalId, clientName, serviceType });
+  
   const { data: professional } = await supabase
     .from('professionals')
     .select('user_id')
     .eq('id', professionalId)
     .single();
 
-  if (!professional) return { data: null, error: 'Professional not found' };
+  if (!professional) {
+    console.error('[notificationHelpers] Professional not found:', professionalId);
+    return { data: null, error: 'Professional not found' };
+  }
 
   const actionUrl = `/dashboard?tab=messages&conversation=${conversationId}`;
 
@@ -197,7 +245,8 @@ export const notifyNewMessage = async (
   conversationId: string,
   isRecipientProfessional: boolean = false
 ) => {
-  // Use /dashboard for professionals, /user-dashboard for clients
+  console.log('[notificationHelpers] notifyNewMessage:', { recipientUserId, senderName, isRecipientProfessional });
+  
   const dashboardUrl = isRecipientProfessional ? '/dashboard' : '/user-dashboard';
   const actionUrl = `${dashboardUrl}?tab=messages&conversation=${conversationId}`;
   
@@ -288,9 +337,6 @@ export const notifySystemMaintenance = async (userId: string, maintenanceDate: s
 
 /**
  * Notify users when a professional activates "En tu zona hoy"
- * Notifies users who:
- * 1. Have previously contacted the professional
- * 2. Have the professional in their favorites
  */
 export const notifyZoneTodayToInterested = async (
   professionalId: string,
@@ -298,34 +344,32 @@ export const notifyZoneTodayToInterested = async (
   profession: string,
   neighborhoods: string[]
 ) => {
+  console.log('[notificationHelpers] notifyZoneTodayToInterested:', { professionalId, professionalName });
+  
   try {
-    // Get users who have contacted this professional
     const { data: contactRequests } = await supabase
       .from('contact_requests')
       .select('user_id')
       .eq('professional_id', professionalId)
       .neq('user_id', null);
 
-    // Get users who have this professional in favorites
     const { data: favorites } = await supabase
       .from('favorites')
       .select('user_id')
       .eq('professional_id', professionalId);
 
-    // Combine and deduplicate user IDs
     const contactUserIds = (contactRequests || []).map(r => r.user_id);
     const favoriteUserIds = (favorites || []).map(f => f.user_id);
     const allUserIds = [...new Set([...contactUserIds, ...favoriteUserIds])];
 
     if (allUserIds.length === 0) {
-      console.log('No interested users to notify for zone today');
+      console.log('[notificationHelpers] No interested users to notify for zone today');
       return { data: null, notifiedCount: 0 };
     }
 
     const neighborhoodList = neighborhoods.slice(0, 3).join(', ');
     const hasMore = neighborhoods.length > 3 ? ` y ${neighborhoods.length - 3} más` : '';
 
-    // Create bulk notifications
     const notifications = allUserIds.map(userId => ({
       user_id: userId,
       title: `📍 ${professionalName.toUpperCase()} está cerca hoy`,
@@ -342,20 +386,20 @@ export const notifyZoneTodayToInterested = async (
 
     if (error) throw error;
 
-    // Send push notifications
+    // Send push notifications to all users
     if (data && data.length > 0) {
-      await sendPushNotification(
+      sendPushNotification(
         allUserIds,
         `📍 ${professionalName.toUpperCase()} está cerca hoy`,
         `El ${profession} está trabajando en ${neighborhoodList}${hasMore}`,
         `/professional/${professionalId}`
-      );
+      ).catch(err => console.warn('[notificationHelpers] Zone today push error:', err));
     }
 
-    console.log(`Notified ${allUserIds.length} users about zone today activation`);
+    console.log(`[notificationHelpers] Notified ${allUserIds.length} users about zone today activation`);
     return { data, notifiedCount: allUserIds.length };
   } catch (error) {
-    console.error('Error notifying zone today interested users:', error);
+    console.error('[notificationHelpers] Error notifying zone today interested users:', error);
     return { data: null, error, notifiedCount: 0 };
   }
 };
@@ -370,6 +414,8 @@ export const createBulkNotifications = async (
   type: 'success' | 'info' | 'warning' | 'error' | 'zone_alert' = 'info',
   actionUrl?: string
 ) => {
+  console.log('[notificationHelpers] createBulkNotifications:', { userIdsCount: userIds.length, title });
+  
   try {
     const notifications = userIds.map(userId => ({
       user_id: userId,
@@ -389,12 +435,13 @@ export const createBulkNotifications = async (
     
     // Send push notifications to all users
     if (data && data.length > 0) {
-      await sendPushNotification(userIds, title, message, actionUrl);
+      sendPushNotification(userIds, title, message, actionUrl)
+        .catch(err => console.warn('[notificationHelpers] Bulk push error:', err));
     }
     
     return { data, error: null };
   } catch (error) {
-    console.error('Error creating bulk notifications:', error);
+    console.error('[notificationHelpers] Error creating bulk notifications:', error);
     return { data: null, error };
   }
 };
@@ -408,29 +455,27 @@ export const notifyNewProfessionalToAllUsers = async (
   profession: string,
   excludeUserId?: string
 ) => {
+  console.log('[notificationHelpers] notifyNewProfessionalToAllUsers:', { professionalId, professionalName });
+  
   try {
-    // Check current professional count
     const { count: professionalCount } = await supabase
       .from('professionals')
       .select('*', { count: 'exact', head: true });
 
-    // Only notify if less than 250 professionals
     if (professionalCount && professionalCount >= 250) {
-      console.log('Professional count >= 250, skipping new professional notification');
+      console.log('[notificationHelpers] Professional count >= 250, skipping notification');
       return { data: null, notifiedCount: 0, skipped: true };
     }
 
-    // Get all registered users (from profiles table)
     const { data: profiles } = await supabase
       .from('profiles')
       .select('user_id');
 
     if (!profiles || profiles.length === 0) {
-      console.log('No users to notify about new professional');
+      console.log('[notificationHelpers] No users to notify about new professional');
       return { data: null, notifiedCount: 0 };
     }
 
-    // Filter out the professional's own user ID
     const userIds = profiles
       .map(p => p.user_id)
       .filter(id => id !== excludeUserId);
@@ -439,7 +484,6 @@ export const notifyNewProfessionalToAllUsers = async (
       return { data: null, notifiedCount: 0 };
     }
 
-    // Create bulk notifications with special type for new professional sound
     const notifications = userIds.map(userId => ({
       user_id: userId,
       title: '🎉 ¡Nuevo profesional en Chequealo!',
@@ -456,20 +500,19 @@ export const notifyNewProfessionalToAllUsers = async (
 
     if (error) throw error;
 
-    // Send push notifications
     if (data && data.length > 0) {
-      await sendPushNotification(
+      sendPushNotification(
         userIds,
         '🎉 ¡Nuevo profesional en Chequealo!',
         `${professionalName.toUpperCase()} se sumó como ${profession}`,
         `/professional/${professionalId}`
-      );
+      ).catch(err => console.warn('[notificationHelpers] New professional push error:', err));
     }
 
-    console.log(`Notified ${userIds.length} users about new professional (total: ${professionalCount})`);
+    console.log(`[notificationHelpers] Notified ${userIds.length} users about new professional`);
     return { data, notifiedCount: userIds.length, professionalCount };
   } catch (error) {
-    console.error('Error notifying about new professional:', error);
+    console.error('[notificationHelpers] Error notifying about new professional:', error);
     return { data: null, error, notifiedCount: 0 };
   }
 };
@@ -481,15 +524,19 @@ export const notifyAddedToFavorites = async (
   professionalId: string,
   clientName: string
 ) => {
+  console.log('[notificationHelpers] notifyAddedToFavorites:', { professionalId, clientName });
+  
   try {
-    // Get professional's user_id
     const { data: professional } = await supabase
       .from('professionals')
       .select('user_id')
       .eq('id', professionalId)
       .single();
 
-    if (!professional) return { data: null, error: 'Professional not found' };
+    if (!professional) {
+      console.error('[notificationHelpers] Professional not found:', professionalId);
+      return { data: null, error: 'Professional not found' };
+    }
 
     return await createNotification({
       userId: professional.user_id,
@@ -499,37 +546,47 @@ export const notifyAddedToFavorites = async (
       actionUrl: '/dashboard?tab=analytics'
     });
   } catch (error) {
-    console.error('Error notifying added to favorites:', error);
+    console.error('[notificationHelpers] Error in notifyAddedToFavorites:', error);
     return { data: null, error };
   }
 };
 
 /**
- * Notify user when profile reaches 100% completion 🎯
+ * Notify user when their profile is 100% complete
  */
-export const notifyProfileComplete = async (userId: string, userName?: string) => {
+export const notifyProfileComplete = async (professionalUserId: string) => {
   return await createNotification({
-    userId,
+    userId: professionalUserId,
     title: '🎯 ¡Perfil completo al 100%!',
-    message: `${userName ? `¡Felicitaciones ${userName.toUpperCase()}! ` : ''}Tu perfil está completo y optimizado para recibir más clientes.`,
+    message: 'Tu perfil está completamente configurado. ¡Ahora tienes más visibilidad!',
     type: 'success',
-    actionUrl: '/dashboard'
+    actionUrl: '/dashboard?tab=profile'
   });
 };
 
 /**
- * Notify user when a badge is unlocked 🏆
+ * Notify user when they unlock a badge
  */
-export const notifyBadgeUnlocked = async (
-  userId: string,
-  badgeName: string,
-  badgeDescription: string
-) => {
+export const notifyBadgeUnlocked = async (userId: string, badgeName: string, badgePoints: number) => {
   return await createNotification({
     userId,
-    title: `🏆 ¡Badge desbloqueado: ${badgeName}!`,
-    message: badgeDescription,
+    title: '🏆 ¡Nueva insignia desbloqueada!',
+    message: `Has ganado la insignia "${badgeName}" y ${badgePoints} puntos. ¡Sigue así!`,
     type: 'success',
-    actionUrl: '/dashboard?tab=badges'
+    actionUrl: '/dashboard?tab=profile'
   });
+};
+
+/**
+ * Test push notification - for debugging
+ */
+export const sendTestPushNotification = async (userId: string) => {
+  console.log('[notificationHelpers] Sending test push notification to:', userId);
+  
+  return await sendPushNotification(
+    [userId],
+    '🧪 Test de notificación push',
+    'Si ves esto, las notificaciones push funcionan correctamente!',
+    '/dashboard'
+  );
 };
