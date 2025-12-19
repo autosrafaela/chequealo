@@ -1,12 +1,19 @@
-// Notification sound utility using Web Audio API
+// Notification sound utility using Web Audio API with fallback support
 
 let audioContext: AudioContext | null = null;
+let audioInitialized = false;
 
-const getAudioContext = (): AudioContext => {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+// Get or create AudioContext
+const getAudioContext = (): AudioContext | null => {
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    return audioContext;
+  } catch (error) {
+    console.error('[NotificationSound] Failed to create AudioContext:', error);
+    return null;
   }
-  return audioContext;
 };
 
 export type NotificationSoundType = 
@@ -65,6 +72,23 @@ export const triggerVibration = (pattern: VibrationPattern = 'short') => {
 };
 
 /**
+ * Fallback sound using Audio element (for browsers where Web Audio API fails)
+ */
+const playFallbackSound = () => {
+  try {
+    // Create a simple beep using Audio element with data URI
+    // This is a basic 440Hz sine wave beep encoded as base64 WAV
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleDoAAABRm9HQoT0ABkWe3OWqZDEABUmc2eSsajIABUqb2OOrZzIABkqa2OKrZzMABkqb2eKrZzMABkqa2eKrZzMABkqa2OKrZzMABkqb2OKrZzMABkmb2OKrZzMABkqb2OKsZzMABkqb2OKsZzMABkqa2OKsZzMABkqa2OOsZzMABkqa2OOsZzMABkqa2OOsZzMABkqa2OOsZzMABkqa2OOsZzIABkqa2OOsZzMABkqa2OOsZzMABkma2OOsZzIABkqa2OOsZzIABkma2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIA');
+    audio.volume = 0.3;
+    audio.play().catch(e => {
+      console.warn('[NotificationSound] Fallback audio also failed:', e);
+    });
+  } catch (error) {
+    console.error('[NotificationSound] Fallback sound error:', error);
+  }
+};
+
+/**
  * Play a notification sound using Web Audio API
  * @param type - Type of notification sound
  */
@@ -81,9 +105,18 @@ export const playNotificationSound = (type: NotificationSoundType = 'default') =
   try {
     const ctx = getAudioContext();
     
+    if (!ctx) {
+      console.warn('[NotificationSound] AudioContext not available, trying fallback');
+      playFallbackSound();
+      return;
+    }
+    
     // Resume audio context if suspended (browser autoplay policy)
     if (ctx.state === 'suspended') {
-      ctx.resume();
+      ctx.resume().catch(e => {
+        console.warn('[NotificationSound] Failed to resume AudioContext:', e);
+        playFallbackSound();
+      });
     }
 
     switch (type) {
@@ -483,12 +516,26 @@ export const playNotificationWithVibration = (
  * Call this on first user click to enable sounds
  */
 export const initializeAudioContext = () => {
+  if (audioInitialized) return;
+  
   try {
     const ctx = getAudioContext();
-    if (ctx.state === 'suspended') {
-      ctx.resume();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().then(() => {
+        console.log('[NotificationSound] AudioContext resumed successfully');
+        audioInitialized = true;
+      }).catch(e => {
+        console.warn('[NotificationSound] Failed to resume AudioContext:', e);
+      });
+    } else if (ctx) {
+      audioInitialized = true;
     }
   } catch (error) {
-    console.error('Error initializing audio context:', error);
+    console.error('[NotificationSound] Error initializing audio context:', error);
   }
 };
+
+/**
+ * Check if audio is initialized and ready
+ */
+export const isAudioReady = () => audioInitialized;
