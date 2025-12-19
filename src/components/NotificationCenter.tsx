@@ -17,9 +17,11 @@ import {
   Info, 
   Check,
   CheckCheck,
-  Clock
+  Clock,
+  RefreshCw
 } from 'lucide-react';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 
 const NotificationCenter = () => {
   const navigate = useNavigate();
@@ -30,7 +32,27 @@ const NotificationCenter = () => {
     markAllAsRead
   } = useRealtimeNotifications();
 
+  const { updateAvailable, isUpdating, updateApp, showBanner } = useServiceWorkerUpdate();
+
   const [isOpen, setIsOpen] = useState(false);
+
+  // Create update notification if available
+  const updateNotification = updateAvailable ? {
+    id: 'sw-update-notification',
+    title: '¡Nueva versión disponible!',
+    message: 'Hay una actualización lista para instalar. Haz clic para actualizar la aplicación.',
+    type: 'update' as const,
+    created_at: new Date().toISOString(),
+    read: false,
+    isUpdate: true
+  } : null;
+
+  // Combine update notification with regular notifications
+  const allNotifications = updateNotification 
+    ? [updateNotification, ...notifications]
+    : notifications;
+
+  const totalUnreadCount = unreadCount + (updateAvailable ? 1 : 0);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -40,6 +62,8 @@ const NotificationCenter = () => {
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
       case 'error':
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'update':
+        return <RefreshCw className="h-4 w-4 text-primary animate-pulse" />;
       default:
         return <Info className="h-4 w-4 text-blue-500" />;
     }
@@ -57,6 +81,12 @@ const NotificationCenter = () => {
   };
 
   const handleNotificationClick = (notification: any) => {
+    // Handle update notification
+    if (notification.isUpdate) {
+      updateApp();
+      return;
+    }
+
     if (!notification.read) {
       markAsRead(notification.id);
     }
@@ -71,16 +101,29 @@ const NotificationCenter = () => {
     setIsOpen(false);
   };
 
+  const handleUpdateClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateApp();
+  };
+
+  const handleShowBanner = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    showBanner();
+    setIsOpen(false);
+  };
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
+          <Bell className={`h-5 w-5 ${updateAvailable ? 'text-primary' : ''}`} />
+          {totalUnreadCount > 0 && (
             <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 text-white animate-pulse"
+              className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs text-white animate-pulse ${
+                updateAvailable ? 'bg-primary' : 'bg-red-500'
+              }`}
             >
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
             </Badge>
           )}
         </Button>
@@ -106,19 +149,19 @@ const NotificationCenter = () => {
         
         <DropdownMenuSeparator />
         
-        {notifications.length === 0 ? (
+        {allNotifications.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No hay notificaciones</p>
           </div>
         ) : (
           <ScrollArea className="max-h-96">
-            {notifications.map((notification) => (
+            {allNotifications.map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
                 className={`p-3 cursor-pointer transition-colors ${
                   !notification.read ? 'bg-muted/50' : ''
-                }`}
+                } ${'isUpdate' in notification && notification.isUpdate ? 'border-l-2 border-primary bg-primary/5' : ''}`}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex items-start gap-3 w-full">
@@ -134,7 +177,9 @@ const NotificationCenter = () => {
                         {notification.title}
                       </h4>
                       {!notification.read && (
-                        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          'isUpdate' in notification && notification.isUpdate ? 'bg-primary' : 'bg-blue-500'
+                        }`} />
                       )}
                     </div>
                     
@@ -148,7 +193,28 @@ const NotificationCenter = () => {
                         {formatTime(notification.created_at)}
                       </span>
                       
-                      {!notification.read && (
+                      {'isUpdate' in notification && notification.isUpdate ? (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={handleUpdateClick}
+                            disabled={isUpdating}
+                            className="text-xs h-6 px-2"
+                          >
+                            <RefreshCw className={`h-3 w-3 mr-1 ${isUpdating ? 'animate-spin' : ''}`} />
+                            {isUpdating ? 'Actualizando...' : 'Actualizar'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleShowBanner}
+                            className="text-xs h-6 px-2"
+                          >
+                            Ver banner
+                          </Button>
+                        </div>
+                      ) : !notification.read && (
                         <Button
                           variant="ghost"
                           size="sm"
