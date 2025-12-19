@@ -42,7 +42,35 @@ if ('serviceWorker' in navigator) {
         // Check for updates periodically
         setInterval(() => {
           registration.update();
+          console.log('[Main] Checking for SW updates...');
         }, 60 * 60 * 1000); // Check every hour
+
+        // Also check immediately on page load after a delay
+        setTimeout(() => {
+          registration.update();
+          console.log('[Main] Initial SW update check');
+        }, 10000); // 10 seconds after load
+
+        // Listen for waiting worker on initial load
+        if (registration.waiting) {
+          console.log('[Main] Found waiting worker on load');
+          window.dispatchEvent(new CustomEvent('sw-update-available'));
+        }
+
+        // Listen for update found
+        registration.addEventListener('updatefound', () => {
+          console.log('[Main] SW update found');
+          const newWorker = registration.installing;
+          
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[Main] New SW installed and waiting');
+                window.dispatchEvent(new CustomEvent('sw-update-available'));
+              }
+            });
+          }
+        });
       })
       .catch((error) => {
         console.error('[Main] Service Worker registration failed:', error);
