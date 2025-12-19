@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 import { toast } from 'sonner';
-import { Bell, MessageCircle, Calendar, Star, AlertCircle, MapPin, CreditCard, Zap } from 'lucide-react';
+import { Bell, MessageCircle, Calendar, Star, AlertCircle, MapPin, CreditCard, Zap, Heart, Trophy, Award } from 'lucide-react';
 import { 
   playNotificationSound, 
   playNotificationWithVibration, 
@@ -40,6 +40,21 @@ const getNotificationConfig = (notification: RealtimeNotification): {
     return { sound: 'new_professional', vibration: 'success' };
   }
 
+  // Check for favorites ❤️
+  if (title.includes('favoritos') || title.includes('❤️')) {
+    return { sound: 'favorite', vibration: 'success' };
+  }
+
+  // Check for achievements/profile complete 🎯
+  if (title.includes('perfil completo') || title.includes('🎯') || title.includes('logro')) {
+    return { sound: 'achievement', vibration: 'success' };
+  }
+
+  // Check for badges 🏆
+  if (title.includes('badge') || title.includes('🏆') || title.includes('desbloqueado')) {
+    return { sound: 'badge_unlocked', vibration: 'success' };
+  }
+
   switch (notification.type) {
     case 'message':
       return { sound: 'message', vibration: 'short' };
@@ -73,7 +88,20 @@ export const RealtimeNotifications: React.FC = () => {
   const { planLimits } = usePlanRestrictions();
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: string, title?: string) => {
+    const titleLower = (title || '').toLowerCase();
+    
+    // Check for special keywords in title first
+    if (titleLower.includes('favoritos') || titleLower.includes('❤️')) {
+      return <Heart className="h-4 w-4 text-red-500" />;
+    }
+    if (titleLower.includes('badge') || titleLower.includes('🏆')) {
+      return <Award className="h-4 w-4 text-purple-500" />;
+    }
+    if (titleLower.includes('perfil completo') || titleLower.includes('🎯')) {
+      return <Trophy className="h-4 w-4 text-amber-500" />;
+    }
+    
     switch (type) {
       case 'message':
         return <MessageCircle className="h-4 w-4" />;
@@ -126,7 +154,7 @@ export const RealtimeNotifications: React.FC = () => {
 
     toast(notification.title, {
       description: notification.message,
-      icon: getNotificationIcon(notification.type),
+      icon: getNotificationIcon(notification.type, notification.title),
       action: notification.action_url ? {
         label: "Ver",
         onClick: () => handleNotificationClick(notification)

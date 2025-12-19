@@ -16,7 +16,10 @@ import {
   CreditCard,
   Zap,
   Play,
-  Users
+  Users,
+  Heart,
+  Trophy,
+  Award
 } from 'lucide-react';
 import { 
   playNotificationSound, 
@@ -89,6 +92,27 @@ const soundSettings: SoundSetting[] = [
     label: 'Nuevo Profesional 🎉',
     description: 'Cuando se suma un nuevo profesional',
     icon: <Users className="h-4 w-4 text-primary" />,
+    vibration: 'success'
+  },
+  {
+    id: 'favorite',
+    label: 'Favoritos ❤️',
+    description: 'Cuando te agregan a favoritos',
+    icon: <Heart className="h-4 w-4 text-red-500" />,
+    vibration: 'success'
+  },
+  {
+    id: 'achievement',
+    label: 'Logros 🎯',
+    description: 'Perfil completo y metas alcanzadas',
+    icon: <Trophy className="h-4 w-4 text-amber-500" />,
+    vibration: 'success'
+  },
+  {
+    id: 'badge_unlocked',
+    label: 'Badges 🏆',
+    description: 'Cuando desbloqueas un badge',
+    icon: <Award className="h-4 w-4 text-purple-500" />,
     vibration: 'success'
   }
 ];

@@ -473,3 +473,63 @@ export const notifyNewProfessionalToAllUsers = async (
     return { data: null, error, notifiedCount: 0 };
   }
 };
+
+/**
+ * Notify professional when someone adds them to favorites ❤️
+ */
+export const notifyAddedToFavorites = async (
+  professionalId: string,
+  clientName: string
+) => {
+  try {
+    // Get professional's user_id
+    const { data: professional } = await supabase
+      .from('professionals')
+      .select('user_id')
+      .eq('id', professionalId)
+      .single();
+
+    if (!professional) return { data: null, error: 'Professional not found' };
+
+    return await createNotification({
+      userId: professional.user_id,
+      title: '❤️ ¡Te agregaron a favoritos!',
+      message: `${clientName.toUpperCase()} te guardó en sus favoritos. ¡Tu perfil está destacando!`,
+      type: 'success',
+      actionUrl: '/dashboard?tab=analytics'
+    });
+  } catch (error) {
+    console.error('Error notifying added to favorites:', error);
+    return { data: null, error };
+  }
+};
+
+/**
+ * Notify user when profile reaches 100% completion 🎯
+ */
+export const notifyProfileComplete = async (userId: string, userName?: string) => {
+  return await createNotification({
+    userId,
+    title: '🎯 ¡Perfil completo al 100%!',
+    message: `${userName ? `¡Felicitaciones ${userName.toUpperCase()}! ` : ''}Tu perfil está completo y optimizado para recibir más clientes.`,
+    type: 'success',
+    actionUrl: '/dashboard'
+  });
+};
+
+/**
+ * Notify user when a badge is unlocked 🏆
+ */
+export const notifyBadgeUnlocked = async (
+  userId: string,
+  badgeName: string,
+  badgeDescription: string
+) => {
+  return await createNotification({
+    userId,
+    title: `🏆 ¡Badge desbloqueado: ${badgeName}!`,
+    message: badgeDescription,
+    type: 'success',
+    actionUrl: '/dashboard?tab=badges'
+  });
+};

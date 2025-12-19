@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { notifyAddedToFavorites } from '@/utils/notificationHelpers';
 
 const fetchFavorites = async (userId: string): Promise<string[]> => {
   const { data, error } = await supabase
@@ -47,7 +48,21 @@ export const useFavorites = () => {
         toast.error('Error al agregar a favoritos');
       }
     },
-    onSuccess: () => toast.success('Agregado a favoritos'),
+    onSuccess: async (professionalId) => {
+      toast.success('Agregado a favoritos');
+      
+      // Get current user's name to notify the professional
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user!.id)
+        .single();
+      
+      const clientName = profile?.full_name || 'Un usuario';
+      
+      // Notify the professional that someone added them to favorites
+      notifyAddedToFavorites(professionalId, clientName);
+    },
   });
 
   const removeMutation = useMutation({
