@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import NotificationSystem from "@/components/NotificationSystem";
-import RealtimeNotifications from "@/components/RealtimeNotifications";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import NotificationPopupWrapper from "@/components/NotificationPopupWrapper";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
 import { MultipleFloatingChats } from "@/components/MultipleFloatingChats";
@@ -42,16 +42,16 @@ const PromoDescuento = lazy(() => import("./pages/campaigns/PromoDescuento"));
 const SenaOnline = lazy(() => import("./pages/campaigns/SenaOnline"));
 
 const App = () => (
-  <TooltipProvider>
-    <InAppBrowserBanner />
-    <NotificationActivationBanner />
-    <Toaster />
-    <Sonner />
-    <NotificationSystem />
-    <RealtimeNotifications />
-    <PWAInstallPrompt />
-    <IOSInstallInstructions />
-    <FloatingWhatsAppWidget />
+  <NotificationProvider>
+    <TooltipProvider>
+      <InAppBrowserBanner />
+      <NotificationActivationBanner />
+      <Toaster />
+      <Sonner />
+      <NotificationPopupWrapper />
+      <PWAInstallPrompt />
+      <IOSInstallInstructions />
+      <FloatingWhatsAppWidget />
     
     <BrowserRouter>
       <MultipleFloatingChats />
@@ -97,7 +97,8 @@ const App = () => (
         </Routes>
       </Suspense>
     </BrowserRouter>
-  </TooltipProvider>
+    </TooltipProvider>
+  </NotificationProvider>
 );
 
 export default App;
