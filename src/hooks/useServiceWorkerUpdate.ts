@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 
+const DISMISSED_KEY = 'sw-update-dismissed';
+
 interface ServiceWorkerUpdateState {
   updateAvailable: boolean;
   isUpdating: boolean;
   registration: ServiceWorkerRegistration | null;
+  bannerDismissed: boolean;
 }
 
 export const useServiceWorkerUpdate = () => {
@@ -11,6 +14,7 @@ export const useServiceWorkerUpdate = () => {
     updateAvailable: false,
     isUpdating: false,
     registration: null,
+    bannerDismissed: localStorage.getItem(DISMISSED_KEY) === 'true',
   });
 
   const updateApp = useCallback(() => {
@@ -22,9 +26,22 @@ export const useServiceWorkerUpdate = () => {
     setState(prev => ({ ...prev, isUpdating: true }));
     console.log('[SW Update] Sending SKIP_WAITING to service worker');
     
+    // Clear dismissed state when updating
+    localStorage.removeItem(DISMISSED_KEY);
+    
     // Tell the waiting service worker to take over
     state.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
   }, [state.registration]);
+
+  const dismissBanner = useCallback(() => {
+    localStorage.setItem(DISMISSED_KEY, 'true');
+    setState(prev => ({ ...prev, bannerDismissed: true }));
+  }, []);
+
+  const showBanner = useCallback(() => {
+    localStorage.removeItem(DISMISSED_KEY);
+    setState(prev => ({ ...prev, bannerDismissed: false }));
+  }, []);
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) {
@@ -103,6 +120,9 @@ export const useServiceWorkerUpdate = () => {
   return {
     updateAvailable: state.updateAvailable,
     isUpdating: state.isUpdating,
+    bannerDismissed: state.bannerDismissed,
     updateApp,
+    dismissBanner,
+    showBanner,
   };
 };

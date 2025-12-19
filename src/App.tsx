@@ -76,13 +76,13 @@ const useGlobalAudioInit = () => {
 
 const App = () => {
   useGlobalAudioInit();
-  const { updateAvailable, isUpdating, updateApp } = useServiceWorkerUpdate();
+  const { updateAvailable, isUpdating, bannerDismissed, updateApp, dismissBanner } = useServiceWorkerUpdate();
   
   return (
   <NotificationProvider>
     <TooltipProvider>
-      {updateAvailable && (
-        <UpdateNotificationBanner onUpdate={updateApp} isUpdating={isUpdating} />
+      {updateAvailable && !bannerDismissed && (
+        <UpdateNotificationBanner onUpdate={updateApp} onDismiss={dismissBanner} isUpdating={isUpdating} />
       )}
       <InAppBrowserBanner />
       <NotificationActivationBanner />

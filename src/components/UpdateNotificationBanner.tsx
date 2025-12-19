@@ -1,18 +1,20 @@
 import { RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface UpdateNotificationBannerProps {
   onUpdate: () => void;
+  onDismiss: () => void;
   isUpdating: boolean;
 }
 
-export const UpdateNotificationBanner = ({ onUpdate, isUpdating }: UpdateNotificationBannerProps) => {
-  const [dismissed, setDismissed] = useState(false);
-
-  if (dismissed) {
-    return null;
-  }
+export const UpdateNotificationBanner = ({ onUpdate, onDismiss, isUpdating }: UpdateNotificationBannerProps) => {
+  const handleDismiss = () => {
+    onDismiss();
+    toast.info('Puedes actualizar desde el panel de notificaciones 🔔', {
+      duration: 4000,
+    });
+  };
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-primary text-primary-foreground py-2 px-4 shadow-lg animate-in slide-in-from-top duration-300">
@@ -38,7 +40,7 @@ export const UpdateNotificationBanner = ({ onUpdate, isUpdating }: UpdateNotific
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => setDismissed(true)}
+            onClick={handleDismiss}
             className="h-7 w-7 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
             <X className="h-4 w-4" />
