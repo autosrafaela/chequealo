@@ -20,21 +20,37 @@ export const useServiceWorkerUpdate = () => {
   });
 
   const updateApp = useCallback(() => {
-    if (!state.registration?.waiting) {
-      console.log('[SW Update] No waiting worker found');
+    // If we have a waiting worker, tell it to take over
+    if (state.registration?.waiting) {
+      setState(prev => ({ ...prev, isUpdating: true }));
+      console.log('[SW Update] Sending SKIP_WAITING to service worker');
+      
+      // Clear dismissed and update available state when updating
+      localStorage.removeItem(DISMISSED_KEY);
+      sessionStorage.removeItem(UPDATE_AVAILABLE_KEY);
+      
+      // Tell the waiting service worker to take over
+      state.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       return;
     }
-
-    setState(prev => ({ ...prev, isUpdating: true }));
-    console.log('[SW Update] Sending SKIP_WAITING to service worker');
     
-    // Clear dismissed and update available state when updating
-    localStorage.removeItem(DISMISSED_KEY);
-    sessionStorage.removeItem(UPDATE_AVAILABLE_KEY);
+    // If updateAvailable is true but no waiting worker (e.g., from sessionStorage persistence),
+    // force reload to get the latest version
+    if (state.updateAvailable) {
+      console.log('[SW Update] No waiting worker but update was flagged, forcing reload');
+      setState(prev => ({ ...prev, isUpdating: true }));
+      
+      // Clear the flags
+      localStorage.removeItem(DISMISSED_KEY);
+      sessionStorage.removeItem(UPDATE_AVAILABLE_KEY);
+      
+      // Force reload to get latest version
+      window.location.reload();
+      return;
+    }
     
-    // Tell the waiting service worker to take over
-    state.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-  }, [state.registration]);
+    console.log('[SW Update] No update available');
+  }, [state.registration, state.updateAvailable]);
 
   const dismissBanner = useCallback(() => {
     localStorage.setItem(DISMISSED_KEY, 'true');
