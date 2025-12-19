@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +12,7 @@ import { RedirectWithTracking } from "@/components/RedirectWithTracking";
 import { InAppBrowserBanner } from "@/components/InAppBrowserBanner";
 import { NotificationActivationBanner } from "@/components/NotificationActivationBanner";
 import { PageLoader } from "@/components/ui/page-loader";
+import { initializeAudioContext } from "@/utils/notificationSound";
 
 // Critical path - load immediately (homepage)
 import Index from "./pages/Index";
@@ -41,7 +42,40 @@ const Urgencias24 = lazy(() => import("./pages/campaigns/Urgencias24"));
 const PromoDescuento = lazy(() => import("./pages/campaigns/PromoDescuento"));
 const SenaOnline = lazy(() => import("./pages/campaigns/SenaOnline"));
 
-const App = () => (
+// Global audio initialization on first user interaction
+const useGlobalAudioInit = () => {
+  useEffect(() => {
+    let initialized = false;
+    
+    const handleFirstInteraction = async () => {
+      if (initialized) return;
+      initialized = true;
+      
+      console.log('[App] First user interaction - initializing audio');
+      await initializeAudioContext();
+      
+      // Remove listeners after first interaction
+      document.removeEventListener('click', handleFirstInteraction, true);
+      document.removeEventListener('touchstart', handleFirstInteraction, true);
+      document.removeEventListener('keydown', handleFirstInteraction, true);
+    };
+    
+    document.addEventListener('click', handleFirstInteraction, true);
+    document.addEventListener('touchstart', handleFirstInteraction, true);
+    document.addEventListener('keydown', handleFirstInteraction, true);
+    
+    return () => {
+      document.removeEventListener('click', handleFirstInteraction, true);
+      document.removeEventListener('touchstart', handleFirstInteraction, true);
+      document.removeEventListener('keydown', handleFirstInteraction, true);
+    };
+  }, []);
+};
+
+const App = () => {
+  useGlobalAudioInit();
+  
+  return (
   <NotificationProvider>
     <TooltipProvider>
       <InAppBrowserBanner />
@@ -99,6 +133,7 @@ const App = () => (
     </BrowserRouter>
     </TooltipProvider>
   </NotificationProvider>
-);
+  );
+};
 
 export default App;

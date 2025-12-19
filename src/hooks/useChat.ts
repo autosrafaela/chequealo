@@ -3,14 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlanRestrictions } from './usePlanRestrictions';
 import { toast } from 'sonner';
-import { playNotificationWithVibration } from '@/utils/notificationSound';
+import { playNotificationWithVibration, isAudioReady } from '@/utils/notificationSound';
 
 interface Message {
   id: string;
   conversation_id: string;
   sender_id: string;
-  sender_type: string; // Allow any string from database  
-  message_type: string; // Allow any string from database
+  sender_type: string;
+  message_type: string;
   content: string;
   file_url?: string;
   file_name?: string;
@@ -30,7 +30,7 @@ interface Conversation {
   last_message_preview?: string;
   unread_count_user: number;
   unread_count_professional: number;
-  status: string; // Allow any string from database
+  status: string;
   created_at: string;
   updated_at: string;
   professionals?: {
@@ -48,10 +48,16 @@ export const useChat = () => {
   const [sending, setSending] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
+  // Track processed messages to avoid duplicate sounds
+  const processedMessagesRef = useRef<Set<string>>(new Set());
+  // Track last sound time to debounce
+  const lastSoundTimeRef = useRef<number>(0);
+
   useEffect(() => {
     if (user) {
       fetchConversations();
-      setupRealtimeSubscriptions();
+      const cleanup = setupRealtimeSubscriptions();
+      return cleanup;
     }
   }, [user]);
 
@@ -59,7 +65,6 @@ export const useChat = () => {
     try {
       setLoading(true);
 
-      // Check if user is professional
       const { data: professional } = await supabase
         .from('professionals')
         .select('id')
@@ -76,10 +81,8 @@ export const useChat = () => {
         .order('last_message_at', { ascending: false });
 
       if (professional) {
-        // Professional sees conversations with their clients
         query = query.eq('professional_id', professional.id);
       } else {
-        // User sees conversations with professionals
         query = query.eq('user_id', user?.id);
       }
 
@@ -110,7 +113,6 @@ export const useChat = () => {
         [conversationId]: data || []
       }));
 
-      // Mark messages as read
       await markMessagesAsRead(conversationId);
       
       return data;
@@ -163,15 +165,12 @@ export const useChat = () => {
         return null;
       }
 
-      // Restricción de envío de archivos removida - ahora disponible para todos
-
       setSending(true);
 
       let fileUrl: string | undefined;
       let fileName: string | undefined;
       let fileSize: number | undefined;
 
-      // Handle file upload if present
       if (file) {
         const fileExt = file.name.split('.').pop();
         const filePath = `chat-files/${conversationId}/${Date.now()}.${fileExt}`;
@@ -191,7 +190,6 @@ export const useChat = () => {
         fileSize = file.size;
       }
 
-      // Determine sender type
       const { data: professional } = await supabase
         .from('professionals')
         .select('id')
@@ -217,7 +215,9 @@ export const useChat = () => {
 
       if (error) throw error;
 
-      // Update local messages state
+      // Add to processed messages to prevent sound when we receive our own message
+      processedMessagesRef.current.add(data.id);
+
       setMessages(prev => ({
         ...prev,
         [conversationId]: [...(prev[conversationId] || []), data]
@@ -240,7 +240,6 @@ export const useChat = () => {
 
           const senderName = senderProfile?.full_name || 'Un usuario';
           
-          // Determine recipient
           const recipientUserId = senderType === 'professional' 
             ? conversation.user_id 
             : conversation.professionals?.user_id;
@@ -260,7 +259,6 @@ export const useChat = () => {
         }
       } catch (notifError) {
         console.error('Error sending notification:', notifError);
-        // Don't block the message flow if notification fails
       }
 
       return data;
@@ -275,17 +273,14 @@ export const useChat = () => {
 
   const markMessagesAsRead = async (conversationId: string) => {
     try {
-      // Check if user is professional
       const { data: professional } = await supabase
         .from('professionals')
         .select('id')
         .eq('user_id', user?.id)
         .single();
 
-      const senderType = professional ? 'professional' : 'user';
       const oppositeSenderType = professional ? 'user' : 'professional';
 
-      // Mark messages as read
       const { error } = await supabase
         .from('messages')
         .update({ 
@@ -298,7 +293,6 @@ export const useChat = () => {
 
       if (error) throw error;
 
-      // Update conversation unread count
       const updateField = professional ? 'unread_count_professional' : 'unread_count_user';
       
       await supabase
@@ -311,18 +305,14 @@ export const useChat = () => {
     }
   };
 
-  // Track processed messages to avoid duplicate sounds
-  const processedMessagesRef = useRef<Set<string>>(new Set());
-
   const setupRealtimeSubscriptions = useCallback(() => {
-    // Subscribe to new messages
     const messagesSubscription = supabase
       .channel('messages')
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages'
-      }, (payload) => {
+      }, async (payload) => {
         const newMessage = payload.new as Message;
         
         setMessages(prev => ({
@@ -333,19 +323,30 @@ export const useChat = () => {
           ]
         }));
 
-        // Play sound and show notification if message is not from current user
-        // and hasn't been processed yet (avoid duplicates)
-        if (newMessage.sender_id !== user?.id && !processedMessagesRef.current.has(newMessage.id)) {
+        // Play sound only if:
+        // 1. Message is not from current user
+        // 2. Message hasn't been processed yet
+        // 3. Debounce 300ms between sounds
+        const now = Date.now();
+        const shouldPlaySound = 
+          newMessage.sender_id !== user?.id && 
+          !processedMessagesRef.current.has(newMessage.id) &&
+          now - lastSoundTimeRef.current > 300;
+
+        if (shouldPlaySound) {
           processedMessagesRef.current.add(newMessage.id);
+          lastSoundTimeRef.current = now;
           
-          // Play notification sound with vibration for new messages
-          playNotificationWithVibration('message', 'short');
+          console.log('[useChat] Playing sound for new message:', newMessage.id);
+          
+          // Play notification sound with vibration
+          await playNotificationWithVibration('message', 'short');
           
           toast.success('Nuevo mensaje recibido', {
             description: newMessage.content?.substring(0, 50) || 'Nuevo mensaje'
           });
           
-          // Clean up old processed messages (keep last 100)
+          // Clean up old processed messages
           if (processedMessagesRef.current.size > 100) {
             const entries = Array.from(processedMessagesRef.current);
             processedMessagesRef.current = new Set(entries.slice(-50));
@@ -354,7 +355,6 @@ export const useChat = () => {
       })
       .subscribe();
 
-    // Subscribe to conversation updates
     const conversationsSubscription = supabase
       .channel('conversations')
       .on('postgres_changes', {
@@ -412,14 +412,12 @@ export const useChat = () => {
 
   const openConversationByContactRequest = async (contactRequestId: string) => {
     try {
-      // Find existing conversation with this contact request
       const existingConv = conversations.find(c => c.contact_request_id === contactRequestId);
       
       if (existingConv) {
         return existingConv;
       }
 
-      // Get the contact request to find the professional
       const { data: contactRequest, error: crError } = await supabase
         .from('contact_requests')
         .select('professional_id, user_id')
@@ -428,7 +426,6 @@ export const useChat = () => {
 
       if (crError) throw crError;
 
-      // Create new conversation
       const newConv = await createConversation(contactRequest.professional_id, contactRequestId);
       return newConv;
     } catch (error) {
