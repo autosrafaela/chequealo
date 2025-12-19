@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -15,9 +14,7 @@ import {
   CheckCircle, 
   AlertTriangle, 
   Info, 
-  Check,
   CheckCheck,
-  Clock,
   RefreshCw,
   BellRing,
   BellOff,
@@ -27,6 +24,7 @@ import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { toast } from 'sonner';
+import SwipeableNotificationItem from './SwipeableNotificationItem';
 
 const NotificationCenter = () => {
   const navigate = useNavigate();
@@ -45,6 +43,7 @@ const NotificationCenter = () => {
     isSubscribedToPush, 
     pushPermission,
     subscribeToPush,
+    deleteNotification,
     initializeAudio
   } = useNotifications();
 
@@ -57,7 +56,6 @@ const NotificationCenter = () => {
     try {
       await initializeAudio();
       await subscribeToPush();
-      toast.success('Notificaciones push activadas correctamente');
     } catch (error) {
       console.error('Error activating push:', error);
       toast.error('Error al activar las notificaciones');
@@ -99,17 +97,6 @@ const NotificationCenter = () => {
     }
   };
 
-  const formatTime = (dateString: string) => {
-    const now = new Date();
-    const notificationTime = new Date(dateString);
-    const diffInMinutes = Math.floor((now.getTime() - notificationTime.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'Ahora';
-    if (diffInMinutes < 60) return `${diffInMinutes}m`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`;
-    return `${Math.floor(diffInMinutes / 1440)}d`;
-  };
-
   const handleNotificationClick = (notification: any) => {
     // Handle update notification
     if (notification.isUpdate) {
@@ -129,6 +116,10 @@ const NotificationCenter = () => {
       }
     }
     setIsOpen(false);
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    await deleteNotification(id);
   };
 
   const handleUpdateClick = (e: React.MouseEvent) => {
@@ -159,7 +150,7 @@ const NotificationCenter = () => {
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80 p-0">
         <div className="p-3 border-b">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Notificaciones</h3>
@@ -175,9 +166,10 @@ const NotificationCenter = () => {
               </Button>
             )}
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Desliza hacia la derecha para eliminar
+          </p>
         </div>
-        
-        <DropdownMenuSeparator />
         
         {allNotifications.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
@@ -187,80 +179,17 @@ const NotificationCenter = () => {
         ) : (
           <ScrollArea className="max-h-96">
             {allNotifications.map((notification) => (
-              <DropdownMenuItem
+              <SwipeableNotificationItem
                 key={notification.id}
-                className={`p-3 cursor-pointer transition-colors ${
-                  !notification.read ? 'bg-muted/50' : ''
-                } ${'isUpdate' in notification && notification.isUpdate ? 'border-l-2 border-primary bg-primary/5' : ''}`}
+                notification={notification}
+                icon={getIcon(notification.type)}
+                onDelete={handleDeleteNotification}
+                onMarkAsRead={markAsRead}
                 onClick={() => handleNotificationClick(notification)}
-              >
-                <div className="flex items-start gap-3 w-full">
-                  <div className="flex-shrink-0 mt-0.5">
-                    {getIcon(notification.type)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className={`text-sm font-medium truncate ${
-                        !notification.read ? 'text-foreground' : 'text-muted-foreground'
-                      }`}>
-                        {notification.title}
-                      </h4>
-                      {!notification.read && (
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                          'isUpdate' in notification && notification.isUpdate ? 'bg-primary' : 'bg-blue-500'
-                        }`} />
-                      )}
-                    </div>
-                    
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                      {notification.message}
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {formatTime(notification.created_at)}
-                      </span>
-                      
-                      {'isUpdate' in notification && notification.isUpdate ? (
-                        <div className="flex gap-1">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={handleUpdateClick}
-                            disabled={isUpdating}
-                            className="text-xs h-6 px-2"
-                          >
-                            <RefreshCw className={`h-3 w-3 mr-1 ${isUpdating ? 'animate-spin' : ''}`} />
-                            {isUpdating ? 'Actualizando...' : 'Actualizar'}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleShowBanner}
-                            className="text-xs h-6 px-2"
-                          >
-                            Ver banner
-                          </Button>
-                        </div>
-                      ) : !notification.read && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            markAsRead(notification.id);
-                          }}
-                          className="text-xs h-6 px-2"
-                        >
-                          <Check className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </DropdownMenuItem>
+                isUpdating={isUpdating}
+                onUpdateClick={handleUpdateClick}
+                onShowBanner={handleShowBanner}
+              />
             ))}
           </ScrollArea>
         )}
