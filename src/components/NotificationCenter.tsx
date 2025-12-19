@@ -18,10 +18,15 @@ import {
   Check,
   CheckCheck,
   Clock,
-  RefreshCw
+  RefreshCw,
+  BellRing,
+  BellOff,
+  Settings
 } from 'lucide-react';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { toast } from 'sonner';
 
 const NotificationCenter = () => {
   const navigate = useNavigate();
@@ -33,8 +38,33 @@ const NotificationCenter = () => {
   } = useRealtimeNotifications();
 
   const { updateAvailable, isUpdating, updateApp, showBanner } = useServiceWorkerUpdate();
+  
+  // Push notification context
+  const { 
+    isPushSupported, 
+    isSubscribedToPush, 
+    pushPermission,
+    subscribeToPush,
+    initializeAudio
+  } = useNotifications();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isActivatingPush, setIsActivatingPush] = useState(false);
+
+  const handleActivatePush = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsActivatingPush(true);
+    try {
+      await initializeAudio();
+      await subscribeToPush();
+      toast.success('Notificaciones push activadas correctamente');
+    } catch (error) {
+      console.error('Error activating push:', error);
+      toast.error('Error al activar las notificaciones');
+    } finally {
+      setIsActivatingPush(false);
+    }
+  };
 
   // Create update notification if available
   const updateNotification = updateAvailable ? {
@@ -234,6 +264,43 @@ const NotificationCenter = () => {
             ))}
           </ScrollArea>
         )}
+        
+        {/* Push Notification Settings Section */}
+        <DropdownMenuSeparator />
+        <div className="p-3 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Settings className="h-4 w-4" />
+            <span>Configuración de notificaciones</span>
+          </div>
+          
+          {!isPushSupported ? (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+              <BellOff className="h-4 w-4" />
+              <span>Tu navegador no soporta notificaciones push</span>
+            </div>
+          ) : pushPermission === 'denied' ? (
+            <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 p-2 rounded">
+              <BellOff className="h-4 w-4" />
+              <span>Notificaciones bloqueadas. Actívalas en la configuración del navegador.</span>
+            </div>
+          ) : isSubscribedToPush ? (
+            <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-900/20 p-2 rounded">
+              <BellRing className="h-4 w-4" />
+              <span>Notificaciones push activadas</span>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleActivatePush}
+              disabled={isActivatingPush}
+              className="w-full text-xs"
+            >
+              <BellRing className={`h-4 w-4 mr-2 ${isActivatingPush ? 'animate-pulse' : ''}`} />
+              {isActivatingPush ? 'Activando...' : 'Activar notificaciones push'}
+            </Button>
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const DISMISSED_KEY = 'sw-update-dismissed';
+const UPDATE_AVAILABLE_KEY = 'sw-update-available';
 
 interface ServiceWorkerUpdateState {
   updateAvailable: boolean;
@@ -11,7 +12,8 @@ interface ServiceWorkerUpdateState {
 
 export const useServiceWorkerUpdate = () => {
   const [state, setState] = useState<ServiceWorkerUpdateState>({
-    updateAvailable: false,
+    // Check sessionStorage for persisted update state
+    updateAvailable: sessionStorage.getItem(UPDATE_AVAILABLE_KEY) === 'true',
     isUpdating: false,
     registration: null,
     bannerDismissed: localStorage.getItem(DISMISSED_KEY) === 'true',
@@ -26,8 +28,9 @@ export const useServiceWorkerUpdate = () => {
     setState(prev => ({ ...prev, isUpdating: true }));
     console.log('[SW Update] Sending SKIP_WAITING to service worker');
     
-    // Clear dismissed state when updating
+    // Clear dismissed and update available state when updating
     localStorage.removeItem(DISMISSED_KEY);
+    sessionStorage.removeItem(UPDATE_AVAILABLE_KEY);
     
     // Tell the waiting service worker to take over
     state.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -64,6 +67,7 @@ export const useServiceWorkerUpdate = () => {
     const checkForWaitingWorker = (reg: ServiceWorkerRegistration) => {
       if (reg.waiting) {
         console.log('[SW Update] Found waiting worker');
+        sessionStorage.setItem(UPDATE_AVAILABLE_KEY, 'true');
         setState(prev => ({ ...prev, updateAvailable: true, registration: reg }));
       }
     };
