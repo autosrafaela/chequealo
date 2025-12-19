@@ -81,7 +81,7 @@ export const ReadyToRateTransactions = ({
           professional_id,
           service_type,
           both_confirmed_at,
-          professionals!inner(full_name, profession)
+          professionals(full_name, profession)
         `)
         .eq('status', 'completed')
         .not('both_confirmed_at', 'is', null);
@@ -94,7 +94,10 @@ export const ReadyToRateTransactions = ({
 
       const { data, error } = await query.order('both_confirmed_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Query error:', error);
+        return;
+      }
 
       // Check which transactions already have reviews
       const transactionsWithReviewStatus = await Promise.all(
@@ -131,7 +134,7 @@ export const ReadyToRateTransactions = ({
       setTransactions(unratedTransactions);
     } catch (error) {
       console.error('Error loading ready transactions:', error);
-      toast.error('Error al cargar transacciones');
+      // No mostrar toast para errores silenciosos
     } finally {
       setLoading(false);
     }
