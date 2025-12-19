@@ -14,7 +14,10 @@ import {
   CreditCard,
   MapPin,
   Calendar,
-  Zap
+  Zap,
+  Heart,
+  Trophy,
+  Award
 } from 'lucide-react';
 import { 
   playNotificationWithVibration, 
@@ -54,6 +57,24 @@ const getNotificationConfig = (notification: NotificationData): {
   if (title.includes('nuevo profesional') || title.includes('🎉')) {
     console.log('[NotificationPopup] Playing NEW PROFESSIONAL fanfare');
     return { sound: 'new_professional', vibration: 'success' };
+  }
+
+  // Check for favorites ❤️
+  if (title.includes('favoritos') || title.includes('❤️')) {
+    console.log('[NotificationPopup] Playing FAVORITE sound');
+    return { sound: 'favorite', vibration: 'success' };
+  }
+
+  // Check for achievements/profile complete 🎯
+  if (title.includes('perfil completo') || title.includes('🎯') || title.includes('logro')) {
+    console.log('[NotificationPopup] Playing ACHIEVEMENT sound');
+    return { sound: 'achievement', vibration: 'success' };
+  }
+
+  // Check for badges 🏆
+  if (title.includes('badge') || title.includes('🏆') || title.includes('desbloqueado')) {
+    console.log('[NotificationPopup] Playing BADGE UNLOCKED sound');
+    return { sound: 'badge_unlocked', vibration: 'success' };
   }
 
   switch (notification.type) {
@@ -149,6 +170,15 @@ const NotificationPopup = ({ notification, onClose, onMarkAsRead }: Notification
     if (title.includes('zona') || title.includes('📍')) {
       return <MapPin className="h-5 w-5 text-primary" />;
     }
+    if (title.includes('favoritos') || title.includes('❤️')) {
+      return <Heart className="h-5 w-5 text-red-500" />;
+    }
+    if (title.includes('badge') || title.includes('🏆') || title.includes('desbloqueado')) {
+      return <Award className="h-5 w-5 text-purple-500" />;
+    }
+    if (title.includes('perfil completo') || title.includes('🎯')) {
+      return <Trophy className="h-5 w-5 text-amber-500" />;
+    }
     
     switch (notification.type) {
       case 'success':
@@ -179,6 +209,18 @@ const NotificationPopup = ({ notification, onClose, onMarkAsRead }: Notification
     if (title.includes('express') || title.includes('🚀')) {
       return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white';
     }
+    // Favorites badge
+    if (title.includes('favoritos') || title.includes('❤️')) {
+      return 'bg-gradient-to-r from-red-400 to-pink-500 text-white';
+    }
+    // Badge unlocked
+    if (title.includes('badge') || title.includes('🏆')) {
+      return 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white';
+    }
+    // Achievement/profile complete
+    if (title.includes('perfil completo') || title.includes('🎯')) {
+      return 'bg-gradient-to-r from-amber-400 to-yellow-500 text-white';
+    }
     
     switch (notification.type) {
       case 'success':
@@ -207,6 +249,15 @@ const NotificationPopup = ({ notification, onClose, onMarkAsRead }: Notification
     
     if (title.includes('express') || title.includes('🚀')) {
       return 'EXPRESS';
+    }
+    if (title.includes('favoritos') || title.includes('❤️')) {
+      return 'FAVORITO';
+    }
+    if (title.includes('badge') || title.includes('🏆')) {
+      return 'BADGE';
+    }
+    if (title.includes('perfil completo') || title.includes('🎯')) {
+      return 'LOGRO';
     }
     
     switch (notification.type) {

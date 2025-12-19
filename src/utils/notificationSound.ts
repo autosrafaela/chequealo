@@ -20,7 +20,10 @@ export type NotificationSoundType =
   | 'new_review'
   | 'payment'
   | 'urgent'
-  | 'new_professional';
+  | 'new_professional'
+  | 'favorite'           // When someone adds you to favorites ❤️
+  | 'achievement'        // Profile complete, milestones 🎯
+  | 'badge_unlocked';    // Badge unlocked 🏆
 
 export type VibrationPattern = 'short' | 'medium' | 'long' | 'urgent' | 'success';
 
@@ -132,6 +135,21 @@ export const playNotificationSound = (type: NotificationSoundType = 'default') =
       case 'new_professional':
         // New professional: celebratory fanfare - 5 ascending notes
         playNewProfessionalFanfare(ctx);
+        break;
+
+      case 'favorite':
+        // Added to favorites: warm heartbeat-like pop sound ❤️
+        playFavoriteSound(ctx);
+        break;
+
+      case 'achievement':
+        // Achievement unlocked: triumphant fanfare 🎯
+        playAchievementSound(ctx);
+        break;
+
+      case 'badge_unlocked':
+        // Badge unlocked: celebratory jingle 🏆
+        playBadgeUnlockedSound(ctx);
         break;
         
       default:
@@ -326,6 +344,114 @@ const playNewProfessionalFanfare = (ctx: AudioContext) => {
   const finalStart = ctx.currentTime + (notes.length * duration);
   finalOsc.frequency.setValueAtTime(1047, finalStart); // C6 - octave higher
   finalGain.gain.setValueAtTime(0.2, finalStart);
+  finalGain.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.4);
+  finalOsc.start(finalStart);
+  finalOsc.stop(finalStart + 0.4);
+};
+
+// Added to favorites - warm heartbeat-like double pop ❤️
+const playFavoriteSound = (ctx: AudioContext) => {
+  // First "heartbeat" - low thump
+  const { oscillator: osc1, gainNode: gain1 } = createToneNodes(ctx);
+  osc1.type = 'sine';
+  osc1.frequency.setValueAtTime(200, ctx.currentTime);
+  osc1.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.08);
+  gain1.gain.setValueAtTime(0.25, ctx.currentTime);
+  gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+  osc1.start(ctx.currentTime);
+  osc1.stop(ctx.currentTime + 0.15);
+  
+  // Second "heartbeat" - higher, warmer tone
+  const { oscillator: osc2, gainNode: gain2 } = createToneNodes(ctx);
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(350, ctx.currentTime + 0.12);
+  osc2.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.22);
+  gain2.gain.setValueAtTime(0, ctx.currentTime);
+  gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.12);
+  gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+  osc2.start(ctx.currentTime + 0.12);
+  osc2.stop(ctx.currentTime + 0.35);
+  
+  // Sweet high sparkle at the end
+  const { oscillator: osc3, gainNode: gain3 } = createToneNodes(ctx);
+  osc3.frequency.setValueAtTime(880, ctx.currentTime + 0.25);
+  gain3.gain.setValueAtTime(0, ctx.currentTime);
+  gain3.gain.setValueAtTime(0.15, ctx.currentTime + 0.25);
+  gain3.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
+  osc3.start(ctx.currentTime + 0.25);
+  osc3.stop(ctx.currentTime + 0.45);
+};
+
+// Achievement unlocked - triumphant ascending fanfare 🎯
+const playAchievementSound = (ctx: AudioContext) => {
+  const notes = [392, 494, 587, 784]; // G4, B4, D5, G5 - triumphant G major arpeggio
+  const duration = 0.12;
+  
+  notes.forEach((freq, index) => {
+    const { oscillator, gainNode } = createToneNodes(ctx);
+    const startTime = ctx.currentTime + (index * duration);
+    
+    oscillator.frequency.setValueAtTime(freq, startTime);
+    gainNode.gain.setValueAtTime(0.25, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 2.5);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration * 2.5);
+  });
+  
+  // Final sustained chord (two notes for richness)
+  const finalStart = ctx.currentTime + (notes.length * duration);
+  
+  const { oscillator: finalOsc1, gainNode: finalGain1 } = createToneNodes(ctx);
+  finalOsc1.frequency.setValueAtTime(784, finalStart); // G5
+  finalGain1.gain.setValueAtTime(0.2, finalStart);
+  finalGain1.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.5);
+  finalOsc1.start(finalStart);
+  finalOsc1.stop(finalStart + 0.5);
+  
+  const { oscillator: finalOsc2, gainNode: finalGain2 } = createToneNodes(ctx);
+  finalOsc2.frequency.setValueAtTime(988, finalStart); // B5
+  finalGain2.gain.setValueAtTime(0.15, finalStart);
+  finalGain2.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.5);
+  finalOsc2.start(finalStart);
+  finalOsc2.stop(finalStart + 0.5);
+};
+
+// Badge unlocked - celebratory jingle with sparkle effect 🏆
+const playBadgeUnlockedSound = (ctx: AudioContext) => {
+  // Quick ascending arpeggio
+  const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6 - bright C major
+  const duration = 0.08;
+  
+  notes.forEach((freq, index) => {
+    const { oscillator, gainNode } = createToneNodes(ctx);
+    const startTime = ctx.currentTime + (index * duration);
+    
+    oscillator.frequency.setValueAtTime(freq, startTime);
+    gainNode.gain.setValueAtTime(0.22, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 2);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration * 2);
+  });
+  
+  // Sparkle effect - high frequency shimmer
+  const sparkleStart = ctx.currentTime + (notes.length * duration);
+  for (let i = 0; i < 3; i++) {
+    const { oscillator: sparkle, gainNode: sparkleGain } = createToneNodes(ctx);
+    const sTime = sparkleStart + (i * 0.06);
+    sparkle.frequency.setValueAtTime(1319 + (i * 200), sTime); // E6, F#6, G#6
+    sparkleGain.gain.setValueAtTime(0.12, sTime);
+    sparkleGain.gain.exponentialRampToValueAtTime(0.01, sTime + 0.12);
+    sparkle.start(sTime);
+    sparkle.stop(sTime + 0.12);
+  }
+  
+  // Final triumphant note
+  const { oscillator: finalOsc, gainNode: finalGain } = createToneNodes(ctx);
+  const finalStart = sparkleStart + 0.2;
+  finalOsc.frequency.setValueAtTime(1047, finalStart); // C6
+  finalGain.gain.setValueAtTime(0.25, finalStart);
   finalGain.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.4);
   finalOsc.start(finalStart);
   finalOsc.stop(finalStart + 0.4);
