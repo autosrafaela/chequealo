@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { 
   playNotificationWithVibration, 
   initializeAudioContext,
+  isAudioReady,
   type NotificationSoundType,
   type VibrationPattern 
 } from '@/utils/notificationSound';
@@ -29,6 +30,7 @@ interface NotificationContextValue {
   pushPermission: NotificationPermission;
   isPushSupported: boolean;
   loading: boolean;
+  isAudioInitialized: boolean;
   
   // Actions
   markAsRead: (notificationId: string) => Promise<void>;
@@ -37,6 +39,7 @@ interface NotificationContextValue {
   refreshNotifications: () => Promise<void>;
   subscribeToPush: () => Promise<boolean>;
   unsubscribeFromPush: () => Promise<boolean>;
+  initializeAudio: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
@@ -89,7 +92,6 @@ const getNotificationSound = (notifType: string, title: string): { sound: Notifi
     return { sound: 'contact', vibration: 'medium' };
   }
   
-  // Map by notification type
   switch (notifType) {
     case 'error':
       return { sound: 'urgent', vibration: 'urgent' };
@@ -113,26 +115,44 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
   const [isPushSupported, setIsPushSupported] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAudioInitialized, setIsAudioInitialized] = useState(false);
   
   // Refs to prevent loops
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const isSubscribedRef = useRef(false);
-  const audioInitializedRef = useRef(false);
+  const processedNotificationsRef = useRef<Set<string>>(new Set());
+
+  // Initialize audio function exposed to consumers
+  const initializeAudio = useCallback(async () => {
+    console.log('[NotificationProvider] Manual audio initialization requested');
+    const success = await initializeAudioContext();
+    setIsAudioInitialized(success);
+  }, []);
 
   // Initialize audio on first user interaction
   useEffect(() => {
-    if (audioInitializedRef.current) return;
-    
-    const handleInteraction = () => {
-      console.log('[NotificationProvider] Initializing audio context on user interaction');
-      initializeAudioContext();
-      audioInitializedRef.current = true;
+    const handleInteraction = async () => {
+      if (isAudioReady()) {
+        setIsAudioInitialized(true);
+        return;
+      }
       
-      // Remove listeners after first interaction
-      document.removeEventListener('click', handleInteraction);
-      document.removeEventListener('touchstart', handleInteraction);
-      document.removeEventListener('keydown', handleInteraction);
+      console.log('[NotificationProvider] Initializing audio on user interaction');
+      const success = await initializeAudioContext();
+      setIsAudioInitialized(success);
+      
+      if (success) {
+        document.removeEventListener('click', handleInteraction);
+        document.removeEventListener('touchstart', handleInteraction);
+        document.removeEventListener('keydown', handleInteraction);
+      }
     };
+    
+    // Check if already initialized
+    if (isAudioReady()) {
+      setIsAudioInitialized(true);
+      return;
+    }
     
     document.addEventListener('click', handleInteraction);
     document.addEventListener('touchstart', handleInteraction);
@@ -213,7 +233,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // Set up realtime subscription - only once per user
   useEffect(() => {
     if (!user) {
-      // Clean up when user logs out
       if (channelRef.current) {
         console.log('[NotificationProvider] Cleaning up channel - user logged out');
         supabase.removeChannel(channelRef.current);
@@ -225,7 +244,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return;
     }
 
-    // Prevent duplicate subscriptions
     if (isSubscribedRef.current) {
       console.log('[NotificationProvider] Already subscribed, skipping');
       return;
@@ -233,10 +251,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     console.log('[NotificationProvider] Setting up realtime subscription for user:', user.id);
     
-    // Fetch initial notifications
     fetchNotifications();
 
-    // Create unique channel name to prevent conflicts
     const channelName = `notifications_${user.id}_${Date.now()}`;
     
     const channel = supabase
@@ -249,11 +265,26 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           table: 'notifications',
           filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
+        async (payload) => {
+          const notifId = payload.new.id;
+          
+          // Prevent duplicate processing
+          if (processedNotificationsRef.current.has(notifId)) {
+            console.log('[NotificationProvider] Notification already processed:', notifId);
+            return;
+          }
+          processedNotificationsRef.current.add(notifId);
+          
+          // Clean up old processed notifications
+          if (processedNotificationsRef.current.size > 100) {
+            const entries = Array.from(processedNotificationsRef.current);
+            processedNotificationsRef.current = new Set(entries.slice(-50));
+          }
+          
           console.log('[NotificationProvider] New notification received:', payload);
           
           const newNotif: NotificationData = {
-            id: payload.new.id,
+            id: notifId,
             title: payload.new.title,
             message: payload.new.message,
             type: payload.new.type as NotificationData['type'],
@@ -262,7 +293,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             read: false
           };
 
-          // Update state
           setNotifications(prev => [newNotif, ...prev]);
           setUnreadCount(prev => prev + 1);
           setNewNotification(newNotif);
@@ -270,7 +300,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           // Play sound and vibration
           const { sound, vibration } = getNotificationSound(newNotif.type, newNotif.title);
           console.log('[NotificationProvider] Playing notification sound:', sound);
-          playNotificationWithVibration(sound, vibration);
+          await playNotificationWithVibration(sound, vibration);
 
           // Show toast notification
           toast(newNotif.title, {
@@ -313,7 +343,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             )
           );
           
-          // Recalculate unread count
           setNotifications(prev => {
             setUnreadCount(prev.filter(n => !n.read).length);
             return prev;
@@ -335,7 +364,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         isSubscribedRef.current = false;
       }
     };
-  }, [user?.id]); // Only depend on user.id, not the entire user object or fetchNotifications
+  }, [user?.id]);
 
   // Mark as read
   const markAsRead = useCallback(async (notificationId: string) => {
@@ -403,7 +432,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       setLoading(true);
 
-      // Request permission
       const permissionResult = await Notification.requestPermission();
       setPushPermission(permissionResult);
 
@@ -412,10 +440,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return false;
       }
 
-      // Get service worker registration
       const registration = await navigator.serviceWorker.ready;
 
-      // Subscribe to push
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
@@ -423,7 +449,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       const subscriptionJson = subscription.toJSON();
 
-      // Save to database
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -468,7 +493,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       }
 
-      // Deactivate in database
       const { error } = await supabase
         .from('push_subscriptions')
         .update({ is_active: false })
@@ -497,12 +521,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     pushPermission,
     isPushSupported,
     loading,
+    isAudioInitialized,
     markAsRead,
     markAllAsRead,
     clearNewNotification,
     refreshNotifications: fetchNotifications,
     subscribeToPush,
-    unsubscribeFromPush
+    unsubscribeFromPush,
+    initializeAudio
   };
 
   return (
@@ -519,5 +545,3 @@ export const useNotifications = () => {
   }
   return context;
 };
-
-export default NotificationContext;

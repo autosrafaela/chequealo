@@ -1,19 +1,43 @@
-// Notification sound utility using Web Audio API with fallback support
+// Notification sound utility using Web Audio API with robust fallback support
 
 let audioContext: AudioContext | null = null;
 let audioInitialized = false;
+let audioInitializing = false;
 
 // Get or create AudioContext
 const getAudioContext = (): AudioContext | null => {
   try {
     if (!audioContext) {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      console.log('[NotificationSound] AudioContext created, state:', audioContext.state);
     }
     return audioContext;
   } catch (error) {
     console.error('[NotificationSound] Failed to create AudioContext:', error);
     return null;
   }
+};
+
+// Ensure AudioContext is ready (async with proper resume)
+const ensureAudioReady = async (): Promise<AudioContext | null> => {
+  const ctx = getAudioContext();
+  if (!ctx) return null;
+
+  if (ctx.state === 'suspended') {
+    try {
+      console.log('[NotificationSound] Resuming suspended AudioContext...');
+      await ctx.resume();
+      console.log('[NotificationSound] AudioContext resumed, new state:', ctx.state);
+      audioInitialized = true;
+    } catch (e) {
+      console.warn('[NotificationSound] Failed to resume AudioContext:', e);
+      return null;
+    }
+  } else if (ctx.state === 'running') {
+    audioInitialized = true;
+  }
+
+  return ctx;
 };
 
 export type NotificationSoundType = 
@@ -28,71 +52,129 @@ export type NotificationSoundType =
   | 'payment'
   | 'urgent'
   | 'new_professional'
-  | 'favorite'           // When someone adds you to favorites ❤️
-  | 'achievement'        // Profile complete, milestones 🎯
-  | 'badge_unlocked';    // Badge unlocked 🏆
+  | 'favorite'
+  | 'achievement'
+  | 'badge_unlocked';
 
 export type VibrationPattern = 'short' | 'medium' | 'long' | 'urgent' | 'success';
 
 /**
  * Trigger device vibration if supported
- * @param pattern - Type of vibration pattern
  */
 export const triggerVibration = (pattern: VibrationPattern = 'short') => {
   if (!('vibrate' in navigator)) {
-    console.log('Vibration API not supported');
+    console.log('[NotificationSound] Vibration API not supported');
+    return;
+  }
+
+  // Check user preferences
+  const vibrationEnabled = localStorage.getItem('notification_vibration_enabled') !== 'false';
+  if (!vibrationEnabled) {
+    console.log('[NotificationSound] Vibration disabled by user preference');
     return;
   }
 
   try {
+    let vibrationMs: number | number[];
     switch (pattern) {
       case 'short':
-        navigator.vibrate(100);
+        vibrationMs = 100;
         break;
       case 'medium':
-        navigator.vibrate(300);
+        vibrationMs = 300;
         break;
       case 'long':
-        navigator.vibrate(500);
+        vibrationMs = 500;
         break;
       case 'urgent':
-        // Urgent: 3 quick pulses
-        navigator.vibrate([100, 50, 100, 50, 100]);
+        vibrationMs = [100, 50, 100, 50, 100];
         break;
       case 'success':
-        // Success: 2 pulses
-        navigator.vibrate([150, 100, 200]);
+        vibrationMs = [150, 100, 200];
         break;
       default:
-        navigator.vibrate(100);
+        vibrationMs = 100;
     }
+    
+    const result = navigator.vibrate(vibrationMs);
+    console.log('[NotificationSound] Vibration triggered:', pattern, 'result:', result);
   } catch (error) {
-    console.error('Error triggering vibration:', error);
+    console.error('[NotificationSound] Error triggering vibration:', error);
   }
 };
 
 /**
- * Fallback sound using Audio element (for browsers where Web Audio API fails)
+ * Fallback sound using HTML5 Audio element
+ * Uses a reliable base64 encoded beep sound
  */
-const playFallbackSound = () => {
+const playFallbackSound = async (): Promise<boolean> => {
+  console.log('[NotificationSound] Playing fallback audio...');
+  
   try {
-    // Create a simple beep using Audio element with data URI
-    // This is a basic 440Hz sine wave beep encoded as base64 WAV
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleDoAAABRm9HQoT0ABkWe3OWqZDEABUmc2eSsajIABUqb2OOrZzIABkqa2OKrZzMABkqb2eKrZzMABkqa2eKrZzMABkqa2OKrZzMABkqb2OKrZzMABkmb2OKrZzMABkqb2OKsZzMABkqb2OKsZzMABkqa2OKsZzMABkqa2OOsZzMABkqa2OOsZzMABkqa2OOsZzMABkqa2OOsZzMABkqa2OOsZzIABkqa2OOsZzMABkqa2OOsZzMABkma2OOsZzIABkqa2OOsZzIABkma2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIABkqa2OOsZzIA');
-    audio.volume = 0.3;
-    audio.play().catch(e => {
-      console.warn('[NotificationSound] Fallback audio also failed:', e);
-    });
+    // Create a simple but audible beep using oscillator-generated WAV
+    const audio = new Audio();
+    audio.volume = 0.5;
+    
+    // Generate a simple beep WAV data
+    const sampleRate = 8000;
+    const duration = 0.2;
+    const frequency = 800;
+    const samples = sampleRate * duration;
+    
+    // WAV header + data
+    const buffer = new ArrayBuffer(44 + samples * 2);
+    const view = new DataView(buffer);
+    
+    // RIFF header
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + samples * 2, true);
+    writeString(view, 8, 'WAVE');
+    
+    // fmt chunk
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, 1, true); // mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    
+    // data chunk
+    writeString(view, 36, 'data');
+    view.setUint32(40, samples * 2, true);
+    
+    // Generate sine wave
+    for (let i = 0; i < samples; i++) {
+      const t = i / sampleRate;
+      const amplitude = Math.sin(2 * Math.PI * frequency * t) * 32767 * 0.5;
+      // Apply fade out
+      const envelope = 1 - (i / samples);
+      view.setInt16(44 + i * 2, amplitude * envelope, true);
+    }
+    
+    const blob = new Blob([buffer], { type: 'audio/wav' });
+    audio.src = URL.createObjectURL(blob);
+    
+    await audio.play();
+    console.log('[NotificationSound] Fallback audio played successfully');
+    return true;
   } catch (error) {
-    console.error('[NotificationSound] Fallback sound error:', error);
+    console.warn('[NotificationSound] Fallback audio failed:', error);
+    return false;
   }
 };
 
+function writeString(view: DataView, offset: number, string: string) {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
+  }
+}
+
 /**
- * Play a notification sound using Web Audio API
- * @param type - Type of notification sound
+ * Play a notification sound using Web Audio API (async version)
  */
-export const playNotificationSound = (type: NotificationSoundType = 'default') => {
+export const playNotificationSound = async (type: NotificationSoundType = 'default'): Promise<void> => {
   // Check user preferences
   const soundEnabled = localStorage.getItem('notification_sound_enabled') !== 'false';
   if (!soundEnabled) {
@@ -103,94 +185,62 @@ export const playNotificationSound = (type: NotificationSoundType = 'default') =
   console.log('[NotificationSound] Playing sound type:', type);
 
   try {
-    const ctx = getAudioContext();
+    // Ensure AudioContext is ready
+    const ctx = await ensureAudioReady();
     
-    if (!ctx) {
-      console.warn('[NotificationSound] AudioContext not available, trying fallback');
-      playFallbackSound();
+    if (!ctx || ctx.state !== 'running') {
+      console.warn('[NotificationSound] AudioContext not ready, using fallback');
+      await playFallbackSound();
       return;
     }
-    
-    // Resume audio context if suspended (browser autoplay policy)
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(e => {
-        console.warn('[NotificationSound] Failed to resume AudioContext:', e);
-        playFallbackSound();
-      });
-    }
 
+    // Play the appropriate sound
     switch (type) {
       case 'express':
-        // Urgent sound: higher pitch, faster pattern - 3 urgent beeps
         playUrgentSound(ctx);
         break;
-        
       case 'contact':
-        // Pleasant chime: two-tone notification
         playChimeSound(ctx);
         break;
-        
       case 'message':
-        // Soft ping
         playSoftPing(ctx);
         break;
-
       case 'zone_alert':
-        // Zone alert: 3 ascending tones - professional is nearby!
         playZoneAlertSound(ctx);
         break;
-
       case 'booking_confirmed':
-        // Booking confirmed: happy double chime
         playBookingConfirmedSound(ctx);
         break;
-
       case 'booking_reminder':
-        // Reminder: gentle alarm pattern
         playReminderSound(ctx);
         break;
-
       case 'new_review':
-        // New review: fanfare - 4 ascending notes
         playReviewFanfare(ctx);
         break;
-
       case 'payment':
-        // Payment: cha-ching cash register effect
         playPaymentSound(ctx);
         break;
-
       case 'urgent':
-        // Urgent: 3 rapid high-pitched pulses
         playUrgentPulses(ctx);
         break;
-
       case 'new_professional':
-        // New professional: celebratory fanfare - 5 ascending notes
         playNewProfessionalFanfare(ctx);
         break;
-
       case 'favorite':
-        // Added to favorites: warm heartbeat-like pop sound ❤️
         playFavoriteSound(ctx);
         break;
-
       case 'achievement':
-        // Achievement unlocked: triumphant fanfare 🎯
         playAchievementSound(ctx);
         break;
-
       case 'badge_unlocked':
-        // Badge unlocked: celebratory jingle 🏆
         playBadgeUnlockedSound(ctx);
         break;
-        
       default:
-        // Default notification sound
         playDefaultSound(ctx);
     }
   } catch (error) {
-    console.error('Error playing notification sound:', error);
+    console.error('[NotificationSound] Error playing sound, trying fallback:', error);
+    await playFallbackSound();
   }
 };
 
@@ -206,7 +256,7 @@ const createToneNodes = (ctx: AudioContext) => {
 // Express/Urgent sound - high pitched, attention-grabbing
 const playUrgentSound = (ctx: AudioContext) => {
   const { oscillator, gainNode } = createToneNodes(ctx);
-  oscillator.frequency.setValueAtTime(880, ctx.currentTime); // A5
+  oscillator.frequency.setValueAtTime(880, ctx.currentTime);
   oscillator.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
   oscillator.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
   gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
@@ -218,8 +268,8 @@ const playUrgentSound = (ctx: AudioContext) => {
 // Pleasant two-tone chime for contacts
 const playChimeSound = (ctx: AudioContext) => {
   const { oscillator, gainNode } = createToneNodes(ctx);
-  oscillator.frequency.setValueAtTime(523, ctx.currentTime); // C5
-  oscillator.frequency.setValueAtTime(659, ctx.currentTime + 0.15); // E5
+  oscillator.frequency.setValueAtTime(523, ctx.currentTime);
+  oscillator.frequency.setValueAtTime(659, ctx.currentTime + 0.15);
   gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
   oscillator.start(ctx.currentTime);
@@ -230,25 +280,23 @@ const playChimeSound = (ctx: AudioContext) => {
 const playSoftPing = (ctx: AudioContext) => {
   const { oscillator, gainNode } = createToneNodes(ctx);
   oscillator.frequency.setValueAtTime(600, ctx.currentTime);
-  gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+  gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
   oscillator.start(ctx.currentTime);
-  oscillator.stop(ctx.currentTime + 0.2);
+  oscillator.stop(ctx.currentTime + 0.25);
 };
 
-// Zone alert - 3 ascending tones (professional nearby!)
+// Zone alert - 3 ascending tones
 const playZoneAlertSound = (ctx: AudioContext) => {
-  const frequencies = [440, 554, 659]; // A4, C#5, E5 - ascending triad
+  const frequencies = [440, 554, 659];
   const duration = 0.15;
   
   frequencies.forEach((freq, index) => {
     const { oscillator, gainNode } = createToneNodes(ctx);
     const startTime = ctx.currentTime + (index * duration);
-    
     oscillator.frequency.setValueAtTime(freq, startTime);
     gainNode.gain.setValueAtTime(0.25, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-    
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);
   });
@@ -256,17 +304,15 @@ const playZoneAlertSound = (ctx: AudioContext) => {
 
 // Booking confirmed - happy double chime
 const playBookingConfirmedSound = (ctx: AudioContext) => {
-  // First chime
   const { oscillator: osc1, gainNode: gain1 } = createToneNodes(ctx);
-  osc1.frequency.setValueAtTime(523, ctx.currentTime); // C5
+  osc1.frequency.setValueAtTime(523, ctx.currentTime);
   gain1.gain.setValueAtTime(0.25, ctx.currentTime);
   gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
   osc1.start(ctx.currentTime);
   osc1.stop(ctx.currentTime + 0.2);
   
-  // Second higher chime
   const { oscillator: osc2, gainNode: gain2 } = createToneNodes(ctx);
-  osc2.frequency.setValueAtTime(659, ctx.currentTime + 0.15); // E5
+  osc2.frequency.setValueAtTime(659, ctx.currentTime + 0.15);
   gain2.gain.setValueAtTime(0, ctx.currentTime);
   gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.15);
   gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
@@ -279,13 +325,10 @@ const playReminderSound = (ctx: AudioContext) => {
   for (let i = 0; i < 2; i++) {
     const { oscillator, gainNode } = createToneNodes(ctx);
     const startTime = ctx.currentTime + (i * 0.3);
-    
-    oscillator.frequency.setValueAtTime(587, startTime); // D5
-    oscillator.frequency.setValueAtTime(523, startTime + 0.1); // C5
-    
+    oscillator.frequency.setValueAtTime(587, startTime);
+    oscillator.frequency.setValueAtTime(523, startTime + 0.1);
     gainNode.gain.setValueAtTime(0.2, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-    
     oscillator.start(startTime);
     oscillator.stop(startTime + 0.2);
   }
@@ -293,17 +336,15 @@ const playReminderSound = (ctx: AudioContext) => {
 
 // Review fanfare - 4 ascending celebration notes
 const playReviewFanfare = (ctx: AudioContext) => {
-  const notes = [392, 440, 523, 659]; // G4, A4, C5, E5
+  const notes = [392, 440, 523, 659];
   const duration = 0.12;
   
   notes.forEach((freq, index) => {
     const { oscillator, gainNode } = createToneNodes(ctx);
     const startTime = ctx.currentTime + (index * duration);
-    
     oscillator.frequency.setValueAtTime(freq, startTime);
     gainNode.gain.setValueAtTime(0.2, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 1.5);
-    
     oscillator.start(startTime);
     oscillator.stop(startTime + duration * 1.5);
   });
@@ -311,7 +352,6 @@ const playReviewFanfare = (ctx: AudioContext) => {
 
 // Payment sound - cha-ching cash register effect
 const playPaymentSound = (ctx: AudioContext) => {
-  // First part: coin drop (high frequency quick)
   const { oscillator: osc1, gainNode: gain1 } = createToneNodes(ctx);
   osc1.frequency.setValueAtTime(1200, ctx.currentTime);
   osc1.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.05);
@@ -320,7 +360,6 @@ const playPaymentSound = (ctx: AudioContext) => {
   osc1.start(ctx.currentTime);
   osc1.stop(ctx.currentTime + 0.1);
   
-  // Second part: register bell (sustained)
   const { oscillator: osc2, gainNode: gain2 } = createToneNodes(ctx);
   osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.08);
   gain2.gain.setValueAtTime(0, ctx.currentTime);
@@ -335,11 +374,9 @@ const playUrgentPulses = (ctx: AudioContext) => {
   for (let i = 0; i < 3; i++) {
     const { oscillator, gainNode } = createToneNodes(ctx);
     const startTime = ctx.currentTime + (i * 0.12);
-    
     oscillator.frequency.setValueAtTime(1000, startTime);
     gainNode.gain.setValueAtTime(0.3, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.08);
-    
     oscillator.start(startTime);
     oscillator.stop(startTime + 0.1);
   }
@@ -348,43 +385,39 @@ const playUrgentPulses = (ctx: AudioContext) => {
 // Default notification sound
 const playDefaultSound = (ctx: AudioContext) => {
   const { oscillator, gainNode } = createToneNodes(ctx);
-  oscillator.frequency.setValueAtTime(440, ctx.currentTime); // A4
-  gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+  oscillator.frequency.setValueAtTime(440, ctx.currentTime);
+  gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
   oscillator.start(ctx.currentTime);
-  oscillator.stop(ctx.currentTime + 0.25);
+  oscillator.stop(ctx.currentTime + 0.3);
 };
 
 // New professional fanfare - celebratory 5-note ascending melody
 const playNewProfessionalFanfare = (ctx: AudioContext) => {
-  const notes = [523, 587, 659, 784, 880]; // C5, D5, E5, G5, A5 - major pentatonic celebration
+  const notes = [523, 587, 659, 784, 880];
   const duration = 0.1;
   
   notes.forEach((freq, index) => {
     const { oscillator, gainNode } = createToneNodes(ctx);
     const startTime = ctx.currentTime + (index * duration);
-    
     oscillator.frequency.setValueAtTime(freq, startTime);
     gainNode.gain.setValueAtTime(0.25, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 2);
-    
     oscillator.start(startTime);
     oscillator.stop(startTime + duration * 2);
   });
   
-  // Add a final sustained note for celebration effect
   const { oscillator: finalOsc, gainNode: finalGain } = createToneNodes(ctx);
   const finalStart = ctx.currentTime + (notes.length * duration);
-  finalOsc.frequency.setValueAtTime(1047, finalStart); // C6 - octave higher
+  finalOsc.frequency.setValueAtTime(1047, finalStart);
   finalGain.gain.setValueAtTime(0.2, finalStart);
   finalGain.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.4);
   finalOsc.start(finalStart);
   finalOsc.stop(finalStart + 0.4);
 };
 
-// Added to favorites - warm heartbeat-like double pop ❤️
+// Added to favorites - warm heartbeat-like double pop
 const playFavoriteSound = (ctx: AudioContext) => {
-  // First "heartbeat" - low thump
   const { oscillator: osc1, gainNode: gain1 } = createToneNodes(ctx);
   osc1.type = 'sine';
   osc1.frequency.setValueAtTime(200, ctx.currentTime);
@@ -394,7 +427,6 @@ const playFavoriteSound = (ctx: AudioContext) => {
   osc1.start(ctx.currentTime);
   osc1.stop(ctx.currentTime + 0.15);
   
-  // Second "heartbeat" - higher, warmer tone
   const { oscillator: osc2, gainNode: gain2 } = createToneNodes(ctx);
   osc2.type = 'sine';
   osc2.frequency.setValueAtTime(350, ctx.currentTime + 0.12);
@@ -405,7 +437,6 @@ const playFavoriteSound = (ctx: AudioContext) => {
   osc2.start(ctx.currentTime + 0.12);
   osc2.stop(ctx.currentTime + 0.35);
   
-  // Sweet high sparkle at the end
   const { oscillator: osc3, gainNode: gain3 } = createToneNodes(ctx);
   osc3.frequency.setValueAtTime(880, ctx.currentTime + 0.25);
   gain3.gain.setValueAtTime(0, ctx.currentTime);
@@ -415,127 +446,148 @@ const playFavoriteSound = (ctx: AudioContext) => {
   osc3.stop(ctx.currentTime + 0.45);
 };
 
-// Achievement unlocked - triumphant ascending fanfare 🎯
+// Achievement unlocked - triumphant ascending fanfare
 const playAchievementSound = (ctx: AudioContext) => {
-  const notes = [392, 494, 587, 784]; // G4, B4, D5, G5 - triumphant G major arpeggio
+  const notes = [392, 494, 587, 784];
   const duration = 0.12;
   
   notes.forEach((freq, index) => {
     const { oscillator, gainNode } = createToneNodes(ctx);
     const startTime = ctx.currentTime + (index * duration);
-    
     oscillator.frequency.setValueAtTime(freq, startTime);
     gainNode.gain.setValueAtTime(0.25, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 2.5);
-    
     oscillator.start(startTime);
     oscillator.stop(startTime + duration * 2.5);
   });
   
-  // Final sustained chord (two notes for richness)
   const finalStart = ctx.currentTime + (notes.length * duration);
   
   const { oscillator: finalOsc1, gainNode: finalGain1 } = createToneNodes(ctx);
-  finalOsc1.frequency.setValueAtTime(784, finalStart); // G5
+  finalOsc1.frequency.setValueAtTime(784, finalStart);
   finalGain1.gain.setValueAtTime(0.2, finalStart);
   finalGain1.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.5);
   finalOsc1.start(finalStart);
   finalOsc1.stop(finalStart + 0.5);
   
   const { oscillator: finalOsc2, gainNode: finalGain2 } = createToneNodes(ctx);
-  finalOsc2.frequency.setValueAtTime(988, finalStart); // B5
+  finalOsc2.frequency.setValueAtTime(988, finalStart);
   finalGain2.gain.setValueAtTime(0.15, finalStart);
   finalGain2.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.5);
   finalOsc2.start(finalStart);
   finalOsc2.stop(finalStart + 0.5);
 };
 
-// Badge unlocked - celebratory jingle with sparkle effect 🏆
+// Badge unlocked - celebratory jingle with sparkle effect
 const playBadgeUnlockedSound = (ctx: AudioContext) => {
-  // Quick ascending arpeggio
-  const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6 - bright C major
+  const notes = [523, 659, 784, 1047];
   const duration = 0.08;
   
   notes.forEach((freq, index) => {
     const { oscillator, gainNode } = createToneNodes(ctx);
     const startTime = ctx.currentTime + (index * duration);
-    
     oscillator.frequency.setValueAtTime(freq, startTime);
     gainNode.gain.setValueAtTime(0.22, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 2);
-    
     oscillator.start(startTime);
     oscillator.stop(startTime + duration * 2);
   });
   
-  // Sparkle effect - high frequency shimmer
   const sparkleStart = ctx.currentTime + (notes.length * duration);
   for (let i = 0; i < 3; i++) {
     const { oscillator: sparkle, gainNode: sparkleGain } = createToneNodes(ctx);
     const sTime = sparkleStart + (i * 0.06);
-    sparkle.frequency.setValueAtTime(1319 + (i * 200), sTime); // E6, F#6, G#6
+    sparkle.frequency.setValueAtTime(1319 + (i * 200), sTime);
     sparkleGain.gain.setValueAtTime(0.12, sTime);
     sparkleGain.gain.exponentialRampToValueAtTime(0.01, sTime + 0.12);
     sparkle.start(sTime);
     sparkle.stop(sTime + 0.12);
   }
   
-  // Final triumphant note
   const { oscillator: finalOsc, gainNode: finalGain } = createToneNodes(ctx);
   const finalStart = sparkleStart + 0.2;
-  finalOsc.frequency.setValueAtTime(1047, finalStart); // C6
+  finalOsc.frequency.setValueAtTime(1047, finalStart);
   finalGain.gain.setValueAtTime(0.25, finalStart);
   finalGain.gain.exponentialRampToValueAtTime(0.01, finalStart + 0.4);
   finalOsc.start(finalStart);
   finalOsc.stop(finalStart + 0.4);
 };
 
+// Debounce tracking for anti-duplicate sounds
+let lastSoundTime = 0;
+let lastSoundType: NotificationSoundType | null = null;
+const DEBOUNCE_MS = 500;
+
 /**
- * Play sound with vibration combined
+ * Play sound with vibration combined (async, with debounce)
  */
-export const playNotificationWithVibration = (
+export const playNotificationWithVibration = async (
   soundType: NotificationSoundType = 'default',
   vibrationPattern: VibrationPattern = 'short'
-) => {
-  console.log('[NotificationSound] playNotificationWithVibration called:', { soundType, vibrationPattern });
+): Promise<void> => {
+  const now = Date.now();
   
-  playNotificationSound(soundType);
-  
-  // Check vibration preferences
-  const vibrationEnabled = localStorage.getItem('notification_vibration_enabled') !== 'false';
-  if (vibrationEnabled) {
-    console.log('[NotificationSound] Triggering vibration:', vibrationPattern);
-    triggerVibration(vibrationPattern);
-  } else {
-    console.log('[NotificationSound] Vibration disabled by user preference');
+  // Debounce: prevent duplicate sounds within 500ms
+  if (lastSoundType === soundType && now - lastSoundTime < DEBOUNCE_MS) {
+    console.log('[NotificationSound] Debounced duplicate sound:', soundType);
+    return;
   }
+  
+  lastSoundTime = now;
+  lastSoundType = soundType;
+  
+  console.log('[NotificationSound] playNotificationWithVibration:', { soundType, vibrationPattern });
+  
+  // Play sound (async)
+  await playNotificationSound(soundType);
+  
+  // Trigger vibration
+  triggerVibration(vibrationPattern);
 };
 
 /**
  * Pre-initialize audio context on user interaction
  * Call this on first user click to enable sounds
  */
-export const initializeAudioContext = () => {
-  if (audioInitialized) return;
+export const initializeAudioContext = async (): Promise<boolean> => {
+  if (audioInitialized) {
+    console.log('[NotificationSound] Audio already initialized');
+    return true;
+  }
+  
+  if (audioInitializing) {
+    console.log('[NotificationSound] Audio initialization in progress');
+    return false;
+  }
+  
+  audioInitializing = true;
   
   try {
-    const ctx = getAudioContext();
-    if (ctx && ctx.state === 'suspended') {
-      ctx.resume().then(() => {
-        console.log('[NotificationSound] AudioContext resumed successfully');
-        audioInitialized = true;
-      }).catch(e => {
-        console.warn('[NotificationSound] Failed to resume AudioContext:', e);
-      });
-    } else if (ctx) {
+    const ctx = await ensureAudioReady();
+    if (ctx && ctx.state === 'running') {
       audioInitialized = true;
+      console.log('[NotificationSound] Audio initialized successfully');
+      audioInitializing = false;
+      return true;
     }
   } catch (error) {
     console.error('[NotificationSound] Error initializing audio context:', error);
   }
+  
+  audioInitializing = false;
+  return false;
 };
 
 /**
  * Check if audio is initialized and ready
  */
-export const isAudioReady = () => audioInitialized;
+export const isAudioReady = (): boolean => audioInitialized;
+
+/**
+ * Get current AudioContext state for debugging
+ */
+export const getAudioState = () => ({
+  initialized: audioInitialized,
+  contextState: audioContext?.state || 'no-context',
+  supported: typeof AudioContext !== 'undefined' || typeof (window as any).webkitAudioContext !== 'undefined'
+});
