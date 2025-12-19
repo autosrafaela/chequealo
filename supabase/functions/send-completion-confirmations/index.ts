@@ -26,19 +26,10 @@ serve(async (req: Request) => {
     const twentyThreeHoursAgo = new Date();
     twentyThreeHoursAgo.setHours(twentyThreeHoursAgo.getHours() - 23);
 
+    // Query transactions without the problematic join
     const { data: transactions, error: transactionsError } = await supabase
       .from('transactions')
-      .select(`
-        id,
-        user_id,
-        professional_id,
-        service_type,
-        started_at,
-        confirmation_requested_at,
-        user_confirmed_completion,
-        professional_confirmed_completion,
-        professionals!inner(user_id, full_name, email)
-      `)
+      .select('id, user_id, professional_id, service_type, started_at, confirmation_requested_at, user_confirmed_completion, professional_confirmed_completion')
       .eq('status', 'in_progress')
       .gte('started_at', twentyFourHoursAgo.toISOString())
       .lt('started_at', twentyThreeHoursAgo.toISOString())
@@ -53,6 +44,23 @@ serve(async (req: Request) => {
 
     for (const transaction of transactions || []) {
       try {
+        // Fetch professional data separately
+        const { data: professional, error: professionalError } = await supabase
+          .from('professionals')
+          .select('user_id, full_name, email')
+          .eq('id', transaction.professional_id)
+          .maybeSingle();
+
+        if (professionalError) {
+          console.error(`Error fetching professional ${transaction.professional_id}:`, professionalError);
+          continue;
+        }
+
+        if (!professional) {
+          console.error(`Professional not found for ID ${transaction.professional_id}`);
+          continue;
+        }
+
         // Mark confirmation as requested
         const { error: updateError } = await supabase
           .from('transactions')
@@ -72,7 +80,7 @@ serve(async (req: Request) => {
           .insert({
             user_id: transaction.user_id,
             title: '¿Se completó el trabajo?',
-            message: `¿${(transaction as any).professionals.full_name} completó el trabajo de ${transaction.service_type || 'servicio'}? Tu confirmación es importante.`,
+            message: `¿${professional.full_name} completó el trabajo de ${transaction.service_type || 'servicio'}? Tu confirmación es importante.`,
             type: 'info',
             action_url: `/user/dashboard?confirm_transaction=${transaction.id}`
           });
@@ -82,11 +90,11 @@ serve(async (req: Request) => {
         } else {
           console.log(`Confirmation request sent to user ${transaction.user_id}`);
           
-          // Try to send push notification to user
-          await sendPushNotification(
-            transaction.user_id,
+          // Send push notification to user using correct format
+          await sendPushToUser(transaction.user_id, 
             '¿Se completó el trabajo?',
-            `¿${(transaction as any).professionals.full_name} completó el trabajo? Confirma ahora.`
+            `¿${professional.full_name} completó el trabajo? Confirma ahora.`,
+            '/user/dashboard'
           );
         }
 
@@ -94,7 +102,7 @@ serve(async (req: Request) => {
         const { error: professionalNotificationError } = await supabase
           .from('notifications')
           .insert({
-            user_id: (transaction as any).professionals.user_id,
+            user_id: professional.user_id,
             title: '¿Completaste el trabajo?',
             message: `¿Completaste el trabajo de ${transaction.service_type || 'servicio'}? Confirma para poder recibir calificaciones.`,
             type: 'info',
@@ -104,13 +112,13 @@ serve(async (req: Request) => {
         if (professionalNotificationError) {
           console.error('Error sending professional notification:', professionalNotificationError);
         } else {
-          console.log(`Confirmation request sent to professional ${(transaction as any).professionals.user_id}`);
+          console.log(`Confirmation request sent to professional ${professional.user_id}`);
           
-          // Try to send push notification to professional
-          await sendPushNotification(
-            (transaction as any).professionals.user_id,
+          // Send push notification to professional using correct format
+          await sendPushToUser(professional.user_id,
             '¿Completaste el trabajo?',
-            `¿Completaste el trabajo? Confirma para poder ser calificado.`
+            `¿Completaste el trabajo? Confirma para poder ser calificado.`,
+            '/professional/dashboard'
           );
         }
       } catch (error) {
@@ -142,45 +150,37 @@ serve(async (req: Request) => {
   }
 });
 
-async function sendPushNotification(userId: string, title: string, body: string) {
+async function sendPushToUser(userId: string, title: string, body: string, url: string) {
   try {
-    // Get user's push subscriptions
+    // Check if user has active push subscriptions
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
-      .select('*')
+      .select('id')
       .eq('user_id', userId)
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .limit(1);
 
     if (subError || !subscriptions || subscriptions.length === 0) {
       console.log(`No active push subscriptions for user ${userId}`);
       return;
     }
 
-    // Call the push notification function for each subscription
-    for (const subscription of subscriptions) {
-      try {
-        await supabase.functions.invoke('send-push-notification', {
-          body: {
-            subscription: {
-              endpoint: subscription.endpoint,
-              keys: {
-                p256dh: subscription.p256dh,
-                auth: subscription.auth
-              }
-            },
-            title,
-            body,
-            data: {
-              url: '/user/dashboard'
-            }
-          }
-        });
-        console.log(`Push notification sent to user ${userId}`);
-      } catch (pushError) {
-        console.error(`Error sending push notification:`, pushError);
+    // Call the push notification function with correct format
+    const { data, error } = await supabase.functions.invoke('send-push-notification', {
+      body: {
+        userIds: [userId],
+        title,
+        body,
+        url
       }
+    });
+
+    if (error) {
+      console.error(`Error invoking send-push-notification for user ${userId}:`, error);
+    } else {
+      console.log(`Push notification sent to user ${userId}:`, data);
     }
   } catch (error) {
-    console.error(`Error in sendPushNotification:`, error);
+    console.error(`Error in sendPushToUser for ${userId}:`, error);
   }
 }

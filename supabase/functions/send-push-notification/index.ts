@@ -70,31 +70,46 @@ serve(async (req) => {
   }
 
   try {
+    console.log('send-push-notification: Function invoked');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get auth user from request
+    // Parse request body first to log it
+    const requestBody = await req.json();
+    const { userIds, title, body, icon, url, data } = requestBody;
+    
+    console.log('send-push-notification: Request body:', JSON.stringify({ userIds, title, body, url }));
+
+    // Check auth - allow service role calls (from other edge functions)
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    const isServiceCall = authHeader?.includes(supabaseKey);
+    
+    if (!isServiceCall && authHeader) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+
+      if (authError || !user) {
+        console.error('send-push-notification: Auth error:', authError);
+        throw new Error('Unauthorized');
+      }
+      console.log('send-push-notification: Authenticated user:', user.id);
+    } else if (!authHeader) {
+      console.log('send-push-notification: No auth header - rejecting');
       throw new Error('No authorization header');
+    } else {
+      console.log('send-push-notification: Service role call detected');
     }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
-
-    const { userIds, title, body, icon, url, data } = await req.json();
 
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      console.error('send-push-notification: Invalid userIds:', userIds);
       throw new Error('userIds array is required');
     }
 
     if (!title || !body) {
+      console.error('send-push-notification: Missing title or body');
       throw new Error('title and body are required');
     }
 
