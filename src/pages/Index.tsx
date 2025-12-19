@@ -12,8 +12,12 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SEOHead, generateOrganizationSchema, generateWebsiteSchema } from "@/components/SEO/SEOHead";
+import { EnableNotificationsBanner } from "@/components/EnableNotificationsBanner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user } = useAuth();
+  
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -31,6 +35,13 @@ const Index = () => {
       />
       <div className="min-h-screen bg-background">
         <Header />
+      
+      {/* Notifications Banner - solo para usuarios logueados */}
+      {user && (
+        <div className="container mx-auto px-3 sm:px-4 pt-4">
+          <EnableNotificationsBanner />
+        </div>
+      )}
       
       {/* Hero Carousel */}
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">

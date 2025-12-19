@@ -47,6 +47,7 @@ import PushNotificationToggle from '@/components/PushNotificationToggle';
 import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
+import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
 
 interface UserProfile {
   id: string;
@@ -750,6 +751,9 @@ const UserDashboard = () => {
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Notifications Banner - para migración VAPID */}
+        <EnableNotificationsBanner className="mb-4" />
+        
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
