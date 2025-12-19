@@ -33,6 +33,7 @@ async function sendPushNotification(
   const VAPID_PRIVATE_KEY = Deno.env.get('WEB_PUSH_PRIVATE_KEY');
   
   if (!VAPID_PRIVATE_KEY) {
+    console.error('WEB_PUSH_PRIVATE_KEY not configured');
     throw new Error('WEB_PUSH_PRIVATE_KEY not configured');
   }
 
@@ -46,13 +47,15 @@ async function sendPushNotification(
   );
 
   try {
+    console.log('Sending push to endpoint:', subscription.endpoint.substring(0, 50) + '...');
     await webpush.default.sendNotification(
       subscription,
       JSON.stringify(payload)
     );
+    console.log('Push sent successfully');
     return { success: true };
   } catch (error: any) {
-    console.error('Error sending push notification:', error);
+    console.error('Error sending push notification:', error.message, error.statusCode);
     
     // If subscription is invalid, return error so it can be cleaned up
     if (error.statusCode === 410 || error.statusCode === 404) {
@@ -70,50 +73,41 @@ serve(async (req) => {
   }
 
   try {
-    console.log('send-push-notification: Function invoked');
+    console.log('=== send-push-notification: Function invoked ===');
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse request body first to log it
+    // Parse request body
     const requestBody = await req.json();
     const { userIds, title, body, icon, url, data } = requestBody;
     
-    console.log('send-push-notification: Request body:', JSON.stringify({ userIds, title, body, url }));
+    console.log('Request received:', JSON.stringify({ 
+      userIds: userIds?.length || 0, 
+      title, 
+      body: body?.substring(0, 50) 
+    }));
 
-    // Check auth - allow service role calls (from other edge functions)
-    const authHeader = req.headers.get('Authorization');
-    const isServiceCall = authHeader?.includes(supabaseKey);
-    
-    if (!isServiceCall && authHeader) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser(
-        authHeader.replace('Bearer ', '')
-      );
-
-      if (authError || !user) {
-        console.error('send-push-notification: Auth error:', authError);
-        throw new Error('Unauthorized');
-      }
-      console.log('send-push-notification: Authenticated user:', user.id);
-    } else if (!authHeader) {
-      console.log('send-push-notification: No auth header - rejecting');
-      throw new Error('No authorization header');
-    } else {
-      console.log('send-push-notification: Service role call detected');
-    }
-
+    // Validate required fields
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-      console.error('send-push-notification: Invalid userIds:', userIds);
-      throw new Error('userIds array is required');
+      console.error('Invalid or missing userIds:', userIds);
+      return new Response(
+        JSON.stringify({ error: 'userIds array is required', success: false }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (!title || !body) {
-      console.error('send-push-notification: Missing title or body');
-      throw new Error('title and body are required');
+      console.error('Missing title or body');
+      return new Response(
+        JSON.stringify({ error: 'title and body are required', success: false }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Get active push subscriptions for specified users
+    console.log('Fetching subscriptions for users:', userIds);
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
       .select('*')
@@ -121,8 +115,11 @@ serve(async (req) => {
       .eq('is_active', true);
 
     if (subError) {
+      console.error('Error fetching subscriptions:', subError);
       throw subError;
     }
+
+    console.log(`Found ${subscriptions?.length || 0} active subscriptions`);
 
     if (!subscriptions || subscriptions.length === 0) {
       return new Response(
@@ -148,6 +145,8 @@ serve(async (req) => {
       url: url || '/'
     };
 
+    console.log('Sending notifications with payload:', JSON.stringify({ title, body, url }));
+
     // Send push notifications
     const results = await Promise.allSettled(
       subscriptions.map(async (sub) => {
@@ -163,11 +162,12 @@ serve(async (req) => {
         
         // Remove invalid subscriptions
         if (result.shouldRemove) {
+          console.log(`Marking subscription ${sub.id} as inactive (invalid)`);
           await supabase
             .from('push_subscriptions')
             .update({ is_active: false })
             .eq('id', sub.id);
-        } else {
+        } else if (result.success) {
           // Update last_used_at
           await supabase
             .from('push_subscriptions')
@@ -175,18 +175,22 @@ serve(async (req) => {
             .eq('id', sub.id);
         }
 
-        return result;
+        return { ...result, subscription_id: sub.id, user_id: sub.user_id };
       })
     );
 
     const successful = results.filter(r => r.status === 'fulfilled' && (r.value as any).success).length;
+    const failed = results.filter(r => r.status === 'rejected' || !(r.value as any).success).length;
+
+    console.log(`Push notifications sent: ${successful} successful, ${failed} failed`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
         sent: successful,
+        failed,
         total: subscriptions.length,
-        results: results.map(r => r.status === 'fulfilled' ? r.value : { success: false })
+        results: results.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: 'Promise rejected' })
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -194,9 +198,9 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Error in send-push-notification:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message, success: false }),
       { 
-        status: 400,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );

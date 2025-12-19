@@ -76,7 +76,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-push-notification]
-verify_jwt = true
+verify_jwt = false
 
 [functions.billing-get-plans]
 verify_jwt = false
