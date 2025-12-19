@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlanRestrictions } from './usePlanRestrictions';
 import { toast } from 'sonner';
+import { playNotificationWithVibration } from '@/utils/notificationSound';
 
 interface Message {
   id: string;
@@ -310,6 +311,9 @@ export const useChat = () => {
     }
   };
 
+  // Track processed messages to avoid duplicate sounds
+  const processedMessagesRef = useRef<Set<string>>(new Set());
+
   const setupRealtimeSubscriptions = useCallback(() => {
     // Subscribe to new messages
     const messagesSubscription = supabase
@@ -329,9 +333,23 @@ export const useChat = () => {
           ]
         }));
 
-        // Show notification if message is not from current user
-        if (newMessage.sender_id !== user?.id) {
-          toast.success('Nuevo mensaje recibido');
+        // Play sound and show notification if message is not from current user
+        // and hasn't been processed yet (avoid duplicates)
+        if (newMessage.sender_id !== user?.id && !processedMessagesRef.current.has(newMessage.id)) {
+          processedMessagesRef.current.add(newMessage.id);
+          
+          // Play notification sound with vibration for new messages
+          playNotificationWithVibration('message', 'short');
+          
+          toast.success('Nuevo mensaje recibido', {
+            description: newMessage.content?.substring(0, 50) || 'Nuevo mensaje'
+          });
+          
+          // Clean up old processed messages (keep last 100)
+          if (processedMessagesRef.current.size > 100) {
+            const entries = Array.from(processedMessagesRef.current);
+            processedMessagesRef.current = new Set(entries.slice(-50));
+          }
         }
       })
       .subscribe();
