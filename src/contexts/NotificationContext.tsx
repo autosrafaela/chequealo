@@ -35,6 +35,7 @@ interface NotificationContextValue {
   // Actions
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  deleteNotification: (notificationId: string) => Promise<void>;
   clearNewNotification: () => void;
   refreshNotifications: () => Promise<void>;
   subscribeToPush: () => Promise<boolean>;
@@ -412,6 +413,27 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [user]);
 
+  // Delete notification
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      setUnreadCount(prev => {
+        const wasUnread = notifications.find(n => n.id === notificationId)?.read === false;
+        return wasUnread ? Math.max(0, prev - 1) : prev;
+      });
+    } catch (error) {
+      console.error('[NotificationProvider] Error deleting notification:', error);
+      toast.error('Error al eliminar notificación');
+    }
+  }, [notifications]);
+
   // Clear new notification popup
   const clearNewNotification = useCallback(() => {
     setNewNotification(null);
@@ -431,46 +453,93 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       setLoading(true);
+      console.log('[Push] Paso 1: Solicitando permiso de notificaciones...');
 
-      const permissionResult = await Notification.requestPermission();
-      setPushPermission(permissionResult);
-
-      if (permissionResult !== 'granted') {
-        toast.error('Se necesita permiso para enviar notificaciones');
+      // Step 1: Request permission
+      let permissionResult: NotificationPermission;
+      try {
+        permissionResult = await Notification.requestPermission();
+        setPushPermission(permissionResult);
+        console.log('[Push] Resultado del permiso:', permissionResult);
+      } catch (permError) {
+        console.error('[Push] Error al solicitar permiso:', permError);
+        toast.error('Error al solicitar permisos de notificación');
         return false;
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      if (permissionResult !== 'granted') {
+        toast.error('Se necesita permiso para enviar notificaciones. Por favor, actívalas en la configuración del navegador.');
+        return false;
+      }
 
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
+      // Step 2: Get service worker registration
+      console.log('[Push] Paso 2: Obteniendo registro del Service Worker...');
+      let registration: ServiceWorkerRegistration;
+      try {
+        registration = await navigator.serviceWorker.ready;
+        console.log('[Push] Service Worker listo:', registration.scope);
+      } catch (swError) {
+        console.error('[Push] Error con Service Worker:', swError);
+        toast.error('Error: Service Worker no disponible. Intenta recargar la página.');
+        return false;
+      }
 
-      const subscriptionJson = subscription.toJSON();
-
-      const { error } = await supabase
-        .from('push_subscriptions')
-        .upsert({
-          user_id: user.id,
-          endpoint: subscription.endpoint,
-          p256dh: subscriptionJson.keys?.p256dh || '',
-          auth: subscriptionJson.keys?.auth || '',
-          user_agent: navigator.userAgent,
-          is_active: true
-        }, {
-          onConflict: 'user_id,endpoint'
+      // Step 3: Create push subscription
+      console.log('[Push] Paso 3: Creando suscripción push...');
+      let subscription: PushSubscription;
+      try {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
         });
+        console.log('[Push] Suscripción creada:', subscription.endpoint);
+      } catch (subError: any) {
+        console.error('[Push] Error al crear suscripción:', subError);
+        if (subError.message?.includes('applicationServerKey')) {
+          toast.error('Error de configuración VAPID. Contacta al soporte.');
+        } else {
+          toast.error('Error al crear suscripción push. Intenta de nuevo.');
+        }
+        return false;
+      }
 
-      if (error) throw error;
+      // Step 4: Save to database
+      console.log('[Push] Paso 4: Guardando suscripción en base de datos...');
+      const subscriptionJson = subscription.toJSON();
+      
+      try {
+        const { error } = await supabase
+          .from('push_subscriptions')
+          .upsert({
+            user_id: user.id,
+            endpoint: subscription.endpoint,
+            p256dh: subscriptionJson.keys?.p256dh || '',
+            auth: subscriptionJson.keys?.auth || '',
+            user_agent: navigator.userAgent,
+            is_active: true
+          }, {
+            onConflict: 'user_id,endpoint'
+          });
 
+        if (error) {
+          console.error('[Push] Error de base de datos:', error);
+          toast.error('Error al guardar configuración. Intenta de nuevo.');
+          return false;
+        }
+      } catch (dbError) {
+        console.error('[Push] Error guardando suscripción:', dbError);
+        toast.error('Error al guardar suscripción en servidor.');
+        return false;
+      }
+
+      console.log('[Push] ¡Suscripción completada exitosamente!');
       setIsSubscribedToPush(true);
       toast.success('¡Notificaciones push activadas!');
       return true;
 
     } catch (error: any) {
-      console.error('[NotificationProvider] Error subscribing to push:', error);
-      toast.error('Error al activar notificaciones push');
+      console.error('[Push] Error inesperado:', error);
+      toast.error('Error inesperado. Por favor, intenta de nuevo.');
       return false;
     } finally {
       setLoading(false);
@@ -524,6 +593,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     isAudioInitialized,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     clearNewNotification,
     refreshNotifications: fetchNotifications,
     subscribeToPush,
