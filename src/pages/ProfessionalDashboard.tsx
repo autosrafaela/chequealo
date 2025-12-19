@@ -25,6 +25,7 @@ import { AchievementsBadges } from '@/components/AchievementsBadges';
 import { ProfessionalAnalytics } from '@/components/ProfessionalAnalytics';
 import { ZonaTodayManager } from '@/components/ZonaTodayManager';
 import { AgendaManager } from '@/components/AgendaManager';
+import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import ChatInterface from '@/components/ChatInterface';
 import { supabase } from '@/integrations/supabase/client';
@@ -222,6 +223,9 @@ const ProfessionalDashboard = () => {
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Notifications Banner - para migración VAPID */}
+        <EnableNotificationsBanner className="mb-4" />
+        
         {/* Subscription Alert */}
         <SubscriptionAlert />
         

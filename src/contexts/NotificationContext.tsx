@@ -44,8 +44,8 @@ interface NotificationContextValue {
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
-// VAPID Public Key
-const VAPID_PUBLIC_KEY = "BP1yFovtMdbM1FEO_DxZm8nVLDrdr5x9YPxPZlkI58cSKhpI1_7L_SNocLh9S08QBMFJ8rXKOKJjrT4XIpCFdjo";
+// VAPID Public Key - Updated for new key pair
+const VAPID_PUBLIC_KEY = "BM5FWHCooBpKvjG5-Q1S8NL6FFxW_eWAue3clLL244W0FdwDIITrG9d7XzowEfJ7feOAVJE4l_5T3Qfp22y8KI8";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
