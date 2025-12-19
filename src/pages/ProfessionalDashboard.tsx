@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -70,6 +70,9 @@ const ProfessionalDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('requests');
   const [conversationId, setConversationId] = useState<string | undefined>();
+  
+  // Ref para scroll automático a la sección de tabs
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   // Transaction confirmation hook
   const { 
@@ -77,6 +80,19 @@ const ProfessionalDashboard = () => {
     loading: confirmLoading, 
     confirmCompletion 
   } = useTransactionConfirmation();
+
+  // Función para cambiar tab con scroll automático
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    
+    // Scroll automático hacia la sección de tabs
+    setTimeout(() => {
+      tabsRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }, 100);
+  };
 
   useEffect(() => {
     if (user) {
@@ -251,7 +267,7 @@ const ProfessionalDashboard = () => {
         <div className="mb-8">
           <ProfileCompletionProgress 
             professionalId={professional?.id}
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
           />
         </div>
 
@@ -492,6 +508,7 @@ const ProfessionalDashboard = () => {
         </div>
 
         {/* Main Content */}
+        <div ref={tabsRef} className="scroll-mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-12 sticky top-4 z-10 bg-background">
             <TabsTrigger value="requests">
@@ -748,6 +765,7 @@ const ProfessionalDashboard = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </div>
   );
