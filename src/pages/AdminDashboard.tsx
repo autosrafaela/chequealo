@@ -627,9 +627,9 @@ const AdminDashboard = () => {
                       );
                     })
                     .map((professional) => (
-                    <div key={professional.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                    <div key={professional.id} className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 border rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <h3 className="font-semibold">{professional.full_name}</h3>
                           {getStatusBadge(professional.is_verified)}
                           {professional.is_blocked && (
@@ -661,7 +661,7 @@ const AdminDashboard = () => {
                           />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/professional/${professional.id}`}>
                             <Eye className="h-4 w-4 mr-1" />
