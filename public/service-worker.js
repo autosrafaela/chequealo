@@ -185,6 +185,15 @@ self.addEventListener('message', (event) => {
   console.log('[ServiceWorker] Message received:', event.data);
   
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+    console.log('[ServiceWorker] Processing SKIP_WAITING, activating new version...');
+    self.skipWaiting().then(() => {
+      console.log('[ServiceWorker] skipWaiting completed');
+      // Notify all clients that the new version is active
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'SW_UPDATED' });
+        });
+      });
+    });
   }
 });

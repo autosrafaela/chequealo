@@ -11,8 +11,10 @@ import { MultipleFloatingChats } from "@/components/MultipleFloatingChats";
 import { RedirectWithTracking } from "@/components/RedirectWithTracking";
 import { InAppBrowserBanner } from "@/components/InAppBrowserBanner";
 import { NotificationActivationBanner } from "@/components/NotificationActivationBanner";
+import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner";
 import { PageLoader } from "@/components/ui/page-loader";
 import { initializeAudioContext } from "@/utils/notificationSound";
+import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 
 // Critical path - load immediately (homepage)
 import Index from "./pages/Index";
@@ -74,10 +76,14 @@ const useGlobalAudioInit = () => {
 
 const App = () => {
   useGlobalAudioInit();
+  const { updateAvailable, isUpdating, updateApp } = useServiceWorkerUpdate();
   
   return (
   <NotificationProvider>
     <TooltipProvider>
+      {updateAvailable && (
+        <UpdateNotificationBanner onUpdate={updateApp} isUpdating={isUpdating} />
+      )}
       <InAppBrowserBanner />
       <NotificationActivationBanner />
       <Toaster />
