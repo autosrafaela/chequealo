@@ -5,9 +5,68 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Trophy, Lock, TrendingUp, Target, Sparkles } from 'lucide-react';
+import { 
+  Trophy, Lock, TrendingUp, Target, Sparkles,
+  MessageSquare, Camera, Shield, Star, Award, 
+  Clock, Heart, MessageCircle, Briefcase, User,
+  CheckCircle, Image, FileText, ThumbsUp, Zap,
+  type LucideIcon
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { BadgeCelebrationModal } from './BadgeCelebrationModal';
+
+// Mapa de nombres de iconos Lucide a componentes
+const lucideIconMap: Record<string, LucideIcon> = {
+  MessageSquare,
+  Camera,
+  Shield,
+  Star,
+  Award,
+  Clock,
+  Heart,
+  MessageCircle,
+  Briefcase,
+  User,
+  CheckCircle,
+  Image,
+  FileText,
+  ThumbsUp,
+  Zap,
+  Trophy,
+  Target,
+  Sparkles,
+};
+
+// Función helper para renderizar iconos de insignias
+const renderBadgeIcon = (iconName: string, isEarned: boolean) => {
+  // Si es un emoji (caracteres especiales Unicode), mostrarlo directamente
+  const isEmoji = /^[\p{Emoji}]/u.test(iconName) && !/^[a-zA-Z]/.test(iconName);
+  
+  if (isEmoji) {
+    return (
+      <span className={`text-4xl ${!isEarned ? 'opacity-30 grayscale' : ''}`}>
+        {iconName}
+      </span>
+    );
+  }
+  
+  // Si es un nombre de icono Lucide
+  const IconComponent = lucideIconMap[iconName];
+  if (IconComponent) {
+    return (
+      <IconComponent 
+        className={`h-10 w-10 ${isEarned ? 'text-yellow-600' : 'text-muted-foreground opacity-30'}`} 
+      />
+    );
+  }
+  
+  // Fallback: mostrar como texto con estilo de emoji
+  return (
+    <span className={`text-4xl ${!isEarned ? 'opacity-30 grayscale' : ''}`}>
+      {iconName}
+    </span>
+  );
+};
 
 interface BadgeData {
   badge_id: string;
@@ -268,12 +327,8 @@ export const AchievementsBadges: React.FC<AchievementsBadgesProps> = ({ userId }
                   >
                     {/* Icono de Badge */}
                     <div className="flex items-start gap-3">
-                      <div
-                        className={`text-4xl flex-shrink-0 ${
-                          badge.is_earned ? '' : 'opacity-30 grayscale'
-                        }`}
-                      >
-                        {badge.badge_icon}
+                      <div className="flex-shrink-0">
+                        {renderBadgeIcon(badge.badge_icon, badge.is_earned)}
                       </div>
 
                       <div className="flex-1 min-w-0">
