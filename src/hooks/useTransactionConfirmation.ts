@@ -97,7 +97,7 @@ export const useTransactionConfirmation = () => {
           professional_confirmed_completion,
           user_confirmed_at,
           professional_confirmed_at,
-          professionals!inner(full_name, profession)
+          professionals(full_name, profession)
         `)
         .eq('status', 'in_progress')
         .not('confirmation_requested_at', 'is', null);
@@ -110,11 +110,16 @@ export const useTransactionConfirmation = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Query error:', error);
+        setPendingTransactions([]);
+        return;
+      }
 
       setPendingTransactions(data || []);
     } catch (error) {
       console.error('Error loading pending transactions:', error);
+      setPendingTransactions([]);
     } finally {
       setLoading(false);
     }
