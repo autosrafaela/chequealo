@@ -40,7 +40,7 @@ import Header from '@/components/Header';
 import ProfileCompletionChecklist from '@/components/ProfileCompletionChecklist';
 import { Navigate, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import FavoritesPanel from '@/components/FavoritesPanel';
-import ChatInterface from '@/components/ChatInterface';
+import { MessagesDesktopLayout } from '@/components/chat/MessagesDesktopLayout';
 import { UserTransactionReviews } from '@/components/UserTransactionReviews';
 import PWAFeatures from '@/components/PWAFeatures';
 import PushNotificationToggle from '@/components/PushNotificationToggle';
@@ -48,6 +48,7 @@ import { TransactionConfirmationCard } from '@/components/TransactionConfirmatio
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
+import { BottomNavigation } from '@/components/BottomNavigation';
 
 interface UserProfile {
   id: string;
@@ -747,7 +748,7 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -1079,7 +1080,10 @@ const UserDashboard = () => {
           </TabsContent>
 
           <TabsContent value="messages">
-            <ChatInterface initialConversationId={conversationId} />
+            <MessagesDesktopLayout 
+              initialConversationId={conversationId} 
+              isProfessional={false} 
+            />
           </TabsContent>
 
           <TabsContent value="requests">
@@ -1511,6 +1515,11 @@ const UserDashboard = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        
+        {/* Bottom Navigation - Mobile Only */}
+        <div className="md:hidden">
+          <BottomNavigation />
+        </div>
       </div>
     </div>
   );
