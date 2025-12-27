@@ -33,10 +33,10 @@ import {
   ChevronUp,
   Trash2,
   Facebook,
-  Twitter,
   Instagram,
   Mail,
-  Star
+  Star,
+  Send
 } from "lucide-react";
 import { ProfessionalSEO } from "@/components/SEO/ProfessionalSEO";
 import { getProfessionalShareUrl } from "@/utils/utmHelpers";
@@ -170,10 +170,15 @@ const ProfessionalProfile = () => {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
   };
 
-  const shareToTwitter = () => {
-    const shareUrl = getProfessionalShareUrl(id!, 'tw', 'share');
-    const text = `Conoce a ${professional?.full_name}, ${professional?.profession}`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+  const shareToTelegram = () => {
+    const shareUrl = getProfessionalShareUrl(id!, 'wa', 'share');
+    const text = `¡Mirá el perfil de ${professional?.full_name}! ${professional?.profession} en Chequealo`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const openShareModal = () => {
+    const trigger = document.getElementById('share-modal-trigger');
+    if (trigger) trigger.click();
   };
 
   const shareToEmail = () => {
@@ -279,18 +284,22 @@ const ProfessionalProfile = () => {
                 <Facebook className="h-4 w-4 mr-2 text-blue-600" />
                 Facebook
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={shareToTwitter}>
-                <Twitter className="h-4 w-4 mr-2 text-blue-400" />
-                X (Twitter)
+              <DropdownMenuItem onClick={shareToTelegram}>
+                <Send className="h-4 w-4 mr-2 text-[#0088cc]" />
+                Telegram
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={openShareModal}>
+                <Instagram className="h-4 w-4 mr-2 text-pink-500" />
+                Instagram (tarjeta)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={shareToEmail}>
                 <Mail className="h-4 w-4 mr-2" />
                 Email
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleShare}>
+              <DropdownMenuItem onClick={openShareModal}>
                 <Share2 className="h-4 w-4 mr-2" />
-                Compartir...
+                Más opciones...
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -711,6 +720,18 @@ const ProfessionalProfile = () => {
         professionalName={professional.full_name}
         professionalAvatar={professional.image_url || undefined}
         services={services}
+      />
+
+      {/* ===== SHARE MODAL (hidden trigger) ===== */}
+      <ProfileShareCard 
+        professional={professional}
+        trigger={
+          <button 
+            id="share-modal-trigger" 
+            style={{ display: 'none' }} 
+            aria-hidden="true"
+          />
+        }
       />
     </div>
   );

@@ -71,6 +71,12 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+const TelegramIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
+    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+  </svg>
+);
+
 
 export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -467,6 +473,12 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(profileUrl)}`, '_blank', 'width=600,height=400');
   };
 
+  const shareToTelegram = () => {
+    const profileUrl = getProfileUrl();
+    const text = `¡Mirá el perfil de ${professional.full_name.toUpperCase()}! ${professional.profession} en Chequealo`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(profileUrl)}&text=${encodeURIComponent(text)}`, '_blank');
+  };
+
 
   const openNativeShare = async () => {
     if (navigator.share) {
@@ -556,6 +568,27 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
             )}
           </Button>
 
+          {/* PREVIEW DE LA TARJETA */}
+          {generatedImage && (
+            <div className="mt-4 rounded-xl overflow-hidden border border-border shadow-lg">
+              <div className={`relative bg-muted ${currentFormat === 'story' ? 'aspect-[9/16] max-h-[300px]' : 'aspect-square'}`}>
+                <img 
+                  src={generatedImage} 
+                  alt="Preview de tarjeta"
+                  className="w-full h-full object-contain"
+                />
+                <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-xs px-2 py-1 rounded-full font-medium">
+                  {currentFormat === 'post' ? '1080×1080' : '1080×1920'}
+                </div>
+              </div>
+              <div className="p-3 bg-muted/50 text-center">
+                <p className="text-xs text-muted-foreground">
+                  Esta es la imagen que se compartirá
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* INSTAGRAM */}
           <SectionHeader label="INSTAGRAM" />
           <div className="grid grid-cols-2 gap-2">
@@ -615,7 +648,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           
           {/* OTRAS REDES */}
           <SectionHeader label="OTRAS REDES" />
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <ShareOption
               icon={
                 <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center">
@@ -623,8 +656,19 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
                 </div>
               }
               label="Facebook"
-              sublabel="Compartir perfil"
+              sublabel="Compartir"
               onClick={shareToFacebookPost}
+              colorClass="bg-muted/50 hover:bg-muted border border-border/50"
+            />
+            <ShareOption
+              icon={
+                <div className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center">
+                  <TelegramIcon />
+                </div>
+              }
+              label="Telegram"
+              sublabel="Compartir"
+              onClick={shareToTelegram}
               colorClass="bg-muted/50 hover:bg-muted border border-border/50"
             />
           </div>
