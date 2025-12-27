@@ -308,7 +308,7 @@ export const useChat = () => {
 
   const setupRealtimeSubscriptions = useCallback(() => {
     const messagesSubscription = supabase
-      .channel('messages')
+      .channel('messages-realtime')
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -353,6 +353,29 @@ export const useChat = () => {
             processedMessagesRef.current = new Set(entries.slice(-50));
           }
         }
+      })
+      // Suscripción UPDATE para actualizar tildes de leído en tiempo real
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages'
+      }, (payload) => {
+        const updatedMessage = payload.new as Message;
+        
+        // Actualizar el mensaje en el estado local
+        setMessages(prev => {
+          const conversationMessages = prev[updatedMessage.conversation_id];
+          if (!conversationMessages) return prev;
+          
+          return {
+            ...prev,
+            [updatedMessage.conversation_id]: conversationMessages.map(msg => 
+              msg.id === updatedMessage.id 
+                ? { ...msg, is_read: updatedMessage.is_read, read_at: updatedMessage.read_at }
+                : msg
+            )
+          };
+        });
       })
       .subscribe();
 
