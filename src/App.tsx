@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationPopupWrapper from "@/components/NotificationPopupWrapper";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
-import { FloatingWhatsAppWidget } from "@/components/FloatingWhatsAppWidget";
+
 import { MultipleFloatingChats } from "@/components/MultipleFloatingChats";
 import { RedirectWithTracking } from "@/components/RedirectWithTracking";
 import { InAppBrowserBanner } from "@/components/InAppBrowserBanner";
@@ -92,7 +92,7 @@ const App = () => {
       <NotificationPopupWrapper />
       <PWAInstallPrompt />
       <IOSInstallInstructions />
-      <FloatingWhatsAppWidget />
+      
     
     <BrowserRouter>
       <MultipleFloatingChats />

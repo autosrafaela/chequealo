@@ -29,15 +29,15 @@ export const FloatingWhatsAppWidget = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <Button
-        onClick={handleSuggestionContact}
-        className="flex items-center gap-2 rounded-full px-4 py-3 h-auto bg-success hover:bg-success/90 text-success-foreground shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-        title="Enviar sugerencia por WhatsApp"
-      >
-        <MessageCircle className="h-5 w-5" />
-        <span className="text-sm font-medium">Sugerencias</span>
-      </Button>
-    </div>
+    <Button
+      onClick={handleSuggestionContact}
+      variant="ghost"
+      size="sm"
+      className="text-navy-foreground hover:bg-navy-light/50 gap-1.5 px-2 sm:px-3"
+      title="Enviar sugerencia por WhatsApp"
+    >
+      <MessageCircle className="h-4 w-4 text-success" />
+      <span className="hidden sm:inline text-xs font-medium">Sugerencias</span>
+    </Button>
   );
 };
