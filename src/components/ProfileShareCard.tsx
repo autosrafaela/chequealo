@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Share2, Loader2, Copy, Check, ExternalLink, Sparkles } from 'lucide-react';
+import { Share2, Loader2, Copy, Check, ExternalLink, Sparkles, Download, Image, LayoutGrid, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ProfileShareCardProps {
@@ -21,19 +21,27 @@ interface ProfileShareCardProps {
 interface ShareOptionProps {
   icon: React.ReactNode;
   label: string;
+  sublabel?: string;
   onClick: () => void;
   colorClass?: string;
+  disabled?: boolean;
 }
 
-const ShareOption = ({ icon, label, onClick, colorClass = "bg-muted" }: ShareOptionProps) => (
+type CardFormat = 'post' | 'story';
+
+const ShareOption = ({ icon, label, sublabel, onClick, colorClass = "bg-muted", disabled }: ShareOptionProps) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${colorClass}`}
+    disabled={disabled}
+    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${colorClass}`}
   >
     <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center">
       {icon}
     </div>
-    <span className="font-medium text-foreground">{label}</span>
+    <div className="flex flex-col items-start">
+      <span className="font-medium text-foreground">{label}</span>
+      {sublabel && <span className="text-xs text-muted-foreground">{sublabel}</span>}
+    </div>
   </button>
 );
 
@@ -46,34 +54,25 @@ const SectionHeader = ({ label }: { label: string }) => (
 
 // Social media icons as SVG components
 const InstagramIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="url(#instagram-gradient)">
-    <defs>
-      <linearGradient id="instagram-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#FFDC80" />
-        <stop offset="25%" stopColor="#F77737" />
-        <stop offset="50%" stopColor="#F56040" />
-        <stop offset="75%" stopColor="#C13584" />
-        <stop offset="100%" stopColor="#833AB4" />
-      </linearGradient>
-    </defs>
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
   </svg>
 );
 
 const FacebookIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#1877F2">
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
   </svg>
 );
 
 const WhatsAppIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#25D366">
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
   </svg>
 );
 
 const TwitterIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#000000">
+  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
   </svg>
 );
@@ -84,9 +83,10 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState<CardFormat>('story');
+  const [currentFormat, setCurrentFormat] = useState<CardFormat>('story');
 
   const getProfileUrl = () => {
-    // Always use https:// for better compatibility with WhatsApp/Instagram link detection
     return `https://chequealo.ar/professional/${professional.id}`;
   };
 
@@ -104,7 +104,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
 
   const loadImage = (src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
-      const img = new Image();
+      const img = new window.Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
       img.onerror = reject;
@@ -112,7 +112,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     });
   };
 
-  const roundRect = (
+  const drawRoundRect = (
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
@@ -133,8 +133,9 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     ctx.closePath();
   };
 
-  const generateProfileCard = async () => {
+  const generateProfileCard = async (format: CardFormat = selectedFormat) => {
     setGenerating(true);
+    setCurrentFormat(format);
     
     try {
       const canvas = canvasRef.current;
@@ -143,49 +144,56 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Could not get canvas context');
 
-      // Story dimensions (9:16 aspect ratio)
+      // Dimensions based on format
+      const isPost = format === 'post';
       canvas.width = 1080;
-      canvas.height = 1920;
+      canvas.height = isPost ? 1080 : 1920;
+      const w = canvas.width;
+      const h = canvas.height;
 
-      // Draw gradient background
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, '#1a1a2e');
-      gradient.addColorStop(0.5, '#16213e');
-      gradient.addColorStop(1, '#0f3460');
-      
+      // ===== GRADIENT BACKGROUND (Blue to Purple) =====
+      const gradient = ctx.createLinearGradient(0, 0, w, h);
+      gradient.addColorStop(0, '#197fe6');
+      gradient.addColorStop(1, '#7c3aed');
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, w, h);
 
-      // Add subtle pattern overlay
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
-      for (let i = 0; i < canvas.height; i += 60) {
-        ctx.fillRect(0, i, canvas.width, 1);
+      // Subtle pattern overlay
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+      for (let i = 0; i < h; i += 80) {
+        ctx.fillRect(0, i, w, 2);
       }
 
-      // Add decorative circles
-      ctx.fillStyle = 'rgba(99, 102, 241, 0.1)';
+      // Decorative circles
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.beginPath();
-      ctx.arc(-100, 400, 300, 0, Math.PI * 2);
+      ctx.arc(-100, h * 0.3, 300, 0, Math.PI * 2);
       ctx.fill();
       
-      ctx.fillStyle = 'rgba(236, 72, 153, 0.1)';
       ctx.beginPath();
-      ctx.arc(canvas.width + 100, 1400, 400, 0, Math.PI * 2);
+      ctx.arc(w + 100, h * 0.7, 400, 0, Math.PI * 2);
       ctx.fill();
 
-      // Draw profile photo with circular mask
-      const photoSize = 400;
-      const photoX = (canvas.width - photoSize) / 2;
-      const photoY = 350;
+      // ===== LOGO CHEQUEALO (top left) =====
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.font = 'bold 48px Arial, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('CHEQUEALO', 60, 90);
       
-      // Photo background circle
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.font = '24px Arial, sans-serif';
+      ctx.fillText('.AR', 60 + ctx.measureText('CHEQUEALO').width + 8, 90);
+
+      // ===== PROFILE PHOTO =====
+      const photoSize = isPost ? 220 : 280;
+      const photoX = (w - photoSize) / 2;
+      const photoY = isPost ? 180 : 380;
+      
+      // Photo border glow
       ctx.save();
       ctx.beginPath();
-      ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2 + 10, 0, Math.PI * 2);
-      const photoGradient = ctx.createLinearGradient(photoX, photoY, photoX + photoSize, photoY + photoSize);
-      photoGradient.addColorStop(0, '#6366f1');
-      photoGradient.addColorStop(1, '#ec4899');
-      ctx.fillStyle = photoGradient;
+      ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2 + 12, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
       ctx.fill();
       ctx.restore();
 
@@ -200,14 +208,14 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           ctx.drawImage(img, photoX, photoY, photoSize, photoSize);
           ctx.restore();
         } catch {
-          // Draw placeholder if image fails
+          // Placeholder
           ctx.save();
           ctx.beginPath();
           ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, Math.PI * 2);
-          ctx.fillStyle = '#4a5568';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
           ctx.fill();
           ctx.fillStyle = '#fff';
-          ctx.font = 'bold 120px Arial';
+          ctx.font = 'bold 80px Arial, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           const initials = professional.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -215,14 +223,13 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           ctx.restore();
         }
       } else {
-        // Draw placeholder
         ctx.save();
         ctx.beginPath();
         ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, Math.PI * 2);
-        ctx.fillStyle = '#4a5568';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
         ctx.fill();
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 120px Arial';
+        ctx.font = 'bold 80px Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const initials = professional.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -230,116 +237,131 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
         ctx.restore();
       }
 
-      // Verified badge
-      if (professional.is_verified) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(photoX + photoSize - 30, photoY + photoSize - 30, 45, 0, Math.PI * 2);
-        ctx.fillStyle = '#22c55e';
-        ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 40px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('✓', photoX + photoSize - 30, photoY + photoSize - 30);
-        ctx.restore();
-      }
-
-      // Professional name - UPPERCASE for cleaner look
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 72px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(professional.full_name.toUpperCase(), canvas.width / 2, photoY + photoSize + 60);
-
-      // Profession
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.font = '48px Arial';
-      ctx.fillText(professional.profession, canvas.width / 2, photoY + photoSize + 150);
-
-      // Location
-      if (professional.location) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.font = '40px Arial';
-        ctx.fillText(`📍 ${professional.location}`, canvas.width / 2, photoY + photoSize + 220);
-      }
-
-      // Rating card
-      if (professional.rating) {
-        const ratingY = photoY + photoSize + 310;
-        const cardWidth = 400;
-        const cardHeight = 120;
-        const cardX = (canvas.width - cardWidth) / 2;
-
-        // Rating background
-        ctx.save();
-        roundRect(ctx, cardX, ratingY, cardWidth, cardHeight, 20);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fill();
-        ctx.restore();
-
-        // Stars
-        ctx.fillStyle = '#fbbf24';
-        ctx.font = '50px Arial';
-        ctx.textAlign = 'center';
-        const stars = '⭐'.repeat(Math.round(professional.rating));
-        ctx.fillText(stars, canvas.width / 2, ratingY + 45);
-
-        // Rating text
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 36px Arial';
-        ctx.fillText(`${professional.rating.toFixed(1)}/5`, canvas.width / 2 - 80, ratingY + 95);
-        
-        if (professional.review_count) {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-          ctx.font = '30px Arial';
-          ctx.fillText(`(${professional.review_count} opiniones)`, canvas.width / 2 + 80, ratingY + 95);
-        }
-      }
-
-      // CTA section
-      const ctaY = 1400;
-      
+      // Available badge (green dot)
       ctx.save();
-      roundRect(ctx, 80, ctaY, canvas.width - 160, 200, 30);
-      const ctaGradient = ctx.createLinearGradient(80, ctaY, canvas.width - 80, ctaY + 200);
-      ctaGradient.addColorStop(0, '#6366f1');
-      ctaGradient.addColorStop(1, '#8b5cf6');
+      ctx.beginPath();
+      ctx.arc(photoX + photoSize - 15, photoY + photoSize - 15, 25, 0, Math.PI * 2);
+      ctx.fillStyle = '#10b981';
+      ctx.fill();
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.restore();
+
+      // ===== PROFESSIONAL NAME =====
+      const nameY = photoY + photoSize + (isPost ? 50 : 70);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${isPost ? 54 : 64}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(professional.full_name.toUpperCase(), w / 2, nameY);
+
+      // ===== PROFESSION =====
+      ctx.font = `${isPost ? 36 : 44}px Arial, sans-serif`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillText(professional.profession, w / 2, nameY + (isPost ? 50 : 60));
+
+      // ===== RATING WITH STARS =====
+      const ratingY = nameY + (isPost ? 120 : 150);
+      
+      if (professional.rating) {
+        // Stars
+        const starSize = isPost ? 36 : 44;
+        const totalStars = 5;
+        const filledStars = Math.round(professional.rating);
+        ctx.font = `${starSize}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        
+        let starsText = '';
+        for (let i = 0; i < totalStars; i++) {
+          starsText += i < filledStars ? '★' : '☆';
+        }
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(starsText, w / 2, ratingY);
+
+        // Rating number and reviews
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${isPost ? 40 : 48}px Arial, sans-serif`;
+        const ratingText = `${professional.rating.toFixed(1)}`;
+        const reviewsText = professional.review_count ? ` (${professional.review_count})` : '';
+        ctx.fillText(ratingText + reviewsText, w / 2, ratingY + (isPost ? 55 : 70));
+      }
+
+      // ===== BADGES (Verified / Premium) =====
+      const badgesY = ratingY + (isPost ? 110 : 140);
+      
+      if (professional.is_verified) {
+        const badgeWidth = 200;
+        const badgeHeight = 50;
+        const badgeX = w / 2 - badgeWidth / 2;
+        
+        ctx.save();
+        drawRoundRect(ctx, badgeX, badgesY - badgeHeight / 2, badgeWidth, badgeHeight, 25);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${isPost ? 28 : 32}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('✓ Verificado', w / 2, badgesY + 10);
+      }
+
+      // ===== LOCATION =====
+      const locationY = badgesY + (isPost ? 70 : 90);
+      if (professional.location) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.font = `${isPost ? 32 : 38}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(`📍 ${professional.location}`, w / 2, locationY);
+      }
+
+      // ===== CTA SECTION =====
+      const ctaY = isPost ? h - 280 : h - 450;
+      const ctaWidth = w - 160;
+      const ctaHeight = isPost ? 130 : 160;
+      const ctaX = (w - ctaWidth) / 2;
+
+      ctx.save();
+      drawRoundRect(ctx, ctaX, ctaY, ctaWidth, ctaHeight, 30);
+      const ctaGradient = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaWidth, ctaY);
+      ctaGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+      ctaGradient.addColorStop(1, 'rgba(255, 255, 255, 0.15)');
       ctx.fillStyle = ctaGradient;
       ctx.fill();
       ctx.restore();
 
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 52px Arial';
+      ctx.font = `bold ${isPost ? 42 : 52}px Arial, sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText('¡Contactame!', canvas.width / 2, ctaY + 80);
-      
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = '36px Arial';
-      ctx.fillText('Tocá el link de esta historia', canvas.width / 2, ctaY + 140);
+      ctx.fillText('¡Contactame!', w / 2, ctaY + (isPost ? 55 : 70));
       
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.font = '48px Arial';
-      ctx.fillText('👆', canvas.width / 2, ctaY + 190);
+      ctx.font = `${isPost ? 28 : 34}px Arial, sans-serif`;
+      ctx.fillText('Tocá el link para ver mi perfil', w / 2, ctaY + (isPost ? 95 : 120));
 
-      // Chequealo branding at bottom
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 56px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('CHEQUEALO', canvas.width / 2, 1720);
-      
+      // ===== PROFILE URL =====
+      const urlY = isPost ? h - 100 : h - 200;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.font = '32px Arial';
-      ctx.fillText('Profesionales verificados', canvas.width / 2, 1790);
+      ctx.font = `${isPost ? 28 : 32}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText('Ver perfil completo en:', w / 2, urlY);
       
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.font = '28px Arial';
-      ctx.fillText('chequealo.ar', canvas.width / 2, 1850);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${isPost ? 34 : 40}px Arial, sans-serif`;
+      const shortUrl = `chequealo.ar/professional/${professional.id.substring(0, 8)}...`;
+      ctx.fillText(shortUrl, w / 2, urlY + (isPost ? 45 : 55));
+
+      // ===== FOOTER BRANDING =====
+      if (!isPost) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.font = '28px Arial, sans-serif';
+        ctx.fillText('Profesionales verificados', w / 2, h - 80);
+      }
 
       const dataUrl = canvas.toDataURL('image/png');
       setGeneratedImage(dataUrl);
       
-      toast.success('¡Imagen generada!');
+      toast.success(`¡Imagen ${isPost ? 'cuadrada' : 'vertical'} generada!`);
     } catch (error) {
       console.error('Error generating profile card:', error);
       toast.error('Error al generar la imagen');
@@ -349,7 +371,10 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   };
 
   const downloadImage = async () => {
-    if (!generatedImage) return;
+    if (!generatedImage) {
+      await generateProfileCard();
+      return;
+    }
     
     try {
       await navigator.clipboard.writeText(getProfileUrl());
@@ -359,7 +384,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     }
     
     const link = document.createElement('a');
-    link.download = `perfil-${professional.full_name.replace(/\s+/g, '-').toLowerCase()}.png`;
+    link.download = `perfil-${professional.full_name.replace(/\s+/g, '-').toLowerCase()}-${currentFormat}.png`;
     link.href = generatedImage;
     document.body.appendChild(link);
     link.click();
@@ -369,10 +394,15 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   };
 
   // Share functions
-  const shareToInstagramStory = async () => {
-    if (!generatedImage) {
-      await generateProfileCard();
+  const shareToInstagram = async (format: CardFormat) => {
+    setSelectedFormat(format);
+    
+    if (!generatedImage || currentFormat !== format) {
+      await generateProfileCard(format);
     }
+    
+    // Wait for state update
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     if (navigator.share && navigator.canShare) {
       try {
@@ -382,7 +412,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
         
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file] });
-          toast.success('¡Compartiendo en Instagram!');
+          toast.success('¡Compartiendo!');
           return;
         }
       } catch (error) {
@@ -391,32 +421,10 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     }
 
     await downloadImage();
-    setTimeout(() => { window.location.href = 'instagram://'; }, 500);
-    toast.success('Imagen descargada. Subila a tu Historia');
-  };
-
-  const shareToFacebookStory = async () => {
-    if (!generatedImage) {
-      await generateProfileCard();
-    }
-    
-    if (navigator.share && navigator.canShare) {
-      try {
-        const response = await fetch(generatedImage!);
-        const blob = await response.blob();
-        const file = new File([blob], `perfil-${professional.full_name}.png`, { type: 'image/png' });
-        
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file] });
-          return;
-        }
-      } catch (error) {
-        console.log('Web Share failed');
-      }
-    }
-
-    await downloadImage();
-    toast.success('Imagen descargada. Subila a tu Historia de Facebook');
+    toast.success(format === 'story' 
+      ? 'Imagen descargada. Subila a tu Historia de Instagram' 
+      : 'Imagen descargada. Subila como publicación en Instagram'
+    );
   };
 
   const sendToWhatsAppContact = () => {
@@ -426,9 +434,13 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   };
 
   const shareToWhatsAppStatus = async () => {
-    if (!generatedImage) {
-      await generateProfileCard();
+    setSelectedFormat('story');
+    
+    if (!generatedImage || currentFormat !== 'story') {
+      await generateProfileCard('story');
     }
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     if (navigator.share && navigator.canShare) {
       try {
@@ -495,10 +507,10 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-center">
-            Compartir en Redes Sociales
+            Compartir Perfil
           </DialogTitle>
           <p className="text-sm text-muted-foreground text-center">
-            Compartí este perfil y aumentá su visibilidad
+            Generá una tarjeta visual para redes sociales
           </p>
         </DialogHeader>
         
@@ -506,54 +518,94 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           {/* Hidden canvas for generation */}
           <canvas ref={canvasRef} style={{ display: 'none' }} />
           
-          {/* IMAGEN CON IA */}
-          <SectionHeader label="IMAGEN CON IA" />
-          <ShareOption
-            icon={
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                {generating ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Sparkles className="w-5 h-5 text-white" />}
-              </div>
-            }
-            label={generating ? "Generando..." : "Generar imagen para Stories"}
-            onClick={generateProfileCard}
-            colorClass="bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/20"
-          />
+          {/* FORMAT SELECTOR */}
+          <SectionHeader label="FORMATO DE IMAGEN" />
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setSelectedFormat('post')}
+              className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                selectedFormat === 'post' 
+                  ? 'border-primary bg-primary/10' 
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <LayoutGrid className={`w-8 h-8 ${selectedFormat === 'post' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className="font-medium text-sm">Cuadrado</span>
+              <span className="text-xs text-muted-foreground">1080×1080</span>
+            </button>
+            <button
+              onClick={() => setSelectedFormat('story')}
+              className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                selectedFormat === 'story' 
+                  ? 'border-primary bg-primary/10' 
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <Smartphone className={`w-8 h-8 ${selectedFormat === 'story' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className="font-medium text-sm">Historia</span>
+              <span className="text-xs text-muted-foreground">1080×1920</span>
+            </button>
+          </div>
           
-          {/* HISTORIAS */}
-          <SectionHeader label="HISTORIAS" />
-          <div className="space-y-2">
+          {/* GENERATE BUTTON */}
+          <Button
+            onClick={() => generateProfileCard(selectedFormat)}
+            disabled={generating}
+            className="w-full h-14 gap-3 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+          >
+            {generating ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Generando imagen...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Generar tarjeta {selectedFormat === 'post' ? 'cuadrada' : 'vertical'}
+              </>
+            )}
+          </Button>
+
+          {/* INSTAGRAM */}
+          <SectionHeader label="INSTAGRAM" />
+          <div className="grid grid-cols-2 gap-2">
             <ShareOption
               icon={
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center p-2">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center">
                   <InstagramIcon />
                 </div>
               }
-              label="Instagram Story"
-              onClick={shareToInstagramStory}
+              label="Post"
+              sublabel="1:1"
+              onClick={() => shareToInstagram('post')}
+              disabled={generating}
               colorClass="bg-muted/50 hover:bg-muted border border-border/50"
             />
             <ShareOption
               icon={
-                <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center">
-                  <FacebookIcon />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center">
+                  <InstagramIcon />
                 </div>
               }
-              label="Facebook Story"
-              onClick={shareToFacebookStory}
+              label="Historia"
+              sublabel="9:16"
+              onClick={() => shareToInstagram('story')}
+              disabled={generating}
               colorClass="bg-muted/50 hover:bg-muted border border-border/50"
             />
           </div>
           
           {/* WHATSAPP */}
           <SectionHeader label="WHATSAPP" />
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             <ShareOption
               icon={
                 <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center">
                   <WhatsAppIcon />
                 </div>
               }
-              label="Enviar a contacto"
+              label="Contacto"
+              sublabel="Link"
               onClick={sendToWhatsAppContact}
               colorClass="bg-muted/50 hover:bg-muted border border-border/50"
             />
@@ -563,22 +615,24 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
                   <WhatsAppIcon />
                 </div>
               }
-              label="Compartir en Estado"
+              label="Estado"
+              sublabel="Imagen"
               onClick={shareToWhatsAppStatus}
+              disabled={generating}
               colorClass="bg-muted/50 hover:bg-muted border border-border/50"
             />
           </div>
           
           {/* OTRAS REDES */}
           <SectionHeader label="OTRAS REDES" />
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             <ShareOption
               icon={
                 <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center">
                   <FacebookIcon />
                 </div>
               }
-              label="Facebook (publicación)"
+              label="Facebook"
               onClick={shareToFacebookPost}
               colorClass="bg-muted/50 hover:bg-muted border border-border/50"
             />
@@ -588,7 +642,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
                   <TwitterIcon />
                 </div>
               }
-              label="Twitter / X"
+              label="X (Twitter)"
               onClick={shareToTwitter}
               colorClass="bg-muted/50 hover:bg-muted border border-border/50"
             />
@@ -596,29 +650,41 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           
           {/* Footer section */}
           <div className="pt-4 mt-4 border-t border-border space-y-3">
-            <Button 
-              onClick={copyLinkToClipboard}
-              variant="ghost"
-              className="w-full justify-start gap-3 h-12"
-            >
-              {linkCopied ? (
-                <Check className="h-5 w-5 text-green-500" />
-              ) : (
-                <Copy className="h-5 w-5 text-muted-foreground" />
-              )}
-              <span>{linkCopied ? '¡Link copiado!' : 'Copiar Link'}</span>
-            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                onClick={copyLinkToClipboard}
+                variant="ghost"
+                className="w-full justify-center gap-2 h-11"
+              >
+                {linkCopied ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+                <span className="text-sm">{linkCopied ? 'Copiado' : 'Copiar link'}</span>
+              </Button>
+              
+              <Button 
+                onClick={downloadImage}
+                variant="ghost"
+                disabled={generating}
+                className="w-full justify-center gap-2 h-11"
+              >
+                <Download className="h-4 w-4" />
+                <span className="text-sm">Descargar</span>
+              </Button>
+            </div>
             
             <Button 
               onClick={openNativeShare}
-              className="w-full h-12 gap-2"
+              className="w-full h-11 gap-2"
+              variant="outline"
             >
               <ExternalLink className="h-4 w-4" />
               Más opciones
             </Button>
             
             <div className="text-xs text-muted-foreground text-center pt-2">
-              <span className="block mb-1">Link del perfil:</span>
               <span className="block truncate text-foreground/70 font-mono text-[10px] bg-muted px-2 py-1 rounded">
                 {getProfileUrl()}
               </span>
