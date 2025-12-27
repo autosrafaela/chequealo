@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageCircle, ChevronDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -251,23 +251,36 @@ export const MultipleFloatingChats = () => {
           </div>
         )}
 
-        {/* Botón principal */}
-        <Button
-          onClick={() => setShowConversationsList(!showConversationsList)}
-          className="relative h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all"
-          size="icon"
-        >
-          {showConversationsList ? (
-            <ChevronDown className="h-6 w-6" />
-          ) : (
-            <MessageCircle className="h-6 w-6" />
+        {/* Botón principal con X para cerrar */}
+        <div className="flex items-center gap-2">
+          {showConversationsList && (
+            <Button
+              onClick={() => setShowConversationsList(false)}
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-full shadow-md bg-background hover:bg-muted"
+              title="Cerrar lista"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           )}
-          {unreadCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 bg-red-500">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </Badge>
-          )}
-        </Button>
+          <Button
+            onClick={() => setShowConversationsList(!showConversationsList)}
+            className="relative h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all"
+            size="icon"
+          >
+            {showConversationsList ? (
+              <ChevronDown className="h-6 w-6" />
+            ) : (
+              <MessageCircle className="h-6 w-6" />
+            )}
+            {unreadCount > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 bg-red-500">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </Badge>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Ventanas de chat flotantes */}

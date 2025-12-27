@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import FilterDropdown from "./FilterDropdown";
 import NotificationCenter from "./NotificationCenter";
 import FavoritesPanel from "./FavoritesPanel";
+import { FloatingWhatsAppWidget } from "./FloatingWhatsAppWidget";
 import { provinceCityMap } from "../data/provinceCityData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -228,6 +229,9 @@ const Header = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Sugerencias - Ahora en el Header */}
+            <FloatingWhatsAppWidget />
+
             {/* Mobile Search Button */}
             <Button
               variant="ghost"
