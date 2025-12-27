@@ -487,6 +487,100 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_quotes: {
+        Row: {
+          amount: number
+          conversation_id: string
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          message_id: string | null
+          professional_id: string
+          responded_at: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          conversation_id: string
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          message_id?: string | null
+          professional_id: string
+          responded_at?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          conversation_id?: string
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          message_id?: string | null
+          professional_id?: string
+          responded_at?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_quotes_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_quotes_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_quotes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_quotes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_quotes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_quotes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_with_contact"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       combo_reservations: {
         Row: {
           combo_id: string | null
@@ -1440,6 +1534,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_blocked: boolean
+          last_seen: string | null
           location: string | null
           updated_at: string
           user_id: string
@@ -1452,6 +1547,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_blocked?: boolean
+          last_seen?: string | null
           location?: string | null
           updated_at?: string
           user_id: string
@@ -1464,6 +1560,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_blocked?: boolean
+          last_seen?: string | null
           location?: string | null
           updated_at?: string
           user_id?: string
