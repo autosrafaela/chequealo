@@ -38,6 +38,7 @@ const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Install = lazy(() => import("./pages/Install"));
+const Messages = lazy(() => import("./pages/Messages"));
 
 // Campaign Landing Pages - lazy loaded
 const Urgencias24 = lazy(() => import("./pages/campaigns/Urgencias24"));
@@ -120,6 +121,7 @@ const App = () => {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/instalar" element={<Install />} />
+          <Route path="/mensajes" element={<Messages />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/test-results" element={<TestResults />} />
