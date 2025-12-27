@@ -29,7 +29,7 @@ const TermsOfService = () => {
                     <strong>Última actualización:</strong> 12 de septiembre de 2025
                   </p>
                   <p className="text-muted-foreground">
-                    Bienvenido/a a CHEQUEALO.AR (el "Sitio" y/o la "Plataforma"), operado por [Razón Social], CUIT [CUIT], con domicilio en [Domicilio legal] ("CHEQUEALO.AR", "nosotros" o "nuestro"). Estos Términos y Condiciones (los "Términos") regulan el acceso y uso del Sitio, de nuestras aplicaciones asociadas y de los servicios que ofrecemos (los "Servicios"). Al registrarte, acceder o utilizar la Plataforma aceptas estos Términos y nuestra Política de Privacidad.
+                    Bienvenido/a a CHEQUEALO.AR (el "Sitio" y/o la "Plataforma"), operado por MAXIMILIANO MARTIN BUSTAMANTE, CUIT 20-29048928-9, con domicilio en AV ANTONIO PODIO 1732, Rafaela, Santa Fe, República Argentina ("CHEQUEALO.AR", "nosotros" o "nuestro"). Estos Términos y Condiciones (los "Términos") regulan el acceso y uso del Sitio, de nuestras aplicaciones asociadas y de los servicios que ofrecemos (los "Servicios"). Al registrarte, acceder o utilizar la Plataforma aceptas estos Términos y nuestra Política de Privacidad.
                   </p>
                   <p className="text-muted-foreground mt-2">
                     Si no estás de acuerdo, no utilices la Plataforma.
@@ -133,7 +133,7 @@ const TermsOfService = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-3">14) Resolución de disputas</h2>
                   <p className="text-muted-foreground">
-                    Las disputas entre usuarios deben resolverse directamente entre las partes. CHEQUEALO.AR puede facilitar la comunicación pero no actúa como mediador oficial. Para disputas con CHEQUEALO.AR, se aplicará la legislación argentina y serán competentes los tribunales de la Ciudad Autónoma de Buenos Aires.
+                    Las disputas entre usuarios deben resolverse directamente entre las partes. CHEQUEALO.AR puede facilitar la comunicación pero no actúa como mediador oficial. Para disputas con CHEQUEALO.AR, se aplicará la legislación argentina y serán competentes los tribunales de la ciudad de Rafaela, Provincia de Santa Fe.
                   </p>
                 </section>
 
@@ -154,7 +154,7 @@ const TermsOfService = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-3">17) Ley aplicable y jurisdicción</h2>
                   <p className="text-muted-foreground">
-                    Estos Términos se rigen por las leyes de la República Argentina. Cualquier disputa será resuelta por los tribunales competentes de la Ciudad Autónoma de Buenos Aires.
+                    Estos Términos se rigen por las leyes de la República Argentina. Cualquier disputa será resuelta por los tribunales competentes de la ciudad de Rafaela, Provincia de Santa Fe.
                   </p>
                 </section>
 
