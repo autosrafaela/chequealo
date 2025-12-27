@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MessageCircle, X, Send, Paperclip, Image as ImageIcon, Mic, MicOff, ArrowLeft } from 'lucide-react';
+import { MessageCircle, Send, Paperclip, Image as ImageIcon, Mic, MicOff, PlusCircle, Smile, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,8 +9,19 @@ import { Badge } from '@/components/ui/badge';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { ChatHeader } from './chat/ChatHeader';
+import { MessageBubble } from './chat/MessageBubble';
+import { DateSeparator } from './chat/DateSeparator';
+import { ChatQuoteCard } from './chat/ChatQuoteCard';
+import { CreateQuoteModal } from './chat/CreateQuoteModal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 export const FloatingChatWidget = () => {
   const { user } = useAuth();
@@ -25,6 +36,8 @@ export const FloatingChatWidget = () => {
     sendMessage,
     setActiveConversationId,
     openConversationByContactRequest,
+    deleteConversation,
+    blockConversation,
     canReceiveMessages
   } = useChat();
 
@@ -38,11 +51,42 @@ export const FloatingChatWidget = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [transcribeAudio, setTranscribeAudio] = useState(true);
+  const [isProfessional, setIsProfessional] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [quotes, setQuotes] = useState<any[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  // Check if user is professional
+  useEffect(() => {
+    const checkProfessional = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      setIsProfessional(!!data);
+    };
+    checkProfessional();
+  }, [user]);
+
+  // Fetch quotes for active conversation
+  useEffect(() => {
+    const fetchQuotes = async () => {
+      if (!activeConversationId) return;
+      const { data } = await supabase
+        .from('chat_quotes')
+        .select('*')
+        .eq('conversation_id', activeConversationId)
+        .order('created_at', { ascending: true });
+      setQuotes(data || []);
+    };
+    fetchQuotes();
+  }, [activeConversationId, messages]);
 
   // Detectar parámetros de URL para abrir chat automáticamente
   useEffect(() => {
@@ -57,19 +101,16 @@ export const FloatingChatWidget = () => {
         if (conversation) {
           setIsOpen(true);
           handleOpenConversation(conversation);
-          // Limpiar parámetros de URL
           const newParams = new URLSearchParams(location.search);
           newParams.delete('tab');
           newParams.delete('conversation');
           navigate({ search: newParams.toString() }, { replace: true });
         }
       } else if (contactRequestId) {
-        // Abrir chat por contact request
         openConversationByContactRequest(contactRequestId).then(conv => {
           if (conv) {
             setIsOpen(true);
             handleOpenConversation(conv);
-            // Limpiar parámetros de URL
             const newParams = new URLSearchParams(location.search);
             newParams.delete('tab');
             newParams.delete('contactRequestId');
@@ -106,10 +147,10 @@ export const FloatingChatWidget = () => {
     setActiveConversationId(null);
   };
 
-  // Auto-abrir la última conversación para permitir continuar escribiendo
+  // Auto-abrir la última conversación
   useEffect(() => {
     if (isOpen && showConversationList && !activeConversationId && conversations.length > 0) {
-      handleOpenConversation(conversations[0]); // la más reciente ya viene ordenada
+      handleOpenConversation(conversations[0]);
     }
   }, [isOpen, showConversationList, activeConversationId, conversations]);
 
@@ -232,6 +273,65 @@ export const FloatingChatWidget = () => {
     }
   };
 
+  const handleSendQuote = async (quoteData: { title: string; description: string; amount: number }) => {
+    if (!activeConversationId || !selectedConversation) return;
+
+    try {
+      const { data: professional } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (!professional) return;
+
+      const { data: quote, error } = await supabase
+        .from('chat_quotes')
+        .insert({
+          conversation_id: activeConversationId,
+          professional_id: professional.id,
+          user_id: selectedConversation.user_id,
+          title: quoteData.title,
+          description: quoteData.description,
+          amount: quoteData.amount,
+          currency: 'ARS'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Send a message about the quote
+      await sendMessage(
+        activeConversationId,
+        `📋 Presupuesto enviado: ${quoteData.title} - $${quoteData.amount.toFixed(2)}`,
+        'text'
+      );
+
+      setShowQuoteModal(false);
+      setQuotes(prev => [...prev, quote]);
+    } catch (error) {
+      console.error('Error sending quote:', error);
+    }
+  };
+
+  const handleAcceptQuote = async (quoteId: string) => {
+    try {
+      await supabase
+        .from('chat_quotes')
+        .update({ status: 'accepted', responded_at: new Date().toISOString() })
+        .eq('id', quoteId);
+
+      setQuotes(prev => prev.map(q => 
+        q.id === quoteId ? { ...q, status: 'accepted' } : q
+      ));
+
+      await sendMessage(activeConversationId!, '✅ Presupuesto aceptado', 'text');
+    } catch (error) {
+      console.error('Error accepting quote:', error);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -240,7 +340,28 @@ export const FloatingChatWidget = () => {
     return formatDistanceToNow(new Date(timestamp), { addSuffix: true, locale: es });
   };
 
+  // Group messages by date
+  const groupMessagesByDate = (msgs: any[]) => {
+    const groups: { date: Date; messages: any[] }[] = [];
+    
+    msgs?.forEach((msg) => {
+      const msgDate = new Date(msg.created_at);
+      const lastGroup = groups[groups.length - 1];
+      
+      if (!lastGroup || !isSameDay(lastGroup.date, msgDate)) {
+        groups.push({ date: msgDate, messages: [msg] });
+      } else {
+        lastGroup.messages.push(msg);
+      }
+    });
+    
+    return groups;
+  };
+
   if (!user || !canReceiveMessages) return null;
+
+  const currentMessages = messages[activeConversationId || ''] || [];
+  const messageGroups = groupMessagesByDate(currentMessages);
 
   return (
     <>
@@ -264,53 +385,27 @@ export const FloatingChatWidget = () => {
       {isOpen && (
         <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-background border rounded-lg shadow-2xl z-50 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="p-4 border-b flex items-center justify-between bg-primary text-primary-foreground">
-            {showConversationList ? (
-              <>
-                <h3 className="font-semibold">Mensajes</h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="text-primary-foreground hover:bg-primary/90"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleBackToList}
-                    className="text-primary-foreground hover:bg-primary/90"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={selectedConversation?.professionals?.image_url} />
-                      <AvatarFallback>
-                        {getInitials(selectedConversation?.professionals?.full_name || 'Usuario')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="font-semibold text-sm">
-                      {selectedConversation?.professionals?.full_name || 'Usuario'}
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="text-primary-foreground hover:bg-primary/90"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-          </div>
+          {showConversationList ? (
+            <div className="p-4 border-b flex items-center justify-between bg-primary text-primary-foreground">
+              <h3 className="font-semibold">Mensajes</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                className="text-primary-foreground hover:bg-primary/90 h-8 w-8"
+              >
+                ✕
+              </Button>
+            </div>
+          ) : (
+            <ChatHeader
+              conversation={selectedConversation}
+              onBack={handleBackToList}
+              onClose={() => setIsOpen(false)}
+              onArchive={() => deleteConversation(activeConversationId!)}
+              onBlock={() => blockConversation(activeConversationId!)}
+            />
+          )}
 
           {/* Contenido */}
           <div className="flex-1 overflow-hidden">
@@ -364,70 +459,44 @@ export const FloatingChatWidget = () => {
               </ScrollArea>
             ) : (
               <>
-                {/* Mensajes */}
-                <ScrollArea className="h-[calc(100%-120px)] p-4">
-                  <div className="space-y-3">
-                    {messages[activeConversationId]?.map((message) => {
-                      const isOwn = message.sender_id === user?.id;
-                      return (
-                        <div
-                          key={message.id}
-                          className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div
-                            className={`max-w-[75%] rounded-2xl px-3 py-2 ${
-                              isOwn
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted'
-                            }`}
-                          >
-                            {message.message_type === 'image' && message.file_url && (
-                              <img 
-                                src={message.file_url} 
-                                alt="Imagen adjunta"
-                                className="rounded-lg mb-1 max-w-full"
-                              />
-                            )}
-                            
-                            {message.message_type === 'audio' && message.file_url && (
-                              <audio 
-                                controls 
-                                className="mb-1 max-w-full"
-                                preload="metadata"
-                              >
-                                <source src={message.file_url} type="audio/webm" />
-                              </audio>
-                            )}
-                            
-                            {message.message_type === 'file' && message.file_url && (
-                              <a 
-                                href={message.file_url} 
-                                download={message.file_name}
-                                className="flex items-center gap-2 mb-1 hover:underline text-xs"
-                              >
-                                <Paperclip className="h-3 w-3" />
-                                <span>{message.file_name}</span>
-                              </a>
-                            )}
-                            
-                            <p className="text-sm break-words">{message.content}</p>
-                            <span className={`text-xs mt-1 block ${
-                              isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                            }`}>
-                              {new Date(message.created_at).toLocaleTimeString('es-AR', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                {/* Mensajes con separadores de fecha */}
+                <ScrollArea className="h-[calc(100%-60px)] p-4">
+                  <div className="space-y-2">
+                    {messageGroups.map((group, groupIndex) => (
+                      <div key={groupIndex}>
+                        <DateSeparator date={group.date} />
+                        {group.messages.map((message) => {
+                          const isOwn = message.sender_id === user?.id;
+                          
+                          // Check if there's a quote for this message
+                          const quote = quotes.find(q => 
+                            message.content.includes(q.title) && 
+                            message.content.includes('Presupuesto')
+                          );
+
+                          return (
+                            <div key={message.id} className="mb-2">
+                              {quote && (
+                                <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-2`}>
+                                  <ChatQuoteCard
+                                    quote={quote}
+                                    isOwnMessage={isOwn}
+                                    isProfessional={isProfessional}
+                                    onAccept={handleAcceptQuote}
+                                  />
+                                </div>
+                              )}
+                              <MessageBubble message={message} isOwn={isOwn} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
                     <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
 
-                {/* Input de mensaje */}
+                {/* Input de mensaje mejorado */}
                 <div className="p-3 border-t bg-background">
                   {selectedFile && (
                     <div className="mb-2 p-2 bg-muted rounded-lg flex items-center justify-between">
@@ -437,7 +506,7 @@ export const FloatingChatWidget = () => {
                         ) : (
                           <Paperclip className="h-4 w-4" />
                         )}
-                        <span className="text-xs">{selectedFile.name}</span>
+                        <span className="text-xs truncate max-w-[200px]">{selectedFile.name}</span>
                       </div>
                       <Button variant="ghost" size="sm" onClick={handleRemoveFile}>✕</Button>
                     </div>
@@ -459,61 +528,67 @@ export const FloatingChatWidget = () => {
                       accept="image/*"
                     />
                     
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="h-8 w-8"
-                    >
-                      <Paperclip className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => imageInputRef.current?.click()}
-                      className="h-8 w-8"
-                    >
-                      <ImageIcon className="h-4 w-4" />
-                    </Button>
-                    
-                    <div className="flex items-center">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={isRecording ? stopRecording : startRecording}
-                        className={`h-8 w-8 ${isRecording ? 'text-red-500' : ''}`}
-                        title={transcribeAudio ? 'Grabar y transcribir' : 'Grabar audio directo'}
-                      >
-                        {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setTranscribeAudio(!transcribeAudio)}
-                        disabled={isRecording}
-                        className="h-8 w-8 text-xs"
-                        title={transcribeAudio ? 'Cambiar a audio directo' : 'Cambiar a transcripción'}
-                      >
-                        {transcribeAudio ? '📝' : '🎵'}
-                      </Button>
-                    </div>
-                    
+                    {/* Plus menu for attachments */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                          <PlusCircle className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem onClick={() => imageInputRef.current?.click()}>
+                          <ImageIcon className="h-4 w-4 mr-2" />
+                          Imagen
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                          <Paperclip className="h-4 w-4 mr-2" />
+                          Archivo
+                        </DropdownMenuItem>
+                        {isProfessional && (
+                          <DropdownMenuItem onClick={() => setShowQuoteModal(true)}>
+                            <Receipt className="h-4 w-4 mr-2" />
+                            Presupuesto
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
                     <Input
                       placeholder="Escribe un mensaje..."
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      className="flex-1 h-8 text-sm"
+                      className="flex-1 h-9"
+                      disabled={sending}
                     />
-                    
+
                     <Button
-                      onClick={handleSendMessage}
-                      disabled={!messageText.trim() && !selectedFile}
+                      variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 shrink-0"
                     >
-                      <Send className="h-4 w-4" />
+                      <Smile className="h-5 w-5 text-muted-foreground" />
                     </Button>
+
+                    {messageText.trim() || selectedFile ? (
+                      <Button
+                        onClick={handleSendMessage}
+                        disabled={sending}
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={isRecording ? stopRecording : startRecording}
+                        className={`h-8 w-8 shrink-0 ${isRecording ? 'text-red-500' : ''}`}
+                      >
+                        {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5 text-muted-foreground" />}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </>
@@ -521,6 +596,13 @@ export const FloatingChatWidget = () => {
           </div>
         </div>
       )}
+
+      {/* Quote Modal */}
+      <CreateQuoteModal
+        open={showQuoteModal}
+        onOpenChange={setShowQuoteModal}
+        onSubmit={handleSendQuote}
+      />
     </>
   );
 };
