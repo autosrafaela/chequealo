@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Camera, Upload, Star, Eye, Image, Instagram } from 'lucide-react';
+import { Plus, Edit, Trash2, Camera, Upload, Star, Eye, Image, Instagram, Link, ExternalLink } from 'lucide-react';
 import { SocialContentGenerator } from '@/components/SocialContentGenerator';
 
 interface WorkPhoto {
@@ -22,12 +22,14 @@ interface WorkPhoto {
   is_featured: boolean;
   uploaded_by: string;
   created_at: string;
+  external_url: string | null;
 }
 
 interface PhotoFormData {
   caption: string;
   work_type: string;
   is_featured: boolean;
+  external_url: string;
 }
 
 export const WorkPhotosManager = () => {
@@ -43,7 +45,8 @@ export const WorkPhotosManager = () => {
   const [formData, setFormData] = useState<PhotoFormData>({
     caption: '',
     work_type: '',
-    is_featured: false
+    is_featured: false,
+    external_url: ''
   });
   const [professionalId, setProfessionalId] = useState<string | null>(null);
   const [professionalData, setProfessionalData] = useState<{
@@ -71,7 +74,8 @@ export const WorkPhotosManager = () => {
         newFormData[i] = {
           caption: '',
           work_type: '',
-          is_featured: false
+          is_featured: false,
+          external_url: ''
         };
       }
       
@@ -129,7 +133,8 @@ export const WorkPhotosManager = () => {
     setFormData({
       caption: '',
       work_type: '',
-      is_featured: false
+      is_featured: false,
+      external_url: ''
     });
     setMultipleFormData({});
     setEditingPhoto(null);
@@ -142,7 +147,8 @@ export const WorkPhotosManager = () => {
     setFormData({
       caption: photo.caption || '',
       work_type: photo.work_type || '',
-      is_featured: photo.is_featured
+      is_featured: photo.is_featured,
+      external_url: photo.external_url || ''
     });
     setIsDialogOpen(true);
   };
@@ -184,7 +190,8 @@ export const WorkPhotosManager = () => {
             .update({
               caption: formData.caption.trim() || null,
               work_type: formData.work_type || null,
-              is_featured: formData.is_featured
+              is_featured: formData.is_featured,
+              external_url: formData.external_url.trim() || null
             })
             .eq('id', editingPhoto.id);
 
@@ -213,7 +220,8 @@ export const WorkPhotosManager = () => {
               image_url: imageUrl,
               caption: formData.caption.trim() || null,
               work_type: formData.work_type || null,
-              is_featured: formData.is_featured
+              is_featured: formData.is_featured,
+              external_url: formData.external_url.trim() || null
             })
             .eq('id', editingPhoto.id);
 
@@ -244,7 +252,7 @@ export const WorkPhotosManager = () => {
       
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
-        const photoData = multipleFormData[i] || { caption: '', work_type: '', is_featured: false };
+        const photoData = multipleFormData[i] || { caption: '', work_type: '', is_featured: false, external_url: '' };
         
         try {
           const imageUrl = await uploadImage(file);
@@ -257,6 +265,7 @@ export const WorkPhotosManager = () => {
               caption: photoData.caption.trim() || null,
               work_type: photoData.work_type || null,
               is_featured: photoData.is_featured,
+              external_url: photoData.external_url?.trim() || null,
               uploaded_by: 'professional'
             });
 
@@ -461,6 +470,21 @@ export const WorkPhotosManager = () => {
                                     />
                                   </div>
                                   
+                                  <div>
+                                    <Label htmlFor={`external_url_${index}`} className="text-xs">Link externo (opcional)</Label>
+                                    <Input
+                                      id={`external_url_${index}`}
+                                      value={multipleFormData[index]?.external_url || ''}
+                                      onChange={(e) => setMultipleFormData(prev => ({
+                                        ...prev,
+                                        [index]: { ...prev[index], external_url: e.target.value }
+                                      }))}
+                                      placeholder="https://ejemplo.com"
+                                      type="url"
+                                      className="text-xs"
+                                    />
+                                  </div>
+                                  
                                   <div className="flex items-center space-x-2">
                                     <Switch
                                       id={`featured_${index}`}
@@ -546,6 +570,17 @@ export const WorkPhotosManager = () => {
                           />
                         </div>
 
+                        <div className="space-y-2">
+                          <Label htmlFor="external_url">Link externo (opcional)</Label>
+                          <Input
+                            id="external_url"
+                            value={formData.external_url}
+                            onChange={(e) => setFormData(prev => ({ ...prev, external_url: e.target.value }))}
+                            placeholder="https://ejemplo.com (proyecto, portfolio, etc.)"
+                            type="url"
+                          />
+                        </div>
+
                         <div className="flex items-center space-x-2">
                           <Switch
                             id="is_featured"
@@ -612,9 +647,21 @@ export const WorkPhotosManager = () => {
                   )}
                   
                   {photo.caption && (
-                    <p className="text-sm text-muted-foreground mb-3">
+                    <p className="text-sm text-muted-foreground mb-2">
                       {photo.caption}
                     </p>
+                  )}
+                  
+                  {photo.external_url && (
+                    <a 
+                      href={photo.external_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-3"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Ver link
+                    </a>
                   )}
                   
                   <div className="flex items-center justify-between">
