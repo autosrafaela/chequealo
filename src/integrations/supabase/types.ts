@@ -2323,6 +2323,7 @@ export type Database = {
           before_image_url: string | null
           caption: string | null
           created_at: string
+          external_url: string | null
           id: string
           image_url: string
           is_before_after: boolean | null
@@ -2338,6 +2339,7 @@ export type Database = {
           before_image_url?: string | null
           caption?: string | null
           created_at?: string
+          external_url?: string | null
           id?: string
           image_url: string
           is_before_after?: boolean | null
@@ -2353,6 +2355,7 @@ export type Database = {
           before_image_url?: string | null
           caption?: string | null
           created_at?: string
+          external_url?: string | null
           id?: string
           image_url?: string
           is_before_after?: boolean | null
