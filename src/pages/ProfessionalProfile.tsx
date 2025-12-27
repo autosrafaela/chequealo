@@ -15,6 +15,7 @@ import { TransactionManager } from "@/components/TransactionManager";
 import { ComboCard } from "@/components/ComboCard";
 import { PublicAgendaGrid } from "@/components/PublicAgendaGrid";
 import { ProfileShareCard } from "@/components/ProfileShareCard";
+import { BookingModal } from "@/components/BookingModal";
 import { useCombos } from "@/hooks/useCombos";
 import { useProfessionalProfile } from "@/hooks/useProfessionalProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +60,7 @@ const ProfessionalProfile = () => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [showAllServices, setShowAllServices] = useState(false);
   const [activeTab, setActiveTab] = useState("about");
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const { getContactInfo, loading: contactLoading } = useProfessionalContact();
   const { combos } = useCombos(id);
   
@@ -201,8 +203,7 @@ const ProfessionalProfile = () => {
   };
 
   const handleReserve = () => {
-    setActiveTab("services");
-    toast.info('Desplazate para ver las opciones de reserva');
+    setIsBookingModalOpen(true);
   };
 
   // Loading and error states
@@ -684,16 +685,33 @@ const ProfessionalProfile = () => {
 
       {/* ===== 8. STICKY BOTTOM CTA ===== */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-md border-t border-border shadow-lg">
-        <div className="max-w-2xl mx-auto">
-        <Button 
-          className="w-full h-14 text-base font-bold rounded-xl shadow-md bg-green-600 hover:bg-green-700 text-white"
-          onClick={handleWhatsApp}
-        >
+        <div className="max-w-2xl mx-auto flex gap-2">
+          <Button 
+            className="flex-1 h-14 text-base font-bold rounded-xl shadow-md bg-green-600 hover:bg-green-700 text-white"
+            onClick={handleWhatsApp}
+          >
             <MessageCircle className="w-5 h-5 mr-2" />
-            Contactar por WhatsApp
+            WhatsApp
+          </Button>
+          <Button 
+            className="flex-1 h-14 text-base font-bold rounded-xl shadow-md"
+            onClick={handleReserve}
+          >
+            <Calendar className="w-5 h-5 mr-2" />
+            Reservar Turno
           </Button>
         </div>
       </div>
+
+      {/* ===== BOOKING MODAL ===== */}
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        professionalId={professional.id}
+        professionalName={professional.full_name}
+        professionalAvatar={professional.image_url || undefined}
+        services={services}
+      />
     </div>
   );
 };
