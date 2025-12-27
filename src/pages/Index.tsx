@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { SEOHead, generateOrganizationSchema, generateWebsiteSchema } from "@/components/SEO/SEOHead";
 import { EnableNotificationsBanner } from "@/components/EnableNotificationsBanner";
 import { useAuth } from "@/contexts/AuthContext";
+import { BottomNavigation } from "@/components/BottomNavigation";
 
 const Index = () => {
   const { user } = useAuth();
@@ -33,7 +34,7 @@ const Index = () => {
         canonical="/"
         structuredData={structuredData}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-20 md:pb-0">
         <Header />
       
       {/* Notifications Banner - solo para usuarios logueados */}
@@ -182,6 +183,11 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      
+      {/* Bottom Navigation - Mobile Only */}
+      <div className="md:hidden">
+        <BottomNavigation />
+      </div>
     </div>
     </>
   );

@@ -27,7 +27,7 @@ import { ZonaTodayManager } from '@/components/ZonaTodayManager';
 import { AgendaManager } from '@/components/AgendaManager';
 import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
-import ChatInterface from '@/components/ChatInterface';
+import { MessagesDesktopLayout } from '@/components/chat/MessagesDesktopLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -598,7 +598,10 @@ const ProfessionalDashboard = () => {
           </TabsContent>
 
           <TabsContent value="messages">
-            <ChatInterface initialConversationId={conversationId} />
+            <MessagesDesktopLayout 
+              initialConversationId={conversationId} 
+              isProfessional={true} 
+            />
           </TabsContent>
 
           <TabsContent value="analytics">

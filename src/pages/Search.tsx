@@ -9,6 +9,7 @@ import { Search as SearchIcon, Grid, List, SlidersHorizontal } from 'lucide-reac
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import { SEOHead } from '@/components/SEO/SEOHead';
+import { BottomNavigation } from '@/components/BottomNavigation';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -70,7 +71,7 @@ const Search = () => {
         description="Encontrá profesionales verificados en Argentina. Filtrá por ubicación, profesión y calificaciones. Electricistas, plomeros, albañiles y más servicios."
         canonical="/search"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-20 md:pb-0">
         <Header />
         <div className="container mx-auto px-4 py-8">
         {/* Filters Top Bar */}
@@ -180,6 +181,11 @@ const Search = () => {
               </Card>
             )}
         </div>
+      </div>
+      
+      {/* Bottom Navigation - Mobile Only */}
+      <div className="md:hidden">
+        <BottomNavigation />
       </div>
     </div>
     </>
