@@ -3,7 +3,7 @@ import { EnhancedProfessionalCard } from "@/components/EnhancedProfessionalCard"
 import { ProfessionalCardSkeleton } from "@/components/ProfessionalCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface Professional {
@@ -24,22 +24,35 @@ export const LatestProfessionals = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLatestProfessionals = async () => {
+    const fetchFeaturedProfessionals = async () => {
       try {
+        // Fetch verified professionals ordered by rating and review count
         const { data, error } = await supabase
           .from('professionals_with_contact')
           .select('*')
-          .order('is_verified', { ascending: false })
+          .eq('is_verified', true)
           .order('rating', { ascending: false, nullsFirst: false })
-          .order('created_at', { ascending: false })
-          .limit(12);
+          .order('review_count', { ascending: false, nullsFirst: false })
+          .limit(8);
 
         if (error) {
           console.error('Error fetching professionals:', error);
           return;
         }
 
-        setProfessionals(data || []);
+        // If we don't have enough verified professionals, fetch more
+        if (!data || data.length < 8) {
+          const { data: moreData } = await supabase
+            .from('professionals_with_contact')
+            .select('*')
+            .order('rating', { ascending: false, nullsFirst: false })
+            .order('review_count', { ascending: false, nullsFirst: false })
+            .limit(8);
+          
+          setProfessionals(moreData || data || []);
+        } else {
+          setProfessionals(data);
+        }
       } catch (error) {
         console.error('Error fetching professionals:', error);
       } finally {
@@ -47,7 +60,7 @@ export const LatestProfessionals = () => {
       }
     };
 
-    fetchLatestProfessionals();
+    fetchFeaturedProfessionals();
   }, []);
 
   if (loading) {
@@ -55,11 +68,12 @@ export const LatestProfessionals = () => {
       <section className="py-8 sm:py-12 md:py-16 bg-background">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="text-center mb-6 sm:mb-8 md:mb-12">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-4">
-              Profesionales Recientes
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-4 flex items-center justify-center gap-2">
+              <Star className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500" />
+              Profesionales Destacados
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
-              Descubrí los profesionales que se sumaron recientemente
+              Los mejores profesionales verificados con mejor reputación
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
@@ -80,11 +94,12 @@ export const LatestProfessionals = () => {
     <section className="py-8 sm:py-12 md:py-16 bg-background">
       <div className="container mx-auto px-3 sm:px-4">
         <div className="text-center mb-6 sm:mb-8 md:mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-4">
-            Profesionales Recientes
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-4 flex items-center justify-center gap-2">
+            <Star className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500" />
+            Profesionales Destacados
           </h2>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
-            Descubrí los profesionales que se sumaron recientemente
+            Los mejores profesionales verificados con mejor reputación
           </p>
         </div>
         

@@ -4,9 +4,7 @@ import ServiceCategories from "@/components/ServiceCategories";
 import { LatestProfessionals } from "@/components/LatestProfessionals";
 import OnboardingTour from "@/components/OnboardingTour";
 import ContextualTips from "@/components/ContextualTips";
-import BadgeSystem from "@/components/BadgeSystem";
-import RankingSystem from "@/components/RankingSystem";
-import { WeeklyRankings } from "@/components/WeeklyRankings";
+import { SimplifiedRankings } from "@/components/SimplifiedRankings";
 import { HeaderCarousel } from "@/components/HeaderCarousel";
 import { Button } from "@/components/ui/button";
 import { MapPin, Shield, Clock, Star } from "lucide-react";
@@ -15,6 +13,7 @@ import { SEOHead, generateOrganizationSchema, generateWebsiteSchema } from "@/co
 import { EnableNotificationsBanner } from "@/components/EnableNotificationsBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { BottomNavigation } from "@/components/BottomNavigation";
+import { MobileCTABanner, DesktopSidebarCTA, EnhancedProfessionalCTA } from "@/components/ProfessionalCTABanner";
 
 const Index = () => {
   const { user } = useAuth();
@@ -36,16 +35,22 @@ const Index = () => {
       />
       <div className="min-h-screen bg-background pb-20 md:pb-0">
         <Header />
+        
+        {/* Mobile CTA Banner - Sticky Top */}
+        <MobileCTABanner />
+        
+        {/* Desktop Sidebar CTA */}
+        <DesktopSidebarCTA />
       
       {/* Notifications Banner - solo para usuarios logueados */}
       {user && (
-        <div className="container mx-auto px-3 sm:px-4 pt-4">
+        <div className="container mx-auto px-3 sm:px-4 pt-4 md:pt-4 mt-10 md:mt-0">
           <EnableNotificationsBanner />
         </div>
       )}
       
       {/* Hero Carousel */}
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 mt-10 md:mt-0">
         <HeaderCarousel />
       </div>
       
@@ -53,19 +58,8 @@ const Index = () => {
       <ServiceCategories />
       <LatestProfessionals />
       
-      {/* Gamification Section */}
-      <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
-        <div className="container mx-auto px-3 sm:px-4">
-          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-center mb-6 sm:mb-8">
-            🏆 Rankings y Logros
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            <WeeklyRankings maxItems={5} showFilters={true} />
-            <BadgeSystem compact={true} />
-            <RankingSystem limit={5} />
-          </div>
-        </div>
-      </section>
+      {/* Simplified Rankings - Top 3 del mes */}
+      <SimplifiedRankings />
       
       {/* UX Enhancement Components */}
       <OnboardingTour />
@@ -119,24 +113,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-8 sm:py-12 md:py-16 bg-navy text-navy-foreground">
-        <div className="container mx-auto px-3 sm:px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6">
-            ¿Sos un profesional?
-          </h2>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto opacity-90 px-2">
-            Uníte a nuestra plataforma y conectá con miles de clientes
-          </p>
-          <div className="space-y-3 sm:space-y-0 sm:flex sm:justify-center">
-            <Link to="/register">
-              <Button size="default" className="bg-primary hover:bg-primary/90 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base">
-                Registrarme como Profesional
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Enhanced CTA Section */}
+      <EnhancedProfessionalCTA />
 
       {/* Footer */}
       <footer className="bg-card text-card-foreground py-8 sm:py-10 md:py-12 border-t">
