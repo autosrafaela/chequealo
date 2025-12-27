@@ -685,10 +685,10 @@ const ProfessionalProfile = () => {
       {/* ===== 8. STICKY BOTTOM CTA ===== */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-md border-t border-border shadow-lg">
         <div className="max-w-2xl mx-auto">
-          <Button 
-            className="w-full h-14 text-base font-bold rounded-xl shadow-md"
-            onClick={handleWhatsApp}
-          >
+        <Button 
+          className="w-full h-14 text-base font-bold rounded-xl shadow-md bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleWhatsApp}
+        >
             <MessageCircle className="w-5 h-5 mr-2" />
             Contactar por WhatsApp
           </Button>
