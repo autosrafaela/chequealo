@@ -2,14 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Star, MessageSquare, CheckCircle, Clock, User } from 'lucide-react';
+import { WriteReviewModal } from './WriteReviewModal';
 
 interface Transaction {
   id: string;
@@ -22,6 +19,7 @@ interface Transaction {
   professionals?: {
     full_name: string;
     profession: string;
+    image_url?: string;
   } | null;
 }
 
@@ -40,11 +38,6 @@ export const UserTransactionReviews = () => {
   const [loading, setLoading] = useState(true);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [reviewForm, setReviewForm] = useState({
-    rating: 0,
-    comment: '',
-    service_provided: ''
-  });
 
   useEffect(() => {
     if (user) {
@@ -73,7 +66,7 @@ export const UserTransactionReviews = () => {
         (transactionData || []).map(async (transaction) => {
           const { data: professional } = await supabase
             .from('professionals')
-            .select('full_name, profession')
+            .select('full_name, profession, image_url')
             .eq('id', transaction.professional_id)
             .maybeSingle();
 
@@ -116,43 +109,13 @@ export const UserTransactionReviews = () => {
 
   const openReviewModal = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    setReviewForm({
-      rating: 0,
-      comment: '',
-      service_provided: transaction.service_type || ''
-    });
     setShowReviewModal(true);
   };
 
-  const submitReview = async () => {
-    if (!user || !selectedTransaction || reviewForm.rating === 0) {
-      toast.error('Por favor selecciona una calificación');
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('reviews')
-        .insert({
-          user_id: user.id,
-          professional_id: selectedTransaction.professional_id,
-          transaction_id: selectedTransaction.id,
-          rating: reviewForm.rating,
-          comment: reviewForm.comment || null,
-          service_provided: reviewForm.service_provided,
-          is_transaction_verified: true
-        });
-
-      if (error) throw error;
-
-      toast.success('Reseña enviada correctamente');
-      setShowReviewModal(false);
-      setSelectedTransaction(null);
-      loadUserTransactions();
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      toast.error('Error al enviar la reseña');
-    }
+  const handleReviewSubmitted = () => {
+    setShowReviewModal(false);
+    setSelectedTransaction(null);
+    loadUserTransactions();
   };
 
   const renderStars = (rating: number, interactive: boolean = false, onChange?: (rating: number) => void) => {
@@ -270,80 +233,24 @@ export const UserTransactionReviews = () => {
         )}
 
         {/* Review Modal */}
-        <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                Reseñar a <span className="uppercase">{selectedTransaction?.professionals?.full_name}</span>
-              </DialogTitle>
-            </DialogHeader>
-            {selectedTransaction && (
-              <div className="space-y-4">
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="font-medium">{selectedTransaction.service_type}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedTransaction.professionals?.profession}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Calificación *</Label>
-                  {renderStars(reviewForm.rating, true, (rating) => 
-                    setReviewForm(prev => ({ ...prev, rating }))
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="service">Servicio Recibido</Label>
-                  <Select
-                    value={reviewForm.service_provided}
-                    onValueChange={(value) => setReviewForm(prev => ({ ...prev, service_provided: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={selectedTransaction.service_type || 'Servicio'}>
-                        {selectedTransaction.service_type || 'Servicio'}
-                      </SelectItem>
-                      <SelectItem value="Consultoría">Consultoría</SelectItem>
-                      <SelectItem value="Instalación">Instalación</SelectItem>
-                      <SelectItem value="Reparación">Reparación</SelectItem>
-                      <SelectItem value="Mantenimiento">Mantenimiento</SelectItem>
-                      <SelectItem value="Otro">Otro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="comment">Comentario (opcional)</Label>
-                  <Textarea
-                    id="comment"
-                    placeholder="Comparte tu experiencia con este profesional..."
-                    value={reviewForm.comment}
-                    onChange={(e) => setReviewForm(prev => ({ ...prev, comment: e.target.value }))}
-                    rows={4}
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setShowReviewModal(false);
-                      setSelectedTransaction(null);
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button onClick={submitReview}>
-                    Enviar Reseña
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        {selectedTransaction && selectedTransaction.professionals && (
+          <WriteReviewModal
+            isOpen={showReviewModal}
+            onClose={() => {
+              setShowReviewModal(false);
+              setSelectedTransaction(null);
+            }}
+            professional={{
+              id: selectedTransaction.professional_id,
+              full_name: selectedTransaction.professionals.full_name,
+              profession: selectedTransaction.professionals.profession,
+              image_url: selectedTransaction.professionals.image_url
+            }}
+            transactionId={selectedTransaction.id}
+            serviceType={selectedTransaction.service_type}
+            onReviewSubmitted={handleReviewSubmitted}
+          />
+        )}
       </CardContent>
     </Card>
   );
