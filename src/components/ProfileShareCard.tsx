@@ -71,11 +71,6 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-const TwitterIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-  </svg>
-);
 
 export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -472,11 +467,6 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(profileUrl)}`, '_blank', 'width=600,height=400');
   };
 
-  const shareToTwitter = () => {
-    const profileUrl = getProfileUrl();
-    const text = `Mirá el perfil de ${professional.full_name.toUpperCase()} en @Chequealo`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'width=600,height=400');
-  };
 
   const openNativeShare = async () => {
     if (navigator.share) {
@@ -625,7 +615,7 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
           
           {/* OTRAS REDES */}
           <SectionHeader label="OTRAS REDES" />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <ShareOption
               icon={
                 <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center">
@@ -633,17 +623,8 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
                 </div>
               }
               label="Facebook"
+              sublabel="Compartir perfil"
               onClick={shareToFacebookPost}
-              colorClass="bg-muted/50 hover:bg-muted border border-border/50"
-            />
-            <ShareOption
-              icon={
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
-                  <TwitterIcon />
-                </div>
-              }
-              label="X (Twitter)"
-              onClick={shareToTwitter}
               colorClass="bg-muted/50 hover:bg-muted border border-border/50"
             />
           </div>
