@@ -121,9 +121,9 @@ export const EnhancedProfessionalCTA = () => {
           </Link>
           <Link to="/pricing">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="lg" 
-              className="border-white/30 text-white hover:bg-white/10 font-medium px-8 py-3 text-base"
+              className="border-2 border-white text-white hover:bg-white/20 hover:text-white font-medium px-8 py-3 text-base"
             >
               Más información
             </Button>
