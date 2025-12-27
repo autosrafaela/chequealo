@@ -36,6 +36,7 @@ interface Conversation {
   professionals?: {
     full_name: string;
     image_url?: string;
+    profession?: string;
   };
 }
 
@@ -75,7 +76,7 @@ export const useChat = () => {
         .from('conversations')
         .select(`
           *,
-          professionals!professional_id(full_name, image_url)
+          professionals!professional_id(full_name, image_url, profession)
         `)
         .eq('status', 'active')
         .order('last_message_at', { ascending: false });
