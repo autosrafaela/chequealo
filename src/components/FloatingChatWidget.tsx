@@ -121,13 +121,14 @@ export const FloatingChatWidget = () => {
     }
   }, [location.search, conversations, navigate]);
 
-  // Calcular mensajes no leídos
+  // Calcular mensajes no leídos según tipo de usuario
   useEffect(() => {
     const total = conversations.reduce((acc, conv) => {
-      return acc + (conv.unread_count_user || 0);
+      const unreadField = isProfessional ? 'unread_count_professional' : 'unread_count_user';
+      return acc + ((conv as any)[unreadField] || 0);
     }, 0);
     setUnreadCount(total);
-  }, [conversations]);
+  }, [conversations, isProfessional]);
 
   // Auto scroll
   useEffect(() => {
@@ -147,12 +148,6 @@ export const FloatingChatWidget = () => {
     setActiveConversationId(null);
   };
 
-  // Auto-abrir la última conversación
-  useEffect(() => {
-    if (isOpen && showConversationList && !activeConversationId && conversations.length > 0) {
-      handleOpenConversation(conversations[0]);
-    }
-  }, [isOpen, showConversationList, activeConversationId, conversations]);
 
   const handleSendMessage = async () => {
     if ((!messageText.trim() && !selectedFile) || !activeConversationId) return;
@@ -445,9 +440,9 @@ export const FloatingChatWidget = () => {
                             <p className="text-xs text-muted-foreground truncate">
                               {conversation.last_message_preview || 'Sin mensajes'}
                             </p>
-                            {conversation.unread_count_user > 0 && (
+                            {((isProfessional ? conversation.unread_count_professional : conversation.unread_count_user) || 0) > 0 && (
                               <Badge className="mt-1 bg-primary text-primary-foreground text-xs">
-                                {conversation.unread_count_user}
+                                {isProfessional ? conversation.unread_count_professional : conversation.unread_count_user}
                               </Badge>
                             )}
                           </div>
