@@ -1,29 +1,70 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Briefcase, ArrowRight, Users, Gift, TrendingUp } from "lucide-react";
+import { Briefcase, ArrowRight, Users, Gift, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Mobile sticky top banner
 export const MobileCTABanner = () => {
+  const [isVisible, setIsVisible] = useState(() => {
+    return localStorage.getItem('hide-mobile-pro-cta') !== 'true';
+  });
+
+  const handleClose = () => {
+    setIsVisible(false);
+    localStorage.setItem('hide-mobile-pro-cta', 'true');
+  };
+
+  if (!isVisible) return null;
+
   return (
     <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-primary/95 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between">
       <span className="text-white text-sm font-medium">¿Sos profesional?</span>
-      <Link to="/register">
-        <Button 
-          size="sm" 
-          className="bg-white text-primary hover:bg-white/90 h-8 px-3 text-xs font-bold"
+      <div className="flex items-center gap-2">
+        <Link to="/register">
+          <Button 
+            size="sm" 
+            className="bg-white text-primary hover:bg-white/90 h-8 px-3 text-xs font-bold"
+          >
+            Registrate gratis
+            <ArrowRight className="w-3.5 h-3.5 ml-1" />
+          </Button>
+        </Link>
+        <button
+          onClick={handleClose}
+          className="p-1 hover:bg-white/20 rounded-full transition-colors"
+          aria-label="Cerrar"
         >
-          Registrate gratis
-          <ArrowRight className="w-3.5 h-3.5 ml-1" />
-        </Button>
-      </Link>
+          <X className="w-4 h-4 text-white" />
+        </button>
+      </div>
     </div>
   );
 };
 
 // Desktop sticky lateral CTA
 export const DesktopSidebarCTA = () => {
+  const [isVisible, setIsVisible] = useState(() => {
+    return localStorage.getItem('hide-desktop-pro-cta') !== 'true';
+  });
+
+  const handleClose = () => {
+    setIsVisible(false);
+    localStorage.setItem('hide-desktop-pro-cta', 'true');
+  };
+
+  if (!isVisible) return null;
+
   return (
     <div className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-50 flex-col items-center bg-card rounded-2xl shadow-xl border border-border p-5 w-56">
+      {/* Close button */}
+      <button
+        onClick={handleClose}
+        className="absolute top-2 right-2 p-1 hover:bg-muted rounded-full transition-colors"
+        aria-label="Cerrar"
+      >
+        <X className="w-4 h-4 text-muted-foreground" />
+      </button>
+      
       {/* Icon */}
       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
         <Briefcase className="w-7 h-7 text-primary" />
