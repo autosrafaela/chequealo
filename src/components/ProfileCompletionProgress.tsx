@@ -255,8 +255,8 @@ export const ProfileCompletionProgress: React.FC<ProfileCompletionProgressProps>
       setSaving(true);
 
       const fileExt = selectedPhotoFile.name.split('.').pop();
-      const fileName = `${professional.id}-${Date.now()}.${fileExt}`;
-      const filePath = `professionals/${fileName}`;
+      const fileName = `avatar-${Date.now()}.${fileExt}`;
+      const filePath = `${user?.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
