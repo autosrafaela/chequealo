@@ -432,17 +432,17 @@ export const ProfileCompletionProgress: React.FC<ProfileCompletionProgressProps>
 
       for (const file of portfolioFiles) {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${professional.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-        const filePath = `work-photos/${fileName}`;
+        const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        const filePath = `${professional.id}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('avatars')
+          .from('work-photos')
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
         const { data: urlData } = supabase.storage
-          .from('avatars')
+          .from('work-photos')
           .getPublicUrl(filePath);
 
         const { error: insertError } = await supabase
