@@ -7,7 +7,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationPopupWrapper from "@/components/NotificationPopupWrapper";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 
-import { MultipleFloatingChats } from "@/components/MultipleFloatingChats";
+
 import { RedirectWithTracking } from "@/components/RedirectWithTracking";
 import { InAppBrowserBanner } from "@/components/InAppBrowserBanner";
 import { NotificationActivationBanner } from "@/components/NotificationActivationBanner";
@@ -97,7 +97,7 @@ const App = () => {
       
     
     <BrowserRouter>
-      <MultipleFloatingChats />
+      
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Critical path - no lazy loading */}
