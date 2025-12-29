@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationPopupWrapper from "@/components/NotificationPopupWrapper";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
+import { BottomNavigation } from "@/components/BottomNavigation";
 
 
 import { RedirectWithTracking } from "@/components/RedirectWithTracking";
@@ -142,6 +143,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      <BottomNavigation />
     </BrowserRouter>
     </TooltipProvider>
   </NotificationProvider>
