@@ -130,3 +130,12 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Utility classes for bottom navigation spacing */
+.has-bottom-nav {
+  padding-bottom: 5rem; /* 80px */
+}
+
+.above-bottom-nav {
+  bottom: 5rem !important; /* 80px - positions elements above bottom nav */
+}

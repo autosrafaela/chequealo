@@ -55,7 +55,7 @@ export const MultipleFloatingChats = () => {
             conversationId: conv.id,
             conversation: conv,
             position: {
-              bottom: 96,
+              bottom: 160,
               right: 24 + (index * 400)
             }
           }));
@@ -139,7 +139,7 @@ export const MultipleFloatingChats = () => {
     const baseRight = 24;
     const chatWidth = 400;
     const newPosition = {
-      bottom: 96,
+      bottom: 160,
       right: baseRight + (openChats.length * chatWidth)
     };
 
@@ -161,7 +161,7 @@ export const MultipleFloatingChats = () => {
       return filtered.map((chat, index) => ({
         ...chat,
         position: {
-          bottom: 96,
+          bottom: 160,
           right: 24 + (index * 400)
         }
       }));
@@ -184,7 +184,7 @@ export const MultipleFloatingChats = () => {
       {isWidgetHidden && (
         <button
           onClick={() => setIsWidgetHidden(false)}
-          className="fixed bottom-6 right-6 z-50 h-10 w-10 rounded-full bg-primary shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+          className="fixed bottom-20 right-6 z-50 h-10 w-10 rounded-full bg-primary shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
           title="Abrir mensajes"
         >
           <MessageCircle className="h-5 w-5 text-primary-foreground" />
@@ -198,7 +198,7 @@ export const MultipleFloatingChats = () => {
 
       {/* Botón flotante principal con lista de conversaciones */}
       {!isWidgetHidden && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-20 right-6 z-50">
           {/* Lista de conversaciones desplegable */}
           {showConversationsList && (
             <div className="absolute bottom-16 right-0 w-80 bg-background border rounded-lg shadow-2xl overflow-hidden mb-2">
