@@ -250,7 +250,7 @@ const ProfessionalProfile = () => {
     : `${professional.description?.substring(0, 150)}...`;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-28">
       <ProfessionalSEO professional={professional} />
       
       {/* ===== 1. TOP APP BAR (Sticky) ===== */}
