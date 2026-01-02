@@ -228,7 +228,8 @@ const ProfessionalProfile = () => {
     try {
       const conversation = await createConversation(id!);
       if (conversation) {
-        navigate(`/mensajes?conversation=${conversation.id}`);
+        toast.success('Abriendo conversación...');
+        navigate(`/mensajes?chat=${conversation.id}`);
       }
     } catch (error) {
       console.error('Error creating conversation:', error);
