@@ -7,7 +7,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Bell, 
@@ -25,6 +24,7 @@ import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { toast } from 'sonner';
 import SwipeableNotificationItem from './SwipeableNotificationItem';
+import { NotificationBadge } from '@/components/notifications/NotificationBadge';
 
 const NotificationCenter = () => {
   const navigate = useNavigate();
@@ -138,15 +138,12 @@ const NotificationCenter = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="relative text-white hover:text-primary hover:bg-white/10">
           <Bell className={`h-5 w-5 ${updateAvailable ? 'text-primary animate-pulse' : 'text-current'}`} />
-          {totalUnreadCount > 0 && (
-            <Badge 
-              className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs text-white animate-pulse ${
-                updateAvailable ? 'bg-primary' : 'bg-red-500'
-              }`}
-            >
-              {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
-            </Badge>
-          )}
+          <NotificationBadge 
+            count={totalUnreadCount} 
+            size="sm" 
+            className="absolute -top-1 -right-1"
+            pulse={updateAvailable}
+          />
         </Button>
       </DropdownMenuTrigger>
       
