@@ -71,10 +71,10 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Chat bubbles */
-    --chat-bubble-sent: 201 100% 50%;
+    /* Chat bubbles - WhatsApp style */
+    --chat-bubble-sent: 142 70% 45%;
     --chat-bubble-sent-foreground: 0 0% 100%;
-    --chat-bubble-received: 0 0% 90%;
+    --chat-bubble-received: 0 0% 95%;
   }
 
   .dark {
