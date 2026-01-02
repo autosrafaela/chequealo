@@ -1,43 +1,42 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useContactRequests, ContactRequest } from "@/hooks/useContactRequests";
-import { MessageCircle, Calculator, Mail, Calendar, User, Clock } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
+import { useContactRequests } from "@/hooks/useContactRequests";
+import { MessageCircle, CheckCheck } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { SimplifiedRequestList } from "@/components/messages/SimplifiedRequestList";
+import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 
 export const ContactRequestsPanel = () => {
   const { requests, loading, updateRequestStatus } = useContactRequests();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const getStatusColor = (status: ContactRequest['status']) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'contacted': return 'bg-blue-100 text-blue-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const pendingCount = requests.filter(r => r.status === 'pending').length;
+
+  const handleContact = (requestId: string) => {
+    updateRequestStatus(requestId, 'contacted');
   };
 
-  const getStatusText = (status: ContactRequest['status']) => {
-    switch (status) {
-      case 'pending': return 'Pendiente';
-      case 'contacted': return 'Contactado';
-      case 'closed': return 'Cerrado';
-      default: return 'Desconocido';
-    }
+  const handleArchive = (requestId: string) => {
+    updateRequestStatus(requestId, 'closed');
   };
 
-  const getTypeIcon = (type: ContactRequest['type']) => {
-    return type === 'contact' ? MessageCircle : Calculator;
+  const handleMarkAsRead = (requestId: string) => {
+    // Mark as contacted when read
+    updateRequestStatus(requestId, 'contacted');
   };
 
-  const getTypeText = (type: ContactRequest['type']) => {
-    return type === 'contact' ? 'Contacto' : 'Presupuesto';
+  const handleOpenChat = (requestId: string) => {
+    const params = new URLSearchParams();
+    params.set('tab', 'messages');
+    params.set('contactRequestId', requestId);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
+
+  const handleMarkAllAsRead = () => {
+    requests
+      .filter(r => r.status === 'pending')
+      .forEach(r => updateRequestStatus(r.id, 'contacted'));
   };
 
   if (loading) {
@@ -47,23 +46,18 @@ export const ContactRequestsPanel = () => {
           <CardTitle>Solicitudes de Contacto</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Cargando solicitudes...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (requests.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Solicitudes de Contacto</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No tienes solicitudes de contacto aún</p>
-            <p className="text-sm text-muted-foreground">Las solicitudes aparecerán aquí cuando los clientes te contacten</p>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="animate-pulse">
+                <div className="flex items-start gap-3 p-4 border rounded-lg">
+                  <div className="w-12 h-12 bg-muted rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted rounded w-1/3" />
+                    <div className="h-3 bg-muted rounded w-2/3" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -72,136 +66,41 @@ export const ContactRequestsPanel = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Solicitudes de Contacto ({requests.length})
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {requests.map((request) => {
-          const TypeIcon = getTypeIcon(request.type);
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Solicitudes
+            <NotificationBadge count={pendingCount} size="sm" />
+          </CardTitle>
           
-          return (
-            <div 
-              key={request.id} 
-              className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-accent/50 transition-colors"
-              onClick={() => {
-                // Navegamos a la misma ruta pero con parámetros para abrir el chat
-                const params = new URLSearchParams();
-                params.set('tab', 'messages');
-                params.set('contactRequestId', request.id);
-                navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-              }}
-              title="Click para abrir el chat"
+          {pendingCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMarkAllAsRead}
+              className="text-xs"
             >
-              {/* Header */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <TypeIcon className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{getTypeText(request.type)}</span>
-                  <Badge className={getStatusColor(request.status)}>
-                    {getStatusText(request.status)}
-                  </Badge>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {format(new Date(request.created_at), 'dd/MM/yyyy', { locale: es })}
-                </div>
-              </div>
-
-              {/* Contact Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <User className="h-3 w-3 text-muted-foreground" />
-                  <span className="font-medium uppercase">{request.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="h-3 w-3 text-muted-foreground" />
-                  <a href={`mailto:${request.email}`} className="text-primary hover:underline">
-                    {request.email}
-                  </a>
-                </div>
-                {request.phone && (
-                  <div className="space-y-2">
-                    <div className="text-xs text-muted-foreground mb-1">Contactar por:</div>
-                    <WhatsAppContactButton 
-                      phone={request.phone}
-                      professionalName={request.name}
-                      message={`Hola ${request.name}! Recibí tu solicitud desde Chequealo. Te contacto para coordinar el servicio de ${request.service_type || 'tu servicio'}.`}
-                    />
-                  </div>
-                )}
-                {request.service_type && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-3 w-3 text-muted-foreground" />
-                    <span>{request.service_type}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Budget Range for quotes */}
-              {request.type === 'quote' && request.budget_range && (
-                <div className="text-sm">
-                  <span className="font-medium text-muted-foreground">Presupuesto: </span>
-                  <span className="text-primary font-medium">{request.budget_range}</span>
-                </div>
-              )}
-
-              {/* Message */}
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Mensaje:</div>
-                <div className="text-sm bg-gray-50 p-3 rounded border">
-                  {request.message}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Actions */}
-              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                {request.status === 'pending' && (
-                  <Button
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      updateRequestStatus(request.id, 'contacted');
-                    }}
-                    className="flex-1"
-                  >
-                    Marcar como Contactado
-                  </Button>
-                )}
-                {request.status === 'contacted' && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      updateRequestStatus(request.id, 'closed');
-                    }}
-                    className="flex-1"
-                  >
-                    Cerrar Solicitud
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  asChild
-                  className="flex-1"
-                >
-                  <a 
-                    href={`mailto:${request.email}?subject=Re: ${getTypeText(request.type)} - Chequealo`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Responder por Email
-                  </a>
-                </Button>
-              </div>
-            </div>
-          );
-        })}
+              <CheckCheck className="h-4 w-4 mr-1" />
+              Marcar todas
+            </Button>
+          )}
+        </div>
+        {requests.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {requests.length} solicitud{requests.length !== 1 && 'es'}
+            {pendingCount > 0 && ` · ${pendingCount} pendiente${pendingCount !== 1 ? 's' : ''}`}
+          </p>
+        )}
+      </CardHeader>
+      <CardContent className="p-0">
+        <SimplifiedRequestList
+          requests={requests}
+          onContact={handleContact}
+          onArchive={handleArchive}
+          onMarkAsRead={handleMarkAsRead}
+          onOpenChat={handleOpenChat}
+        />
       </CardContent>
     </Card>
   );

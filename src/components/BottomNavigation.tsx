@@ -4,11 +4,12 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { NotificationBadge } from '@/components/notifications/NotificationBadge';
 
 const tabs = [
   { icon: Home, label: 'Inicio', path: '/' },
   { icon: Search, label: 'Explorar', path: '/search' },
-  { icon: MessageCircle, label: 'Mensajes', path: '/mensajes' },
+  { icon: MessageCircle, label: 'Mensajes', path: '/mensajes', hasBadge: true },
   { icon: User, label: 'Perfil', path: '/user-dashboard' }
 ];
 
@@ -24,22 +25,43 @@ export const BottomNavigation = () => {
     }
 
     const fetchUnreadCount = async () => {
-      const { data, error } = await supabase
+      // Count unread messages from conversations
+      const { data: convData, error: convError } = await supabase
         .from('conversations')
         .select('unread_count_user, unread_count_professional, user_id, professional_id')
         .or(`user_id.eq.${user.id},professional_id.eq.${user.id}`)
         .eq('status', 'active');
 
-      if (!error && data) {
-        const total = data.reduce((acc, conv) => {
+      let messageCount = 0;
+      if (!convError && convData) {
+        messageCount = convData.reduce((acc, conv) => {
           if (conv.user_id === user.id) {
             return acc + (conv.unread_count_user || 0);
           } else {
             return acc + (conv.unread_count_professional || 0);
           }
         }, 0);
-        setUnreadCount(total);
       }
+
+      // Count pending contact requests for professionals
+      const { data: profData } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      let requestCount = 0;
+      if (profData) {
+        const { count } = await supabase
+          .from('contact_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('professional_id', profData.id)
+          .eq('status', 'pending');
+        
+        requestCount = count || 0;
+      }
+
+      setUnreadCount(messageCount + requestCount);
     };
 
     fetchUnreadCount();
@@ -55,6 +77,10 @@ export const BottomNavigation = () => {
         { event: 'INSERT', schema: 'public', table: 'messages' },
         () => fetchUnreadCount()
       )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'contact_requests' },
+        () => fetchUnreadCount()
+      )
       .subscribe();
 
     return () => {
@@ -67,7 +93,7 @@ export const BottomNavigation = () => {
       <div className="flex items-center justify-around h-16">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;
-          const showBadge = tab.path === '/mensajes' && unreadCount > 0;
+          const showBadge = tab.hasBadge && unreadCount > 0;
           
           return (
             <Link
@@ -83,9 +109,11 @@ export const BottomNavigation = () => {
               <div className="relative">
                 <tab.icon className={cn("h-5 w-5", isActive && "fill-primary/20")} />
                 {showBadge && (
-                  <span className="absolute -top-1.5 -right-2 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+                  <NotificationBadge 
+                    count={unreadCount} 
+                    size="sm" 
+                    className="absolute -top-2 -right-3"
+                  />
                 )}
               </div>
               <span className="text-xs font-medium">{tab.label}</span>
