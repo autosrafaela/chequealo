@@ -63,7 +63,7 @@ export const BottomNavigation = () => {
   }, [user]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-inset-bottom md:hidden">
       <div className="flex items-center justify-around h-16">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;

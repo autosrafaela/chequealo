@@ -693,7 +693,7 @@ const ProfessionalProfile = () => {
       </main>
 
       {/* ===== 8. STICKY BOTTOM CTA ===== */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-md border-t border-border shadow-lg">
+      <div className="fixed left-0 right-0 p-4 bg-background/95 backdrop-blur-md border-t border-border shadow-lg z-40 above-bottom-nav">
         <div className="max-w-2xl mx-auto flex gap-2">
           <Button 
             className="flex-1 h-14 text-base font-bold rounded-xl shadow-md bg-green-600 hover:bg-green-700 text-white"
