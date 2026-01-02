@@ -100,48 +100,50 @@ const App = () => {
     <BrowserRouter>
       
       <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {/* Critical path - no lazy loading */}
-          <Route path="/" element={<Index />} />
-          
-          {/* Redirects */}
-          <Route path="/inicio" element={<RedirectWithTracking from="/inicio" to="/" />} />
-          <Route path="/home" element={<RedirectWithTracking from="/home" to="/" />} />
-          <Route path="/principal" element={<RedirectWithTracking from="/principal" to="/" />} />
-          <Route path="/index" element={<RedirectWithTracking from="/index" to="/" />} />
-          
-          {/* Lazy loaded routes */}
-          <Route path="/search" element={<Search />} />
-          <Route path="/ai-search" element={<AISearch />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verification" element={<Verification />} />
-          <Route path="/professional/:id" element={<ProfessionalProfile />} />
-          <Route path="/dashboard" element={<ProfessionalDashboard />} />
-          <Route path="/user-dashboard" element={<UserDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/instalar" element={<Install />} />
-          <Route path="/mensajes" element={<Messages />} />
-          <Route path="/mis-reservas" element={<MyBookingsPage />} />
-          <Route path="/solicitudes-reservas" element={<ProfessionalBookingsPage />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/test-results" element={<TestResults />} />
-          
-          {/* Campaign Landing Pages */}
-          <Route path="/urgencias" element={<Urgencias24 />} />
-          <Route path="/promo" element={<PromoDescuento />} />
-          <Route path="/sena" element={<SenaOnline />} />
-          
-          {/* SEO-friendly URLs - Must be after all other routes with 3+ segments */}
-          <Route path="/p/:profession/:location/:name" element={<SeoLanding />} />
-          
-          {/* Catch-all - no lazy loading for fast 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="has-bottom-nav">
+          <Routes>
+            {/* Critical path - no lazy loading */}
+            <Route path="/" element={<Index />} />
+            
+            {/* Redirects */}
+            <Route path="/inicio" element={<RedirectWithTracking from="/inicio" to="/" />} />
+            <Route path="/home" element={<RedirectWithTracking from="/home" to="/" />} />
+            <Route path="/principal" element={<RedirectWithTracking from="/principal" to="/" />} />
+            <Route path="/index" element={<RedirectWithTracking from="/index" to="/" />} />
+            
+            {/* Lazy loaded routes */}
+            <Route path="/search" element={<Search />} />
+            <Route path="/ai-search" element={<AISearch />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/verification" element={<Verification />} />
+            <Route path="/professional/:id" element={<ProfessionalProfile />} />
+            <Route path="/dashboard" element={<ProfessionalDashboard />} />
+            <Route path="/user-dashboard" element={<UserDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/instalar" element={<Install />} />
+            <Route path="/mensajes" element={<Messages />} />
+            <Route path="/mis-reservas" element={<MyBookingsPage />} />
+            <Route path="/solicitudes-reservas" element={<ProfessionalBookingsPage />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/test-results" element={<TestResults />} />
+            
+            {/* Campaign Landing Pages */}
+            <Route path="/urgencias" element={<Urgencias24 />} />
+            <Route path="/promo" element={<PromoDescuento />} />
+            <Route path="/sena" element={<SenaOnline />} />
+            
+            {/* SEO-friendly URLs - Must be after all other routes with 3+ segments */}
+            <Route path="/p/:profession/:location/:name" element={<SeoLanding />} />
+            
+            {/* Catch-all - no lazy loading for fast 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </Suspense>
       <BottomNavigation />
     </BrowserRouter>

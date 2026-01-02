@@ -131,11 +131,30 @@ All colors MUST be HSL.
   }
 }
 
-/* Utility classes for bottom navigation spacing */
+/* Bottom navigation spacing - mobile only */
+:root {
+  --bottom-nav-height: 4rem; /* 64px */
+  --bottom-nav-offset: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+}
+
 .has-bottom-nav {
-  padding-bottom: 5rem; /* 80px */
+  padding-bottom: var(--bottom-nav-offset);
 }
 
 .above-bottom-nav {
-  bottom: 5rem !important; /* 80px - positions elements above bottom nav */
+  bottom: var(--bottom-nav-offset) !important;
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Desktop: no bottom nav offset needed */
+@media (min-width: 768px) {
+  .has-bottom-nav {
+    padding-bottom: 0;
+  }
+  .above-bottom-nav {
+    bottom: 0 !important;
+  }
 }
