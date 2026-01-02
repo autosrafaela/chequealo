@@ -20,6 +20,7 @@ import { useCombos } from "@/hooks/useCombos";
 import { useProfessionalProfile } from "@/hooks/useProfessionalProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfessionalContact } from "@/hooks/useProfessionalContact";
+import { useChat } from "@/hooks/useChat";
 import { toast } from "sonner";
 import { 
   ArrowLeft,
@@ -63,6 +64,7 @@ const ProfessionalProfile = () => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const { getContactInfo, loading: contactLoading } = useProfessionalContact();
   const { combos } = useCombos(id);
+  const { createConversation } = useChat();
   
   const { 
     professional, 
@@ -211,6 +213,29 @@ const ProfessionalProfile = () => {
     setIsBookingModalOpen(true);
   };
 
+  const handleInternalMessage = async () => {
+    if (!currentUser) {
+      toast.error('Debes iniciar sesión para enviar mensajes');
+      navigate('/login');
+      return;
+    }
+    
+    if (isOwner) {
+      toast.info('No puedes enviarte mensajes a ti mismo');
+      return;
+    }
+    
+    try {
+      const conversation = await createConversation(id!);
+      if (conversation) {
+        navigate(`/mensajes?conversation=${conversation.id}`);
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      toast.error('Error al abrir conversación');
+    }
+  };
+
   // Loading and error states
   if (!isValidId) {
     return (
@@ -320,9 +345,9 @@ const ProfessionalProfile = () => {
             onClick={handleCall}
           />
           <ProfileQuickAction
-            icon={MessageCircle}
+            icon={Mail}
             label="Mensaje"
-            onClick={handleWhatsApp}
+            onClick={handleInternalMessage}
             variant="primary"
           />
           <ProfileQuickAction
