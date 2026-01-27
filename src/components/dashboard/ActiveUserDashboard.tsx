@@ -165,7 +165,7 @@ export function ActiveUserDashboard({
       <div>
         <h3 className="text-lg font-semibold mb-4">Acciones rápidas</h3>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <QuickActionTile
             icon={Eye}
             label="Ver Perfil"
@@ -185,6 +185,11 @@ export function ActiveUserDashboard({
             icon={MessageCircle}
             label="Mensajes"
             onClick={() => onTabChange('messages')}
+          />
+          <QuickActionTile
+            icon={Settings}
+            label="Configuración"
+            onClick={() => onTabChange('settings')}
           />
         </div>
       </div>
@@ -223,11 +228,6 @@ export function ActiveUserDashboard({
               icon={CreditCard}
               label="Finanzas"
               onClick={() => onTabChange('financial')}
-            />
-            <QuickActionButton
-              icon={Settings}
-              label="Configuración"
-              onClick={() => onTabChange('settings')}
             />
           </div>
         </CollapsibleContent>
