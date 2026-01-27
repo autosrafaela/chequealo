@@ -36,6 +36,23 @@ const RESERVED_SLUGS = [
   'mis-reservas',
   'solicitudes-reservas',
   'p', // Para rutas SEO /p/:profession/:location/:name
+  // Rutas adicionales del sistema
+  'inicio',
+  'home',
+  'principal',
+  'index',
+  'buscar',
+  'contacto',
+  'contact',
+  'ayuda',
+  'help',
+  'perfil',
+  'profile',
+  'configuracion',
+  'settings',
+  '404',
+  'api',
+  'forgot-password',
 ];
 
 const ProfessionalProfileBySlug = () => {

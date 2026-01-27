@@ -119,6 +119,7 @@ const App = () => {
             <Route path="/search" element={<Search />} />
             <Route path="/ai-search" element={<AISearch />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<RedirectWithTracking from="/login" to="/auth" />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verification" element={<Verification />} />
             <Route path="/professional/:id" element={<ProfessionalProfile />} />
