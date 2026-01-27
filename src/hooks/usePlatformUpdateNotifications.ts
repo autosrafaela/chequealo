@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { playNotificationWithVibration } from '@/utils/notificationSound';
 import { toast } from 'sonner';
 import { UPDATE_TYPES } from './usePlatformUpdates';
@@ -11,7 +10,6 @@ import { UPDATE_TYPES } from './usePlatformUpdates';
  */
 export const usePlatformUpdateNotifications = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -52,7 +50,7 @@ export const usePlatformUpdateNotifications = () => {
                   if (update.link.startsWith('http')) {
                     window.open(update.link, '_blank');
                   } else {
-                    navigate(update.link);
+                    window.location.href = update.link;
                   }
                 }
               } : undefined,
@@ -76,7 +74,7 @@ export const usePlatformUpdateNotifications = () => {
                   if (update.link.startsWith('http')) {
                     window.open(update.link, '_blank');
                   } else {
-                    navigate(update.link);
+                    window.location.href = update.link;
                   }
                 }
               };
@@ -94,5 +92,5 @@ export const usePlatformUpdateNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, navigate]);
+  }, [user?.id]);
 };
