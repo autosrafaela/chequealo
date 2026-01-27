@@ -28,6 +28,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Register = lazy(() => import("./pages/Register"));
 const Verification = lazy(() => import("./pages/Verification"));
 const ProfessionalProfile = lazy(() => import("./pages/ProfessionalProfile"));
+const ProfessionalProfileBySlug = lazy(() => import("./pages/ProfessionalProfileBySlug"));
 const ProfessionalDashboard = lazy(() => import("./pages/ProfessionalDashboard"));
 const UserDashboard = lazy(() => import("./pages/UserDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -139,6 +140,9 @@ const App = () => {
             
             {/* SEO-friendly URLs - Must be after all other routes with 3+ segments */}
             <Route path="/p/:profession/:location/:name" element={<SeoLanding />} />
+            
+            {/* URL personalizada de profesional (slug) - debe ir antes del catch-all */}
+            <Route path="/:slug" element={<ProfessionalProfileBySlug />} />
             
             {/* Catch-all - no lazy loading for fast 404 */}
             <Route path="*" element={<NotFound />} />

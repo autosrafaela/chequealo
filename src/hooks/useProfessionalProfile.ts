@@ -11,14 +11,27 @@ const fetchProfessional = async (id: string) => {
     throw new Error('Invalid professional ID');
   }
 
-  const { data, error } = await supabase
+  // Primero obtener datos públicos de la vista
+  const { data: viewData, error: viewError } = await supabase
     .from('professionals_with_contact')
     .select('*')
     .eq('id', id)
     .maybeSingle();
 
-  if (error) throw error;
-  return data;
+  if (viewError) throw viewError;
+  if (!viewData) return null;
+
+  // Obtener el slug de la tabla principal (no está en la vista)
+  const { data: slugData } = await supabase
+    .from('professionals')
+    .select('slug')
+    .eq('id', id)
+    .maybeSingle();
+
+  return {
+    ...viewData,
+    slug: slugData?.slug || null
+  };
 };
 
 // Fetch professional services

@@ -14,6 +14,7 @@ interface ProfileShareCardProps {
     review_count?: number;
     image_url?: string;
     is_verified?: boolean;
+    slug?: string | null;
   };
   trigger?: React.ReactNode;
 }
@@ -88,6 +89,10 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   const [currentFormat, setCurrentFormat] = useState<CardFormat>('story');
 
   const getProfileUrl = () => {
+    // Usar slug personalizado si existe, sino usar el ID
+    if (professional.slug) {
+      return `https://chequealo.ar/${professional.slug}`;
+    }
     return `https://chequealo.ar/professional/${professional.id}`;
   };
 

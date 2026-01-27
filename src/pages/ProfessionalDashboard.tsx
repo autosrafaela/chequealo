@@ -26,6 +26,7 @@ import { ProfessionalAnalytics } from '@/components/ProfessionalAnalytics';
 import { ZonaTodayManager } from '@/components/ZonaTodayManager';
 import { AgendaManager } from '@/components/AgendaManager';
 import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
+import SlugConfiguration from '@/components/SlugConfiguration';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import { MessagesDesktopLayout } from '@/components/chat/MessagesDesktopLayout';
 import { 
@@ -563,7 +564,7 @@ const ProfessionalDashboard = () => {
                       <CardTitle className="flex items-center justify-between">
                         Información del Perfil
                         <Button asChild variant="outline" size="sm">
-                          <Link to={`/professional/${professional.id}`}>
+                          <Link to={professional.slug ? `/${professional.slug}` : `/professional/${professional.id}`}>
                             <Eye className="h-4 w-4 mr-2" />
                             Ver Perfil Público
                           </Link>
@@ -630,40 +631,51 @@ const ProfessionalDashboard = () => {
               </TabsContent>
 
               <TabsContent value="settings">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="h-5 w-5" />
-                      Configuración de Cuenta
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="font-semibold mb-4">Disponibilidad</h4>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Estado actual: <Badge>{professional.availability || 'No especificado'}</Badge>
-                        </p>
-                      </div>
+                <div className="space-y-6">
+                  {/* URL Personalizada */}
+                  <SlugConfiguration 
+                    professionalId={professional.id} 
+                    currentSlug={professional.slug || null}
+                    onSlugUpdated={(newSlug) => {
+                      setProfessional((prev: any) => ({ ...prev, slug: newSlug }));
+                    }}
+                  />
 
-                      <div>
-                        <h4 className="font-semibold mb-4">Notificaciones</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Recibirás notificaciones cuando tengas nuevas solicitudes de contacto o presupuesto.
-                        </p>
-                      </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Settings className="h-5 w-5" />
+                        Configuración de Cuenta
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        <div>
+                          <h4 className="font-semibold mb-4">Disponibilidad</h4>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Estado actual: <Badge>{professional.availability || 'No especificado'}</Badge>
+                          </p>
+                        </div>
 
-                      <div>
-                        <h4 className="font-semibold mb-4">Zona Hoy</h4>
-                        <ZonaTodayManager 
-                          professionalName={professional?.full_name || ''}
-                          profession={professional?.profession || ''}
-                          phone={professional?.phone}
-                        />
+                        <div>
+                          <h4 className="font-semibold mb-4">Notificaciones</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Recibirás notificaciones cuando tengas nuevas solicitudes de contacto o presupuesto.
+                          </p>
+                        </div>
+
+                        <div>
+                          <h4 className="font-semibold mb-4">Zona Hoy</h4>
+                          <ZonaTodayManager 
+                            professionalName={professional?.full_name || ''}
+                            profession={professional?.profession || ''}
+                            phone={professional?.phone}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             </Tabs>
           )}

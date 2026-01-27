@@ -1466,6 +1466,7 @@ export type Database = {
           profession: string
           rating: number | null
           review_count: number | null
+          slug: string | null
           updated_at: string
           user_id: string
           verification_date: string | null
@@ -1493,6 +1494,7 @@ export type Database = {
           profession: string
           rating?: number | null
           review_count?: number | null
+          slug?: string | null
           updated_at?: string
           user_id: string
           verification_date?: string | null
@@ -1520,6 +1522,7 @@ export type Database = {
           profession?: string
           rating?: number | null
           review_count?: number | null
+          slug?: string | null
           updated_at?: string
           user_id?: string
           verification_date?: string | null
