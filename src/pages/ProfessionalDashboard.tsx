@@ -48,15 +48,9 @@ import {
   BarChart3,
   Eye,
   Edit3,
-  AlertCircle,
-  Pencil,
-  Search,
-  Check,
-  Loader2
+  AlertCircle
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface DashboardStats {
   totalRequests: number;
@@ -101,10 +95,6 @@ const ProfessionalDashboard = () => {
   const [showTabs, setShowTabs] = useState(false);
   const [lastSeen, setLastSeen] = useState<string | null>(null);
   
-  // Profession selector state
-  const [showProfessionSelector, setShowProfessionSelector] = useState(false);
-  const [professionSearch, setProfessionSearch] = useState('');
-  const [savingProfession, setSavingProfession] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
 
   const { 
@@ -320,7 +310,6 @@ const ProfessionalDashboard = () => {
   const handleProfessionChange = async (newProfession: string) => {
     if (!professional?.id) return;
     
-    setSavingProfession(true);
     try {
       const { error } = await supabase
         .from('professionals')
@@ -333,14 +322,10 @@ const ProfessionalDashboard = () => {
       if (error) throw error;
 
       setProfessional({ ...professional, profession: newProfession });
-      setShowProfessionSelector(false);
-      setProfessionSearch('');
       toast.success('Profesión actualizada');
     } catch (error) {
       console.error('Error updating profession:', error);
       toast.error('Error al actualizar la profesión');
-    } finally {
-      setSavingProfession(false);
     }
   };
 
@@ -456,9 +441,11 @@ const ProfessionalDashboard = () => {
     { value: 'Otro', icon: '🛠️' },
   ];
 
-  const filteredProfessions = PROFESSIONS.filter(p => 
-    p.value.toLowerCase().includes(professionSearch.toLowerCase())
-  );
+  // Get profession icon by value
+  const getProfessionIcon = (value: string) => {
+    const profession = PROFESSIONS.find(p => p.value === value);
+    return profession?.icon || '🛠️';
+  };
 
   // Calculate profile completion
   const profileCompletion = professional ? calculateProfileCompletion(professional, profileCounts) : 0;
@@ -529,14 +516,30 @@ const ProfessionalDashboard = () => {
               Hola, {professional.full_name?.split(' ')[0]} 👋
             </h1>
             
-            {/* Profesión clickeable */}
-            <button
-              onClick={() => setShowProfessionSelector(true)}
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors group w-fit"
+            {/* Dropdown directo de profesión */}
+            <Select
+              value={professional.profession || 'Otro'}
+              onValueChange={handleProfessionChange}
             >
-              <span>{professional.profession || 'Sin profesión definida'}</span>
-              <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
+              <SelectTrigger className="w-fit h-auto p-0 border-0 shadow-none text-sm text-muted-foreground hover:text-primary focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3">
+                <SelectValue>
+                  <span className="flex items-center gap-1.5">
+                    <span>{getProfessionIcon(professional.profession || 'Otro')}</span>
+                    <span>{professional.profession || 'Elegir profesión'}</span>
+                  </span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {PROFESSIONS.map((profession) => (
+                  <SelectItem key={profession.value} value={profession.value}>
+                    <span className="flex items-center gap-2">
+                      <span>{profession.icon}</span>
+                      <span>{profession.value}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button 
             variant="outline" 
@@ -548,78 +551,6 @@ const ProfessionalDashboard = () => {
             Panel Usuario
           </Button>
         </div>
-
-        {/* Alert para profesión sin configurar */}
-        {(!professional.profession || professional.profession === 'Otro') && (
-          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-800 dark:text-amber-200 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 flex-shrink-0" />
-            <span>Configurá tu profesión para aparecer en más búsquedas</span>
-            <button 
-              onClick={() => setShowProfessionSelector(true)}
-              className="ml-auto text-amber-700 dark:text-amber-300 font-medium hover:underline"
-            >
-              Configurar
-            </button>
-          </div>
-        )}
-
-        {/* Modal para seleccionar profesión */}
-        <Dialog open={showProfessionSelector} onOpenChange={setShowProfessionSelector}>
-          <DialogContent className="max-w-lg max-h-[80vh]">
-            <DialogHeader>
-              <DialogTitle>¿Qué tipo de profesional sos?</DialogTitle>
-              <DialogDescription>
-                Elegí tu categoría principal para aparecer en las búsquedas
-              </DialogDescription>
-            </DialogHeader>
-            
-            {/* Buscador */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar profesión..."
-                value={professionSearch}
-                onChange={(e) => setProfessionSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            {/* Grid de profesiones */}
-            <div className="grid grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto p-1">
-              {filteredProfessions.map((profession) => (
-                <button
-                  key={profession.value}
-                  onClick={() => handleProfessionChange(profession.value)}
-                  disabled={savingProfession}
-                  className={cn(
-                    "flex items-center gap-2 p-3 rounded-lg border text-left transition-all",
-                    professional.profession === profession.value
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border hover:border-primary/50 hover:bg-muted/50"
-                  )}
-                >
-                  <span className="text-xl">{profession.icon}</span>
-                  <span className="text-sm font-medium truncate">{profession.value}</span>
-                  {professional.profession === profession.value && (
-                    <Check className="h-4 w-4 ml-auto text-primary flex-shrink-0" />
-                  )}
-                </button>
-              ))}
-              {filteredProfessions.length === 0 && (
-                <p className="col-span-2 text-center text-muted-foreground py-4">
-                  No se encontraron profesiones
-                </p>
-              )}
-            </div>
-            
-            {savingProfession && (
-              <div className="flex items-center justify-center gap-2 py-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm text-muted-foreground">Guardando...</span>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
 
         {/* Conditional Dashboard based on user state */}
         <div className="mb-8">
