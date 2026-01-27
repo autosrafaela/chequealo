@@ -1,5 +1,11 @@
 import { CARD_STYLES, CardStyleConfig, getStylesForProfession } from '@/types/cardStyles';
 
+export interface ProfessionItem {
+  id: string;
+  profession: string;
+  is_primary?: boolean;
+}
+
 export interface Professional {
   id: string;
   full_name: string;
@@ -10,7 +16,33 @@ export interface Professional {
   image_url?: string;
   is_verified?: boolean;
   slug?: string | null;
+  professions?: ProfessionItem[];
 }
+
+// Helper to get the best profession display text
+const getProfessionDisplay = (professional: Professional): string => {
+  // PRIORITY 1: Custom professions from professional_professions table
+  if (professional.professions && professional.professions.length > 0) {
+    const primaryProfession = professional.professions.find(p => p.is_primary);
+    const professionText = primaryProfession?.profession || professional.professions[0].profession;
+    if (professionText && professionText.trim() !== '') {
+      return professionText;
+    }
+  }
+
+  // PRIORITY 2: Legacy profession field (but skip generic ones)
+  const genericCategories = ['otro', 'otros', 'general', 'profesional'];
+  if (
+    professional.profession && 
+    professional.profession.trim() !== '' &&
+    !genericCategories.includes(professional.profession.toLowerCase())
+  ) {
+    return professional.profession;
+  }
+
+  // PRIORITY 3: Default fallback
+  return 'Profesional';
+};
 
 type CardFormat = 'post' | 'story';
 
@@ -199,10 +231,21 @@ export const generateCard = async (
   ctx.textAlign = 'center';
   ctx.fillText(professional.full_name.toUpperCase(), w / 2, nameY);
 
-  // Profession
+  // Profession - use custom profession if available
+  const professionDisplay = getProfessionDisplay(professional);
   ctx.font = `${isPost ? 32 : 40}px Arial, sans-serif`;
   ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-  ctx.fillText(professional.profession, w / 2, nameY + (isPost ? 45 : 55));
+  
+  // Truncate if too long
+  const maxTextWidth = w - 120;
+  let displayText = professionDisplay;
+  if (ctx.measureText(displayText).width > maxTextWidth) {
+    while (ctx.measureText(displayText + '...').width > maxTextWidth && displayText.length > 0) {
+      displayText = displayText.slice(0, -1);
+    }
+    displayText += '...';
+  }
+  ctx.fillText(displayText, w / 2, nameY + (isPost ? 45 : 55));
 
   // Rating stars
   const ratingY = nameY + (isPost ? 110 : 130);
@@ -334,7 +377,7 @@ export const useGenerateShareCard = () => {
     professional: Professional,
     format: CardFormat = 'story'
   ): Promise<{ style: string; url: string; config: CardStyleConfig }[]> => {
-    const suggestedStyles = getStylesForProfession(professional.profession);
+    const suggestedStyles = getStylesForProfession(professional.profession, professional.professions);
 
     const cards = await Promise.all(
       suggestedStyles.map(async (styleName) => {

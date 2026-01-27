@@ -28,9 +28,17 @@ const fetchProfessional = async (id: string) => {
     .eq('id', id)
     .maybeSingle();
 
+  // Obtener profesiones personalizadas de la tabla professional_professions
+  const { data: professionsData } = await supabase
+    .from('professional_professions')
+    .select('id, profession, is_primary')
+    .eq('professional_id', id)
+    .order('is_primary', { ascending: false });
+
   return {
     ...viewData,
-    slug: slugData?.slug || null
+    slug: slugData?.slug || null,
+    professions: professionsData || []
   };
 };
 
