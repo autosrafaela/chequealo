@@ -131,14 +131,45 @@ export const PROFESSION_STYLE_SUGGESTIONS: Record<string, string[]> = {
   default: ['modern', 'corporate', 'ocean'],
 };
 
-export const getStylesForProfession = (profession: string): string[] => {
-  const normalizedProfession = profession.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+// Helper to get AI-suggested styles based on profession
+export const getStylesForProfession = (profession: string, professions?: { profession: string; is_primary?: boolean }[]): string[] => {
+  // First try with custom professions from the array
+  if (professions && professions.length > 0) {
+    const primaryProfession = professions.find(p => p.is_primary)?.profession || professions[0].profession;
+    const matchedStyles = findStylesForText(primaryProfession);
+    if (matchedStyles.length > 0) return matchedStyles;
+  }
   
+  // Then try with the legacy profession field
+  const matchedStyles = findStylesForText(profession);
+  if (matchedStyles.length > 0) return matchedStyles;
+  
+  return PROFESSION_STYLE_SUGGESTIONS.default;
+};
+
+const findStylesForText = (text: string): string[] => {
+  if (!text) return [];
+  
+  const normalizedText = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  
+  // Check for tech/digital keywords
+  const techKeywords = ['developer', 'desarrollador', 'programador', 'digital', 'web', 'app', 'software', 'tech', 'founder', 'builder', 'cto', 'ceo'];
+  if (techKeywords.some(k => normalizedText.includes(k))) {
+    return ['tech', 'dark', 'modern'];
+  }
+  
+  // Check for creative keywords  
+  const creativeKeywords = ['diseño', 'design', 'creative', 'creativo', 'artista', 'artist', 'fotograf', 'photo'];
+  if (creativeKeywords.some(k => normalizedText.includes(k))) {
+    return ['sunset', 'modern', 'dark'];
+  }
+  
+  // Check predefined professions
   for (const [key, styles] of Object.entries(PROFESSION_STYLE_SUGGESTIONS)) {
-    if (normalizedProfession.includes(key)) {
+    if (normalizedText.includes(key)) {
       return styles;
     }
   }
   
-  return PROFESSION_STYLE_SUGGESTIONS.default;
+  return [];
 };

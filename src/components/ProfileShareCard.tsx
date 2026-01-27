@@ -7,6 +7,12 @@ import { cn } from '@/lib/utils';
 import { useGenerateShareCard, generateCard } from '@/hooks/useGenerateShareCard';
 import { CARD_STYLES, CardStyleConfig } from '@/types/cardStyles';
 
+interface ProfessionItem {
+  id: string;
+  profession: string;
+  is_primary?: boolean;
+}
+
 interface ProfileShareCardProps {
   professional: {
     id: string;
@@ -18,6 +24,7 @@ interface ProfileShareCardProps {
     image_url?: string;
     is_verified?: boolean;
     slug?: string | null;
+    professions?: ProfessionItem[];
   };
   trigger?: React.ReactNode;
 }
