@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SquarePen, Loader2 } from 'lucide-react';
+import { SquarePen, Loader2, ArrowLeft } from 'lucide-react';
 import { WhatsAppChatList } from '@/components/chat/WhatsAppChatList';
 import { WhatsAppChatView } from '@/components/chat/WhatsAppChatView';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import type { Conversation, Message } from '@/types/chat';
 
 const Messages = () => {
@@ -185,7 +186,18 @@ const Messages = () => {
     <div className="h-screen flex flex-col bg-background">
       {/* Header - Mobile only when no chat selected, or always on desktop */}
       <header className={`shrink-0 flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground ${selectedConversationId ? 'hidden md:flex' : 'flex'}`}>
-        <h1 className="text-xl font-semibold">Mensajes</h1>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="text-primary-foreground hover:bg-primary-foreground/10 h-9 w-9"
+            aria-label="Volver"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">Mensajes</h1>
+        </div>
         <button 
           onClick={handleNewMessage}
           className="p-2 hover:bg-primary-foreground/10 rounded-full transition-colors"
