@@ -48,8 +48,15 @@ import {
   BarChart3,
   Eye,
   Edit3,
-  AlertCircle
+  AlertCircle,
+  Pencil,
+  Search,
+  Check,
+  Loader2
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 interface DashboardStats {
   totalRequests: number;
@@ -94,6 +101,10 @@ const ProfessionalDashboard = () => {
   const [showTabs, setShowTabs] = useState(false);
   const [lastSeen, setLastSeen] = useState<string | null>(null);
   
+  // Profession selector state
+  const [showProfessionSelector, setShowProfessionSelector] = useState(false);
+  const [professionSearch, setProfessionSearch] = useState('');
+  const [savingProfession, setSavingProfession] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
 
   const { 
@@ -305,6 +316,150 @@ const ProfessionalDashboard = () => {
     handleToggleZone(true);
   };
 
+  // Profession change handler
+  const handleProfessionChange = async (newProfession: string) => {
+    if (!professional?.id) return;
+    
+    setSavingProfession(true);
+    try {
+      const { error } = await supabase
+        .from('professionals')
+        .update({ 
+          profession: newProfession,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', professional.id);
+
+      if (error) throw error;
+
+      setProfessional({ ...professional, profession: newProfession });
+      setShowProfessionSelector(false);
+      setProfessionSearch('');
+      toast.success('Profesión actualizada');
+    } catch (error) {
+      console.error('Error updating profession:', error);
+      toast.error('Error al actualizar la profesión');
+    } finally {
+      setSavingProfession(false);
+    }
+  };
+
+  // Profession list for selector
+  const PROFESSIONS = [
+    { value: 'Plomero / Gasista', icon: '🔧' },
+    { value: 'Electricista', icon: '⚡' },
+    { value: 'Electricista Matriculado', icon: '⚡' },
+    { value: 'Técnico de Aire Acondicionado', icon: '❄️' },
+    { value: 'Técnico en Refrigeración', icon: '❄️' },
+    { value: 'Técnico en Calefacción', icon: '🔥' },
+    { value: 'Pintor', icon: '🎨' },
+    { value: 'Pintor de Obras', icon: '🎨' },
+    { value: 'Albañil', icon: '🧱' },
+    { value: 'Carpintero / Ebanista', icon: '🪚' },
+    { value: 'Cerrajero', icon: '🔑' },
+    { value: 'Jardinero', icon: '🌱' },
+    { value: 'Jardinero / Paisajista', icon: '🌱' },
+    { value: 'Limpieza y Mantenimiento', icon: '🧹' },
+    { value: 'Empleada Doméstica / Servicio de Limpieza', icon: '🧹' },
+    { value: 'Fletero / Mudanzas', icon: '📦' },
+    { value: 'Técnico de PC', icon: '💻' },
+    { value: 'Reparación de Computadoras', icon: '💻' },
+    { value: 'Reparación de Celulares', icon: '📱' },
+    { value: 'Técnico de Celulares', icon: '📱' },
+    { value: 'Mecánico', icon: '🚗' },
+    { value: 'Mecánico de Motos', icon: '🏍️' },
+    { value: 'Gomería', icon: '🛞' },
+    { value: 'Herrero', icon: '⚒️' },
+    { value: 'Herrería de Obra', icon: '⚒️' },
+    { value: 'Soldador', icon: '🔥' },
+    { value: 'Instalador de Durlock / Yesero', icon: '🪛' },
+    { value: 'Colocador de Cerámicos', icon: '🏠' },
+    { value: 'Colocador de Pisos', icon: '🏠' },
+    { value: 'Colocador de Porcelanatos', icon: '🏠' },
+    { value: 'Techista', icon: '🏠' },
+    { value: 'Vidriería', icon: '🪟' },
+    { value: 'Tapicero', icon: '🛋️' },
+    { value: 'Cortinero', icon: '🪟' },
+    { value: 'Instalador de Cámaras de Seguridad', icon: '📹' },
+    { value: 'Instalador de Alarmas', icon: '🚨' },
+    { value: 'Instalador de TV', icon: '📺' },
+    { value: 'Instalador de Internet', icon: '🌐' },
+    { value: 'Instalador de Paneles Solares', icon: '☀️' },
+    { value: 'Fumigador / Control de Plagas', icon: '🦟' },
+    { value: 'Limpieza de Tanques de Agua', icon: '🚰' },
+    { value: 'Limpieza de Alfombras', icon: '🧹' },
+    { value: 'Limpieza de Tapizados', icon: '🧹' },
+    { value: 'Piscinas / Piletas Colocación', icon: '🏊' },
+    { value: 'Podador de Árboles', icon: '🌳' },
+    { value: 'Peluquero/a', icon: '💇' },
+    { value: 'Barbero', icon: '💈' },
+    { value: 'Manicurista', icon: '💅' },
+    { value: 'Pedicurista', icon: '🦶' },
+    { value: 'Maquillador/a', icon: '💄' },
+    { value: 'Esteticista', icon: '✨' },
+    { value: 'Masajista', icon: '💆' },
+    { value: 'Entrenador Personal', icon: '🏋️' },
+    { value: 'Profesor de Yoga', icon: '🧘' },
+    { value: 'Profesor de Pilates', icon: '🧘' },
+    { value: 'Nutricionista', icon: '🥗' },
+    { value: 'Kinesiólogo / Fisioterapeuta', icon: '🩺' },
+    { value: 'Enfermero/a', icon: '👩‍⚕️' },
+    { value: 'Cuidador/a de Adultos Mayores', icon: '👴' },
+    { value: 'Cuidador/a de Niños (Niñera)', icon: '👶' },
+    { value: 'Psicólogo', icon: '🧠' },
+    { value: 'Fonoaudiólogo', icon: '🗣️' },
+    { value: 'Veterinario', icon: '🐕' },
+    { value: 'Peluquero Canino', icon: '🐩' },
+    { value: 'Cuidador de Mascotas', icon: '🐾' },
+    { value: 'Paseador de Perros', icon: '🦮' },
+    { value: 'Adiestrador de Perros', icon: '🐕‍🦺' },
+    { value: 'Fotógrafo', icon: '📷' },
+    { value: 'Camarógrafo', icon: '🎥' },
+    { value: 'Editor de Video', icon: '🎬' },
+    { value: 'Diseñador Gráfico', icon: '🎨' },
+    { value: 'Desarrollador Web', icon: '💻' },
+    { value: 'Community Manager', icon: '📱' },
+    { value: 'Redactor de Contenidos', icon: '✍️' },
+    { value: 'Contador', icon: '📊' },
+    { value: 'Contadora Pública', icon: '📊' },
+    { value: 'Abogado', icon: '⚖️' },
+    { value: 'Escribano', icon: '📝' },
+    { value: 'Arquitecta', icon: '🏗️' },
+    { value: 'Ingeniero', icon: '👷' },
+    { value: 'Asesor Inmobiliario', icon: '🏠' },
+    { value: 'Martillero Público', icon: '🔨' },
+    { value: 'Gestor del Automotor', icon: '🚗' },
+    { value: 'Asesor de Seguros', icon: '📋' },
+    { value: 'Profesor Particular', icon: '📚' },
+    { value: 'Profesor de Matemáticas', icon: '➗' },
+    { value: 'Profesor de Idiomas', icon: '🌍' },
+    { value: 'Profesora de Inglés', icon: '🇬🇧' },
+    { value: 'Profesor de Música', icon: '🎵' },
+    { value: 'Profesor de Música (Guitarra)', icon: '🎸' },
+    { value: 'Profesor de Música (Piano)', icon: '🎹' },
+    { value: 'Profesor de Canto', icon: '🎤' },
+    { value: 'Profesor de Danza', icon: '💃' },
+    { value: 'Chef a Domicilio', icon: '👨‍🍳' },
+    { value: 'Pastelero', icon: '🎂' },
+    { value: 'Repostero', icon: '🧁' },
+    { value: 'Catering', icon: '🍽️' },
+    { value: 'Barman / Bartender', icon: '🍸' },
+    { value: 'Chofer Particular', icon: '🚘' },
+    { value: 'Remisero', icon: '🚕' },
+    { value: 'Mensajería', icon: '📦' },
+    { value: 'Decorador de Interiores', icon: '🛋️' },
+    { value: 'Diseñador de Interiores', icon: '🏠' },
+    { value: 'Organizador Profesional', icon: '📦' },
+    { value: 'Modista/Costurera/Confeccionista a medida/Bordados', icon: '🧵' },
+    { value: 'Traductor', icon: '🌐' },
+    { value: 'Automatización con IA', icon: '🤖' },
+    { value: 'Otro', icon: '🛠️' },
+  ];
+
+  const filteredProfessions = PROFESSIONS.filter(p => 
+    p.value.toLowerCase().includes(professionSearch.toLowerCase())
+  );
+
   // Calculate profile completion
   const profileCompletion = professional ? calculateProfileCompletion(professional, profileCounts) : 0;
   const daysSinceLastLogin = calculateDaysSinceLastLogin(lastSeen);
@@ -369,13 +524,19 @@ const ProfessionalDashboard = () => {
         
         {/* Header minimalista */}
         <div className="flex items-center justify-between mb-6">
-          <div>
+          <div className="flex flex-col">
             <h1 className="text-2xl font-bold text-foreground">
               Hola, {professional.full_name?.split(' ')[0]} 👋
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {professional.profession}
-            </p>
+            
+            {/* Profesión clickeable */}
+            <button
+              onClick={() => setShowProfessionSelector(true)}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors group w-fit"
+            >
+              <span>{professional.profession || 'Sin profesión definida'}</span>
+              <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
           </div>
           <Button 
             variant="outline" 
@@ -387,6 +548,78 @@ const ProfessionalDashboard = () => {
             Panel Usuario
           </Button>
         </div>
+
+        {/* Alert para profesión sin configurar */}
+        {(!professional.profession || professional.profession === 'Otro') && (
+          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-800 dark:text-amber-200 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span>Configurá tu profesión para aparecer en más búsquedas</span>
+            <button 
+              onClick={() => setShowProfessionSelector(true)}
+              className="ml-auto text-amber-700 dark:text-amber-300 font-medium hover:underline"
+            >
+              Configurar
+            </button>
+          </div>
+        )}
+
+        {/* Modal para seleccionar profesión */}
+        <Dialog open={showProfessionSelector} onOpenChange={setShowProfessionSelector}>
+          <DialogContent className="max-w-lg max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>¿Qué tipo de profesional sos?</DialogTitle>
+              <DialogDescription>
+                Elegí tu categoría principal para aparecer en las búsquedas
+              </DialogDescription>
+            </DialogHeader>
+            
+            {/* Buscador */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar profesión..."
+                value={professionSearch}
+                onChange={(e) => setProfessionSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Grid de profesiones */}
+            <div className="grid grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto p-1">
+              {filteredProfessions.map((profession) => (
+                <button
+                  key={profession.value}
+                  onClick={() => handleProfessionChange(profession.value)}
+                  disabled={savingProfession}
+                  className={cn(
+                    "flex items-center gap-2 p-3 rounded-lg border text-left transition-all",
+                    professional.profession === profession.value
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border hover:border-primary/50 hover:bg-muted/50"
+                  )}
+                >
+                  <span className="text-xl">{profession.icon}</span>
+                  <span className="text-sm font-medium truncate">{profession.value}</span>
+                  {professional.profession === profession.value && (
+                    <Check className="h-4 w-4 ml-auto text-primary flex-shrink-0" />
+                  )}
+                </button>
+              ))}
+              {filteredProfessions.length === 0 && (
+                <p className="col-span-2 text-center text-muted-foreground py-4">
+                  No se encontraron profesiones
+                </p>
+              )}
+            </div>
+            
+            {savingProfession && (
+              <div className="flex items-center justify-center gap-2 py-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Guardando...</span>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Conditional Dashboard based on user state */}
         <div className="mb-8">
