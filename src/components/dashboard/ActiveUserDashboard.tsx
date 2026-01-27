@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -24,6 +24,26 @@ import {
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getVisitsContext, getContactsContext } from '@/utils/profileCompletion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+
+const PROFESSIONS = [
+  { value: 'Plomero', icon: '🔧' },
+  { value: 'Electricista', icon: '⚡' },
+  { value: 'Gasista', icon: '🔥' },
+  { value: 'Pintor', icon: '🎨' },
+  { value: 'Albañil', icon: '🧱' },
+  { value: 'Carpintero', icon: '🪚' },
+  { value: 'Cerrajero', icon: '🔑' },
+  { value: 'Jardinero', icon: '🌱' },
+  { value: 'Limpieza', icon: '🧹' },
+  { value: 'Mudanza', icon: '📦' },
+  { value: 'Técnico PC', icon: '💻' },
+  { value: 'Aire Acondicionado', icon: '❄️' },
+  { value: 'Otro', icon: '🛠️' },
+];
 
 interface ActiveUserDashboardProps {
   professional: {
@@ -44,6 +64,7 @@ interface ActiveUserDashboardProps {
   isActiveInZone: boolean;
   onToggleZone: (active: boolean) => void;
   onTabChange: (tab: string) => void;
+  onProfessionalUpdate?: (profession: string) => void;
 }
 
 export function ActiveUserDashboard({ 
@@ -52,11 +73,39 @@ export function ActiveUserDashboard({
   completion,
   isActiveInZone,
   onToggleZone,
-  onTabChange
+  onTabChange,
+  onProfessionalUpdate
 }: ActiveUserDashboardProps) {
   const navigate = useNavigate();
+  const [showProfessionModal, setShowProfessionModal] = useState(false);
+  const [savingProfession, setSavingProfession] = useState(false);
   const hasPendingContacts = stats.pendingRequests > 0;
   const weeklyVisits = stats.weeklyVisits || 0;
+
+  const handleProfessionChange = async (newProfession: string) => {
+    setSavingProfession(true);
+    try {
+      const { error } = await supabase
+        .from('professionals')
+        .update({ profession: newProfession, updated_at: new Date().toISOString() })
+        .eq('id', professional.id);
+
+      if (error) throw error;
+      
+      onProfessionalUpdate?.(newProfession);
+      toast.success('Profesión actualizada');
+      setShowProfessionModal(false);
+    } catch (error) {
+      toast.error('Error al actualizar la profesión');
+    } finally {
+      setSavingProfession(false);
+    }
+  };
+
+  const getCurrentProfessionIcon = () => {
+    const found = PROFESSIONS.find(p => p.value === professional.profession);
+    return found?.icon || '🛠️';
+  };
 
   return (
     <div className="space-y-6">
@@ -165,7 +214,7 @@ export function ActiveUserDashboard({
       <div>
         <h3 className="text-lg font-semibold mb-4">Acciones rápidas</h3>
         
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <QuickActionTile
             icon={Eye}
             label="Ver Perfil"
@@ -191,8 +240,42 @@ export function ActiveUserDashboard({
             label="Configuración"
             onClick={() => onTabChange('settings')}
           />
+          <QuickActionTile
+            icon={Briefcase}
+            label="Mi Profesión"
+            description={professional.profession || 'Sin definir'}
+            onClick={() => setShowProfessionModal(true)}
+          />
         </div>
       </div>
+
+      {/* Modal de Profesión */}
+      <Dialog open={showProfessionModal} onOpenChange={setShowProfessionModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Cambiar profesión</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-2 mt-4 max-h-[60vh] overflow-y-auto">
+            {PROFESSIONS.map((profession) => (
+              <button
+                key={profession.value}
+                onClick={() => handleProfessionChange(profession.value)}
+                disabled={savingProfession}
+                className={cn(
+                  "flex items-center gap-2 p-3 rounded-lg border text-left transition-all disabled:opacity-50",
+                  professional.profession === profession.value
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border hover:border-primary/50 hover:bg-muted/50"
+                )}
+              >
+                <span className="text-lg">{profession.icon}</span>
+                <span className="text-sm font-medium">{profession.value}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Acordeón con opciones menos usadas */}
       <Collapsible>
@@ -208,11 +291,6 @@ export function ActiveUserDashboard({
               icon={BarChart3}
               label="Analytics"
               onClick={() => onTabChange('analytics')}
-            />
-            <QuickActionButton
-              icon={Star}
-              label="Gestionar Reseñas"
-              onClick={() => onTabChange('reviews')}
             />
             <QuickActionButton
               icon={Briefcase}
