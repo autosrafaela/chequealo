@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationPopupWrapper from "@/components/NotificationPopupWrapper";
+import { RealtimeNotifications } from "@/components/RealtimeNotifications";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 import { BottomNavigation } from "@/components/BottomNavigation";
 
@@ -94,9 +95,9 @@ const App = () => {
       <Toaster />
       <Sonner />
       <NotificationPopupWrapper />
+      <RealtimeNotifications />
       <PWAInstallPrompt />
       <IOSInstallInstructions />
-      
     
     <BrowserRouter>
       

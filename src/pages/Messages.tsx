@@ -1,15 +1,16 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SquarePen } from 'lucide-react';
+import { SquarePen, Loader2 } from 'lucide-react';
 import { WhatsAppChatList } from '@/components/chat/WhatsAppChatList';
 import { WhatsAppChatView } from '@/components/chat/WhatsAppChatView';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import type { Conversation, Message } from '@/types/chat';
 
 const Messages = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { 
     conversations, 
@@ -19,28 +20,75 @@ const Messages = () => {
     fetchMessages,
     sendMessage,
     deleteConversation,
-    blockConversation
+    blockConversation,
+    createConversation,
+    refreshConversations
   } = useChat();
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
-    searchParams.get('chat')
-  );
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
 
-  // Auto-select conversation from URL parameter
-  useEffect(() => {
-    const chatId = searchParams.get('chat');
-    if (chatId && chatId !== selectedConversationId) {
-      setSelectedConversationId(chatId);
+  // Handle chat parameter from URL (can be conversation_id or professional_id)
+  const handleChatParam = useCallback(async (chatParam: string) => {
+    if (!user || isCreatingChat) return;
+
+    // First check if it's an existing conversation ID
+    const existingConversation = conversations.find(c => c.id === chatParam);
+    if (existingConversation) {
+      setSelectedConversationId(chatParam);
+      return;
     }
-  }, [searchParams]);
+
+    // Check if it's a professional_id - try to find or create conversation
+    setIsCreatingChat(true);
+    try {
+      // Check if a conversation already exists with this professional
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('professional_id', chatParam)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (existingConv) {
+        setSelectedConversationId(existingConv.id);
+        // Update URL with correct conversation ID
+        setSearchParams({ chat: existingConv.id }, { replace: true });
+        await refreshConversations();
+      } else {
+        // Create new conversation with professional
+        const newConversation = await createConversation(chatParam);
+        if (newConversation) {
+          setSelectedConversationId(newConversation.id);
+          // Update URL with correct conversation ID
+          setSearchParams({ chat: newConversation.id }, { replace: true });
+        }
+      }
+    } catch (error) {
+      console.error('Error handling chat param:', error);
+      // If param is already a conversation ID that just doesn't exist in cache yet
+      setSelectedConversationId(chatParam);
+    } finally {
+      setIsCreatingChat(false);
+    }
+  }, [user, conversations, isCreatingChat, createConversation, refreshConversations, setSearchParams]);
+
+  // Process chat parameter from URL
+  useEffect(() => {
+    const chatParam = searchParams.get('chat');
+    if (chatParam && !loading) {
+      handleChatParam(chatParam);
+    }
+  }, [searchParams, loading, handleChatParam]);
 
   // Load messages when conversation is selected
   useEffect(() => {
     if (selectedConversationId) {
       fetchMessages(selectedConversationId);
     }
-  }, [selectedConversationId]);
+  }, [selectedConversationId, fetchMessages]);
 
   const filteredConversations = useMemo(() => {
     if (!searchQuery.trim()) return conversations;
@@ -65,10 +113,12 @@ const Messages = () => {
 
   const handleChatSelect = (conversationId: string) => {
     setSelectedConversationId(conversationId);
+    setSearchParams({ chat: conversationId }, { replace: true });
   };
 
   const handleBack = () => {
     setSelectedConversationId(null);
+    setSearchParams({}, { replace: true });
   };
 
   const handleSendMessage = async (content: string, type?: string, file?: File) => {
@@ -84,6 +134,7 @@ const Messages = () => {
     if (selectedConversationId) {
       await deleteConversation(selectedConversationId);
       setSelectedConversationId(null);
+      setSearchParams({}, { replace: true });
     }
   };
 
@@ -91,6 +142,7 @@ const Messages = () => {
     if (selectedConversationId) {
       await blockConversation(selectedConversationId);
       setSelectedConversationId(null);
+      setSearchParams({}, { replace: true });
     }
   };
 
@@ -150,17 +202,24 @@ const Messages = () => {
 
         {/* Chat view - full width on mobile, or right side on desktop */}
         <div className={`flex-1 ${selectedConversationId ? 'block' : 'hidden md:block'}`}>
-          <WhatsAppChatView
-            conversation={selectedConversation as Conversation | null}
-            messages={currentMessages}
-            currentUserId={user?.id || ''}
-            sending={sending}
-            onBack={handleBack}
-            onSendMessage={handleSendMessage}
-            onCall={handleCall}
-            onArchive={handleArchive}
-            onBlock={handleBlock}
-          />
+          {isCreatingChat ? (
+            <div className="flex flex-col items-center justify-center h-full gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Abriendo conversación...</p>
+            </div>
+          ) : (
+            <WhatsAppChatView
+              conversation={selectedConversation as Conversation | null}
+              messages={currentMessages}
+              currentUserId={user?.id || ''}
+              sending={sending}
+              onBack={handleBack}
+              onSendMessage={handleSendMessage}
+              onCall={handleCall}
+              onArchive={handleArchive}
+              onBlock={handleBlock}
+            />
+          )}
         </div>
       </div>
     </div>
