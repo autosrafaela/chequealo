@@ -131,14 +131,41 @@ export const useChat = () => {
         return null;
       }
 
+      // First check if conversation already exists
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('professional_id', professionalId)
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (existingConv) {
+        // If it exists but was archived/blocked, reactivate it
+        if (existingConv.status !== 'active') {
+          const { data: reactivated, error: updateError } = await supabase
+            .from('conversations')
+            .update({ status: 'active' })
+            .eq('id', existingConv.id)
+            .select()
+            .single();
+          
+          if (updateError) throw updateError;
+          await fetchConversations();
+          return reactivated;
+        }
+        
+        await fetchConversations();
+        return existingConv;
+      }
+
+      // Create new conversation
       const { data, error } = await supabase
         .from('conversations')
-        .upsert({
+        .insert({
           professional_id: professionalId,
           user_id: user?.id,
-          contact_request_id: contactRequestId
-        }, {
-          onConflict: 'professional_id,user_id'
+          contact_request_id: contactRequestId,
+          status: 'active'
         })
         .select()
         .single();
