@@ -88,6 +88,12 @@ const ProfessionalProfile = () => {
         phone: professional.phone || null,
         email: professional.email || null
       });
+      
+      // SEO: Actualizar URL a slug personalizado si existe
+      const professionalWithSlug = professional as typeof professional & { slug?: string | null };
+      if (professionalWithSlug.slug && !window.location.pathname.includes(`/${professionalWithSlug.slug}`)) {
+        window.history.replaceState(null, '', `/${professionalWithSlug.slug}`);
+      }
     }
   }, [professional, currentUser]);
 
