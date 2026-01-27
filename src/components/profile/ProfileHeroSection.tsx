@@ -1,7 +1,9 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Star, Shield, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import defaultAvatar from '@/assets/default-avatar.png';
 
 interface Professional {
@@ -21,6 +23,22 @@ interface ProfileHeroSectionProps {
 }
 
 export function ProfileHeroSection({ professional }: ProfileHeroSectionProps) {
+  // Fetch professions from the new table
+  const { data: professions } = useQuery({
+    queryKey: ['professional-professions', professional.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('professional_professions')
+        .select('profession, is_primary')
+        .eq('professional_id', professional.id)
+        .order('is_primary', { ascending: false });
+      
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!professional.id
+  });
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -32,6 +50,14 @@ export function ProfileHeroSection({ professional }: ProfileHeroSectionProps) {
 
   const isAvailable = professional.availability?.toLowerCase().includes('disponible') || 
                       professional.availability?.toLowerCase().includes('abierto');
+
+  // Get display profession: use new table if available, fallback to old column
+  const getProfessionDisplay = () => {
+    if (professions && professions.length > 0) {
+      return professions.map(p => p.profession).join(' • ');
+    }
+    return professional.profession;
+  };
 
   return (
     <div className="flex flex-col items-center text-center py-6 px-4">
@@ -69,9 +95,9 @@ export function ProfileHeroSection({ professional }: ProfileHeroSectionProps) {
         )}
       </div>
 
-      {/* Especialidad */}
+      {/* Especialidad(es) */}
       <p className="text-lg text-primary font-medium mb-2">
-        {professional.profession}
+        {getProfessionDisplay()}
       </p>
 
       {/* Rating destacado */}
