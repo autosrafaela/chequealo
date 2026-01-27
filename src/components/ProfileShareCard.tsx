@@ -354,8 +354,11 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
       
       ctx.fillStyle = '#ffffff';
       ctx.font = `bold ${isPost ? 34 : 40}px Arial, sans-serif`;
-      const shortUrl = `chequealo.ar/professional/${professional.id.substring(0, 8)}...`;
-      ctx.fillText(shortUrl, w / 2, urlY + (isPost ? 45 : 55));
+      // Usar slug personalizado si existe, sino usar ID truncado
+      const displayUrl = professional.slug 
+        ? `chequealo.ar/${professional.slug}`
+        : `chequealo.ar/professional/${professional.id.substring(0, 8)}...`;
+      ctx.fillText(displayUrl, w / 2, urlY + (isPost ? 45 : 55));
 
       // ===== FOOTER BRANDING =====
       if (!isPost) {
