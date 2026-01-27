@@ -6,3 +6,4 @@ export { DashboardSkeleton } from './DashboardSkeleton';
 export { NewUserDashboard } from './NewUserDashboard';
 export { ActiveUserDashboard } from './ActiveUserDashboard';
 export { InactiveUserDashboard } from './InactiveUserDashboard';
+export { ProfessionModal } from './ProfessionModal';
