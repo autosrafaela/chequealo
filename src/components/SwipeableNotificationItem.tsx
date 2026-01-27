@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Check, Clock, Trash2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface SwipeableNotificationItemProps {
@@ -13,6 +14,10 @@ interface SwipeableNotificationItemProps {
     read: boolean;
     action_url?: string;
     isUpdate?: boolean;
+    isPlatformUpdate?: boolean;
+    typeLabel?: string;
+    typeColor?: string;
+    link?: string;
   };
   icon: React.ReactNode;
   onDelete: (id: string) => void;
@@ -53,13 +58,13 @@ const SwipeableNotificationItem = ({
   };
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (notification.isUpdate) return; // Don't allow swipe on update notification
+    if (notification.isUpdate || notification.isPlatformUpdate) return; // Don't allow swipe on special notifications
     startX.current = e.touches[0].clientX;
     currentX.current = e.touches[0].clientX;
-  }, [notification.isUpdate]);
+  }, [notification.isUpdate, notification.isPlatformUpdate]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (notification.isUpdate) return;
+    if (notification.isUpdate || notification.isPlatformUpdate) return;
     currentX.current = e.touches[0].clientX;
     const diff = startX.current - currentX.current;
     
@@ -67,10 +72,10 @@ const SwipeableNotificationItem = ({
     // We want swipe right to delete, so diff should be negative
     const swipeAmount = Math.max(0, -diff);
     setTranslateX(Math.min(swipeAmount, 120));
-  }, [notification.isUpdate]);
+  }, [notification.isUpdate, notification.isPlatformUpdate]);
 
   const handleTouchEnd = useCallback(() => {
-    if (notification.isUpdate) return;
+    if (notification.isUpdate || notification.isPlatformUpdate) return;
     
     if (translateX > SWIPE_THRESHOLD) {
       // Trigger delete animation
@@ -82,10 +87,10 @@ const SwipeableNotificationItem = ({
       // Reset position
       setTranslateX(0);
     }
-  }, [translateX, notification.id, notification.isUpdate, onDelete]);
+  }, [translateX, notification.id, notification.isUpdate, notification.isPlatformUpdate, onDelete]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (notification.isUpdate) return;
+    if (notification.isUpdate || notification.isPlatformUpdate) return;
     startX.current = e.clientX;
     currentX.current = e.clientX;
     
@@ -111,7 +116,7 @@ const SwipeableNotificationItem = ({
     
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [notification.id, notification.isUpdate, onDelete, translateX]);
+  }, [notification.id, notification.isUpdate, notification.isPlatformUpdate, onDelete, translateX]);
 
   return (
     <div 
@@ -137,7 +142,8 @@ const SwipeableNotificationItem = ({
         className={cn(
           "p-3 cursor-pointer transition-all border-b bg-background",
           !notification.read ? 'bg-muted/50' : '',
-          notification.isUpdate ? 'border-l-2 border-primary bg-primary/5' : ''
+          notification.isUpdate ? 'border-l-2 border-primary bg-primary/5' : '',
+          notification.isPlatformUpdate ? 'border-l-2 border-primary bg-primary/5' : ''
         )}
         style={{ 
           transform: `translateX(${translateX}px)`,
@@ -165,10 +171,17 @@ const SwipeableNotificationItem = ({
               {!notification.read && (
                 <div className={cn(
                   "w-2 h-2 rounded-full flex-shrink-0",
-                  notification.isUpdate ? 'bg-primary' : 'bg-blue-500'
+                  notification.isUpdate || notification.isPlatformUpdate ? 'bg-primary' : 'bg-primary'
                 )} />
               )}
             </div>
+            
+            {/* Platform update type badge */}
+            {notification.isPlatformUpdate && notification.typeLabel && (
+              <Badge className={cn("text-xs mb-1 w-fit", notification.typeColor)}>
+                {notification.typeLabel}
+              </Badge>
+            )}
             
             <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
               {notification.message}
@@ -220,7 +233,7 @@ const SwipeableNotificationItem = ({
       </div>
       
       {/* Swipe hint on mobile */}
-      {!notification.isUpdate && translateX === 0 && (
+      {!notification.isUpdate && !notification.isPlatformUpdate && translateX === 0 && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground opacity-30 pointer-events-none md:hidden">
           ← desliza
         </div>

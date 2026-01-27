@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { 
   Bell, 
   CheckCircle, 
@@ -17,14 +18,22 @@ import {
   RefreshCw,
   BellRing,
   BellOff,
-  Settings
+  Settings,
+  Rocket,
+  Zap,
+  Wrench,
+  Megaphone
 } from 'lucide-react';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { usePlatformUpdates, UPDATE_TYPES } from '@/hooks/usePlatformUpdates';
 import { toast } from 'sonner';
 import SwipeableNotificationItem from './SwipeableNotificationItem';
 import { NotificationBadge } from '@/components/notifications/NotificationBadge';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const NotificationCenter = () => {
   const navigate = useNavigate();
@@ -36,6 +45,14 @@ const NotificationCenter = () => {
   } = useRealtimeNotifications();
 
   const { updateAvailable, isUpdating, updateApp, showBanner } = useServiceWorkerUpdate();
+  
+  // Platform updates
+  const { 
+    unreadUpdates, 
+    unreadCount: platformUnreadCount, 
+    markAsRead: markPlatformUpdateAsRead,
+    markAllAsRead: markAllPlatformUpdatesAsRead
+  } = usePlatformUpdates();
   
   // Push notification context
   const { 
@@ -75,35 +92,86 @@ const NotificationCenter = () => {
     isUpdate: true
   } : null;
 
-  // Combine update notification with regular notifications
-  const allNotifications = updateNotification 
-    ? [updateNotification, ...notifications]
-    : notifications;
+  // Transform platform updates to notification format
+  const platformNotifications = unreadUpdates.map(update => ({
+    id: `platform-${update.id}`,
+    platformUpdateId: update.id,
+    title: update.title,
+    message: update.description,
+    type: update.type,
+    created_at: update.publish_at,
+    read: false,
+    isPlatformUpdate: true,
+    icon: update.icon || UPDATE_TYPES[update.type]?.icon || '✨',
+    link: update.link,
+    typeLabel: UPDATE_TYPES[update.type]?.label,
+    typeColor: UPDATE_TYPES[update.type]?.color,
+  }));
 
-  const totalUnreadCount = unreadCount + (updateAvailable ? 1 : 0);
+  // Combine all notifications: update first, then platform updates, then regular
+  const allNotifications = [
+    ...(updateNotification ? [updateNotification] : []),
+    ...platformNotifications,
+    ...notifications
+  ];
 
-  const getIcon = (type: string) => {
+  const totalUnreadCount = unreadCount + (updateAvailable ? 1 : 0) + platformUnreadCount;
+
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
+    markAllPlatformUpdatesAsRead();
+  };
+
+  const getIcon = (type: string, isPlatformUpdate?: boolean, customIcon?: string) => {
+    // For platform updates, return the emoji icon
+    if (isPlatformUpdate && customIcon) {
+      return <span className="text-lg">{customIcon}</span>;
+    }
+    
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-emerald-500" />;
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+        return <AlertTriangle className="h-4 w-4 text-amber-500" />;
       case 'error':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+        return <AlertTriangle className="h-4 w-4 text-destructive" />;
       case 'update':
         return <RefreshCw className="h-4 w-4 text-primary animate-pulse" />;
+      case 'feature':
+        return <Rocket className="h-4 w-4 text-emerald-500" />;
+      case 'improvement':
+        return <Zap className="h-4 w-4 text-primary" />;
+      case 'fix':
+        return <Wrench className="h-4 w-4 text-amber-500" />;
+      case 'announcement':
+        return <Megaphone className="h-4 w-4 text-purple-500" />;
       default:
-        return <Info className="h-4 w-4 text-blue-500" />;
+        return <Info className="h-4 w-4 text-primary" />;
     }
   };
 
   const handleNotificationClick = (notification: any) => {
-    // Handle update notification
+    // Handle SW update notification
     if (notification.isUpdate) {
       updateApp();
       return;
     }
 
+    // Handle platform update notification
+    if (notification.isPlatformUpdate) {
+      markPlatformUpdateAsRead(notification.platformUpdateId);
+      if (notification.link) {
+        if (notification.link.startsWith('http')) {
+          window.open(notification.link, '_blank');
+        } else {
+          navigate(notification.link);
+        }
+      }
+      setIsOpen(false);
+      return;
+    }
+
+    // Regular notification
     if (!notification.read) {
       markAsRead(notification.id);
     }
@@ -119,6 +187,12 @@ const NotificationCenter = () => {
   };
 
   const handleDeleteNotification = async (id: string) => {
+    // Don't allow deleting platform updates through swipe - they're marked as read instead
+    if (id.startsWith('platform-')) {
+      const platformId = id.replace('platform-', '');
+      markPlatformUpdateAsRead(platformId);
+      return;
+    }
     await deleteNotification(id);
   };
 
@@ -151,11 +225,11 @@ const NotificationCenter = () => {
         <div className="p-3 border-b">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Notificaciones</h3>
-            {unreadCount > 0 && (
+            {(unreadCount + platformUnreadCount) > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 className="text-xs"
               >
                 <CheckCheck className="h-3 w-3 mr-1" />
@@ -175,13 +249,22 @@ const NotificationCenter = () => {
           </div>
         ) : (
           <ScrollArea className="max-h-96">
-            {allNotifications.map((notification) => (
+            {allNotifications.map((notification: any) => (
               <SwipeableNotificationItem
                 key={notification.id}
                 notification={notification}
-                icon={getIcon(notification.type)}
+                icon={notification.isPlatformUpdate 
+                  ? getIcon(notification.type, true, notification.icon)
+                  : getIcon(notification.type)
+                }
                 onDelete={handleDeleteNotification}
-                onMarkAsRead={markAsRead}
+                onMarkAsRead={(id) => {
+                  if (notification.isPlatformUpdate) {
+                    markPlatformUpdateAsRead(notification.platformUpdateId);
+                  } else {
+                    markAsRead(id);
+                  }
+                }}
                 onClick={() => handleNotificationClick(notification)}
                 isUpdating={isUpdating}
                 onUpdateClick={handleUpdateClick}
