@@ -40,36 +40,46 @@ const Messages = () => {
       return;
     }
 
-    // Check if it's a professional_id - try to find or create conversation
     setIsCreatingChat(true);
     try {
+      // The chatParam could be a professional_id OR a user_id of a professional
+      // First, try to find professional by professional_id
+      let professionalId = chatParam;
+      
+      // Check if this is a user_id instead of professional_id
+      const { data: professionalByUserId } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', chatParam)
+        .maybeSingle();
+      
+      if (professionalByUserId) {
+        professionalId = professionalByUserId.id;
+      }
+
       // Check if a conversation already exists with this professional
       const { data: existingConv } = await supabase
         .from('conversations')
         .select('id')
-        .eq('professional_id', chatParam)
+        .eq('professional_id', professionalId)
         .eq('user_id', user.id)
         .eq('status', 'active')
         .maybeSingle();
 
       if (existingConv) {
         setSelectedConversationId(existingConv.id);
-        // Update URL with correct conversation ID
         setSearchParams({ chat: existingConv.id }, { replace: true });
         await refreshConversations();
       } else {
         // Create new conversation with professional
-        const newConversation = await createConversation(chatParam);
+        const newConversation = await createConversation(professionalId);
         if (newConversation) {
           setSelectedConversationId(newConversation.id);
-          // Update URL with correct conversation ID
           setSearchParams({ chat: newConversation.id }, { replace: true });
         }
       }
     } catch (error) {
       console.error('Error handling chat param:', error);
-      // If param is already a conversation ID that just doesn't exist in cache yet
-      setSelectedConversationId(chatParam);
     } finally {
       setIsCreatingChat(false);
     }
