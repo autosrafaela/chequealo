@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { DashboardHero } from './DashboardHero';
 import { MetricCard } from './MetricCard';
 import { QuickActionTile } from './QuickActionTile';
 import { QuickActionButton } from './QuickActionButton';
+import { ProfessionModal } from './ProfessionModal';
 import { 
   MapPin, 
   MessageCircle, 
@@ -19,31 +21,11 @@ import {
   CreditCard,
   Briefcase,
   ChevronRight,
-  Bell,
-  AlertTriangle
+  Bell
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getVisitsContext, getContactsContext } from '@/utils/profileCompletion';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-
-const PROFESSIONS = [
-  { value: 'Plomero', icon: '🔧' },
-  { value: 'Electricista', icon: '⚡' },
-  { value: 'Gasista', icon: '🔥' },
-  { value: 'Pintor', icon: '🎨' },
-  { value: 'Albañil', icon: '🧱' },
-  { value: 'Carpintero', icon: '🪚' },
-  { value: 'Cerrajero', icon: '🔑' },
-  { value: 'Jardinero', icon: '🌱' },
-  { value: 'Limpieza', icon: '🧹' },
-  { value: 'Mudanza', icon: '📦' },
-  { value: 'Técnico PC', icon: '💻' },
-  { value: 'Aire Acondicionado', icon: '❄️' },
-  { value: 'Otro', icon: '🛠️' },
-];
 
 interface ActiveUserDashboardProps {
   professional: {
@@ -78,33 +60,33 @@ export function ActiveUserDashboard({
 }: ActiveUserDashboardProps) {
   const navigate = useNavigate();
   const [showProfessionModal, setShowProfessionModal] = useState(false);
-  const [savingProfession, setSavingProfession] = useState(false);
   const hasPendingContacts = stats.pendingRequests > 0;
   const weeklyVisits = stats.weeklyVisits || 0;
 
-  const handleProfessionChange = async (newProfession: string) => {
-    setSavingProfession(true);
-    try {
-      const { error } = await supabase
-        .from('professionals')
-        .update({ profession: newProfession, updated_at: new Date().toISOString() })
-        .eq('id', professional.id);
-
-      if (error) throw error;
+  // Obtener profesiones del profesional
+  const { data: professions } = useQuery({
+    queryKey: ['professional-professions', professional.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('professional_professions')
+        .select('profession, is_primary')
+        .eq('professional_id', professional.id)
+        .order('is_primary', { ascending: false });
       
-      onProfessionalUpdate?.(newProfession);
-      toast.success('Profesión actualizada');
-      setShowProfessionModal(false);
-    } catch (error) {
-      toast.error('Error al actualizar la profesión');
-    } finally {
-      setSavingProfession(false);
-    }
-  };
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!professional.id
+  });
 
-  const getCurrentProfessionIcon = () => {
-    const found = PROFESSIONS.find(p => p.value === professional.profession);
-    return found?.icon || '🛠️';
+  const getProfessionsDisplay = () => {
+    if (!professions || professions.length === 0) {
+      return professional.profession || 'Sin definir';
+    }
+    if (professions.length === 1) {
+      return professions[0].profession;
+    }
+    return professions.map(p => p.profession).join(', ');
   };
 
   return (
@@ -243,39 +225,18 @@ export function ActiveUserDashboard({
           <QuickActionTile
             icon={Briefcase}
             label="Mi Profesión"
-            description={professional.profession || 'Sin definir'}
+            description={getProfessionsDisplay()}
             onClick={() => setShowProfessionModal(true)}
           />
         </div>
       </div>
 
       {/* Modal de Profesión */}
-      <Dialog open={showProfessionModal} onOpenChange={setShowProfessionModal}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Cambiar profesión</DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-2 gap-2 mt-4 max-h-[60vh] overflow-y-auto">
-            {PROFESSIONS.map((profession) => (
-              <button
-                key={profession.value}
-                onClick={() => handleProfessionChange(profession.value)}
-                disabled={savingProfession}
-                className={cn(
-                  "flex items-center gap-2 p-3 rounded-lg border text-left transition-all disabled:opacity-50",
-                  professional.profession === profession.value
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border hover:border-primary/50 hover:bg-muted/50"
-                )}
-              >
-                <span className="text-lg">{profession.icon}</span>
-                <span className="text-sm font-medium">{profession.value}</span>
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ProfessionModal
+        open={showProfessionModal}
+        onOpenChange={setShowProfessionModal}
+        professionalId={professional.id}
+      />
 
       {/* Acordeón con opciones menos usadas */}
       <Collapsible>
