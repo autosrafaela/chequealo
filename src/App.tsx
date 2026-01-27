@@ -9,7 +9,6 @@ import { RealtimeNotifications } from "@/components/RealtimeNotifications";
 import { PWAInstallPrompt, IOSInstallInstructions } from "@/components/PWAInstallPrompt";
 import { BottomNavigation } from "@/components/BottomNavigation";
 
-
 import { RedirectWithTracking } from "@/components/RedirectWithTracking";
 import { InAppBrowserBanner } from "@/components/InAppBrowserBanner";
 import { NotificationActivationBanner } from "@/components/NotificationActivationBanner";
@@ -17,6 +16,7 @@ import { UpdateNotificationBanner } from "@/components/UpdateNotificationBanner"
 import { PageLoader } from "@/components/ui/page-loader";
 import { initializeAudioContext } from "@/utils/notificationSound";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
+import { usePlatformUpdateNotifications } from "@/hooks/usePlatformUpdateNotifications";
 
 // Critical path - load immediately (homepage)
 import Index from "./pages/Index";
@@ -84,6 +84,8 @@ const App = () => {
   useGlobalAudioInit();
   const { updateAvailable, isUpdating, bannerDismissed, updateApp, dismissBanner } = useServiceWorkerUpdate();
   
+  // Listen for platform update notifications
+  usePlatformUpdateNotifications();
   return (
   <NotificationProvider>
     <TooltipProvider>

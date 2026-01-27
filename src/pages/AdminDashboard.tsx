@@ -16,6 +16,7 @@ import { CategoriesManager } from '@/components/admin/CategoriesManager';
 import { SitemapManager } from '@/components/admin/SitemapManager';
 import UserManagementPanel from '@/components/admin/UserManagementPanel';
 import { CarouselManager } from '@/components/admin/CarouselManager';
+import PlatformUpdatesManager from '@/components/admin/PlatformUpdatesManager';
 import CampaignMetricsPanel from '@/components/analytics/CampaignMetricsPanel';
 import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
 import { supabase } from '@/integrations/supabase/client';
@@ -579,7 +580,7 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-[repeat(15,minmax(0,1fr))]">
+          <TabsList className="grid w-full grid-cols-[repeat(16,minmax(0,1fr))]">
             <TabsTrigger value="professionals">Profesionales</TabsTrigger>
             <TabsTrigger value="categories">Categorías</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -595,6 +596,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="performance">Monitor</TabsTrigger>
             <TabsTrigger value="seo">SEO</TabsTrigger>
             <TabsTrigger value="carousel">Carrusel</TabsTrigger>
+            <TabsTrigger value="updates">Novedades</TabsTrigger>
           </TabsList>
 
           <TabsContent value="professionals">
@@ -911,6 +913,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="carousel">
             <CarouselManager />
+          </TabsContent>
+
+          <TabsContent value="updates">
+            <PlatformUpdatesManager />
           </TabsContent>
         </Tabs>
       </div>

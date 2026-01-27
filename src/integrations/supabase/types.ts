@@ -1214,6 +1214,45 @@ export type Database = {
           },
         ]
       }
+      platform_updates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          link: string | null
+          publish_at: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          link?: string | null
+          publish_at?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          link?: string | null
+          publish_at?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       pro_routes: {
         Row: {
           boost_expires_at: string | null
@@ -2229,6 +2268,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_update_reads: {
+        Row: {
+          id: string
+          read_at: string | null
+          update_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          read_at?: string | null
+          update_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          read_at?: string | null
+          update_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_update_reads_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "platform_updates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verification_requests: {
         Row: {
