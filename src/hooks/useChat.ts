@@ -141,11 +141,28 @@ export const useChat = () => {
         return null;
       }
 
-       const userId = await getCurrentUserId();
-       if (!userId) {
-         toast.error('Debes iniciar sesión para enviar mensajes');
-         return null;
-       }
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        toast.error('Debes iniciar sesión para enviar mensajes');
+        return null;
+      }
+
+      // Validate that the professionalId actually exists
+      const { data: professionalExists, error: profError } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('id', professionalId)
+        .maybeSingle();
+
+      if (profError) {
+        console.error('[useChat] Error validating professional:', profError);
+      }
+
+      if (!professionalExists) {
+        console.error('[useChat] Professional not found:', professionalId);
+        toast.error('No se encontró el profesional');
+        return null;
+      }
 
       // First check if conversation already exists
       const { data: existingConv } = await supabase
@@ -186,13 +203,17 @@ export const useChat = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useChat] Error creating conversation:', error);
+        throw error;
+      }
 
+      console.info('[useChat] Created conversation:', data.id);
       await fetchConversations();
       return data;
     } catch (error) {
-      console.error('Error creating conversation:', error);
-      toast.error('Error al crear conversación');
+      console.error('[useChat] Error in createConversation:', error);
+      toast.error('No se pudo abrir el chat. Intentá nuevamente.');
       return null;
     }
   };
