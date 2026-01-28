@@ -219,7 +219,7 @@ const ProfessionalProfile = () => {
     setIsBookingModalOpen(true);
   };
 
-  const handleInternalMessage = async () => {
+  const handleInternalMessage = () => {
     if (!currentUser) {
       toast.error('Debes iniciar sesión para enviar mensajes');
       navigate('/login');
@@ -231,16 +231,8 @@ const ProfessionalProfile = () => {
       return;
     }
     
-    try {
-      const conversation = await createConversation(id!);
-      if (conversation) {
-        toast.success('Abriendo conversación...');
-        navigate(`/mensajes?chat=${conversation.id}`);
-      }
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-      toast.error('Error al abrir conversación');
-    }
+    // Navigate with professional ID - Messages page handles find-or-create
+    navigate(`/mensajes?chat=${id}`);
   };
 
   // Loading and error states

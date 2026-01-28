@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SquarePen, Loader2, ArrowLeft } from 'lucide-react';
+import { SquarePen, Loader2, ArrowLeft, AlertCircle, RefreshCw } from 'lucide-react';
 import { WhatsAppChatList } from '@/components/chat/WhatsAppChatList';
 import { WhatsAppChatView } from '@/components/chat/WhatsAppChatView';
 import { useChat } from '@/hooks/useChat';
@@ -28,38 +28,104 @@ const Messages = () => {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [isProcessingChat, setIsProcessingChat] = useState(false);
+  const [chatOpenError, setChatOpenError] = useState<string | null>(null);
+  
+  // Anti-loop guard: track last processed chatParam to prevent infinite retries
+  const lastProcessedChatRef = useRef<string | null>(null);
+  const processingRef = useRef(false);
 
-  // Handle chat parameter from URL (can be conversation_id or professional_id)
-  const handleChatParam = useCallback(async (chatParam: string) => {
-    if (!user || isCreatingChat) return;
+  // Stable chat param from URL
+  const chatParam = searchParams.get('chat');
 
-    // First check if it's an existing conversation ID
-    const existingConversation = conversations.find(c => c.id === chatParam);
-    if (existingConversation) {
-      setSelectedConversationId(chatParam);
+  // Core logic to resolve and open chat - called once per unique chatParam
+  const processChatParam = useCallback(async (param: string) => {
+    if (!user?.id) {
+      console.info('[Messages] No user, skipping chat param processing');
       return;
     }
 
-    setIsCreatingChat(true);
+    // Prevent concurrent processing
+    if (processingRef.current) {
+      console.info('[Messages] Already processing, skipping');
+      return;
+    }
+
+    // Anti-loop: don't reprocess the same param that already failed
+    if (lastProcessedChatRef.current === param && chatOpenError) {
+      console.info('[Messages] Already tried this param and failed, waiting for retry');
+      return;
+    }
+
+    processingRef.current = true;
+    setIsProcessingChat(true);
+    setChatOpenError(null);
+    lastProcessedChatRef.current = param;
+
+    console.info('[Messages] Processing chatParam:', param);
+
     try {
-      // The chatParam could be a professional_id OR a user_id of a professional
-      // First, try to find professional by professional_id
-      let professionalId = chatParam;
-      
-      // Check if this is a user_id instead of professional_id
-      const { data: professionalByUserId } = await supabase
-        .from('professionals')
+      // Step 1: Try to find as existing conversation ID
+      const { data: existingConv, error: convError } = await supabase
+        .from('conversations')
         .select('id')
-        .eq('user_id', chatParam)
+        .eq('id', param)
         .maybeSingle();
-      
-      if (professionalByUserId) {
-        professionalId = professionalByUserId.id;
+
+      if (convError) {
+        console.error('[Messages] Error checking conversation:', convError);
       }
 
-      // Check if a conversation already exists with this professional
-      const { data: existingConv } = await supabase
+      if (existingConv) {
+        console.info('[Messages] Found as conversation ID:', existingConv.id);
+        setSelectedConversationId(existingConv.id);
+        setSearchParams({ chat: existingConv.id }, { replace: true });
+        // Refresh conversations in background to ensure it's in the list
+        refreshConversations();
+        setIsProcessingChat(false);
+        processingRef.current = false;
+        return;
+      }
+
+      console.info('[Messages] Not a conversation ID, trying as professional...');
+
+      // Step 2: Try to resolve as professional (by user_id first, then by id)
+      let professionalId: string | null = null;
+
+      // Try by user_id (in case chatParam is an auth.user id)
+      const { data: profByUserId } = await supabase
+        .from('professionals')
+        .select('id')
+        .eq('user_id', param)
+        .maybeSingle();
+
+      if (profByUserId) {
+        professionalId = profByUserId.id;
+        console.info('[Messages] Found professional by user_id:', professionalId);
+      } else {
+        // Try by professional.id
+        const { data: profById } = await supabase
+          .from('professionals')
+          .select('id')
+          .eq('id', param)
+          .maybeSingle();
+
+        if (profById) {
+          professionalId = profById.id;
+          console.info('[Messages] Found professional by id:', professionalId);
+        }
+      }
+
+      if (!professionalId) {
+        console.error('[Messages] Could not find professional or conversation for:', param);
+        setChatOpenError('No se encontró el chat o profesional solicitado.');
+        setIsProcessingChat(false);
+        processingRef.current = false;
+        return;
+      }
+
+      // Step 3: Check if conversation already exists with this professional
+      const { data: existingConvWithProf } = await supabase
         .from('conversations')
         .select('id')
         .eq('professional_id', professionalId)
@@ -67,32 +133,60 @@ const Messages = () => {
         .eq('status', 'active')
         .maybeSingle();
 
-      if (existingConv) {
-        setSelectedConversationId(existingConv.id);
-        setSearchParams({ chat: existingConv.id }, { replace: true });
+      if (existingConvWithProf) {
+        console.info('[Messages] Found existing conversation:', existingConvWithProf.id);
+        setSelectedConversationId(existingConvWithProf.id);
+        setSearchParams({ chat: existingConvWithProf.id }, { replace: true });
         await refreshConversations();
+        setIsProcessingChat(false);
+        processingRef.current = false;
+        return;
+      }
+
+      // Step 4: Create new conversation
+      console.info('[Messages] Creating new conversation with professional:', professionalId);
+      const newConversation = await createConversation(professionalId);
+      
+      if (newConversation) {
+        console.info('[Messages] Created conversation:', newConversation.id);
+        setSelectedConversationId(newConversation.id);
+        setSearchParams({ chat: newConversation.id }, { replace: true });
       } else {
-        // Create new conversation with professional
-        const newConversation = await createConversation(professionalId);
-        if (newConversation) {
-          setSelectedConversationId(newConversation.id);
-          setSearchParams({ chat: newConversation.id }, { replace: true });
-        }
+        console.error('[Messages] Failed to create conversation');
+        setChatOpenError('No se pudo abrir la conversación. Intentá nuevamente.');
       }
     } catch (error) {
-      console.error('Error handling chat param:', error);
+      console.error('[Messages] Error processing chat param:', error);
+      setChatOpenError('Error al abrir el chat. Intentá nuevamente.');
     } finally {
-      setIsCreatingChat(false);
+      setIsProcessingChat(false);
+      processingRef.current = false;
     }
-  }, [user, conversations, isCreatingChat, createConversation, refreshConversations, setSearchParams]);
+  }, [user?.id, chatOpenError, createConversation, refreshConversations, setSearchParams]);
 
-  // Process chat parameter from URL
-  useEffect(() => {
-    const chatParam = searchParams.get('chat');
-    if (chatParam && !loading) {
-      handleChatParam(chatParam);
+  // Handle retry button
+  const handleRetry = useCallback(() => {
+    if (chatParam) {
+      setChatOpenError(null);
+      lastProcessedChatRef.current = null;
+      processChatParam(chatParam);
     }
-  }, [searchParams, loading, handleChatParam]);
+  }, [chatParam, processChatParam]);
+
+  // Process chat parameter from URL - only depends on stable values
+  useEffect(() => {
+    if (!chatParam || loading || !user?.id) return;
+    
+    // Skip if we already processed this exact param successfully
+    if (lastProcessedChatRef.current === chatParam && !chatOpenError && selectedConversationId) {
+      return;
+    }
+    
+    // Skip if already processing
+    if (processingRef.current) return;
+
+    processChatParam(chatParam);
+  }, [chatParam, loading, user?.id]); // Minimal dependencies - no callbacks
 
   // Load messages when conversation is selected
   useEffect(() => {
@@ -125,11 +219,13 @@ const Messages = () => {
   const handleChatSelect = (conversationId: string) => {
     setSelectedConversationId(conversationId);
     setSearchParams({ chat: conversationId }, { replace: true });
+    setChatOpenError(null);
   };
 
   const handleBack = () => {
     setSelectedConversationId(null);
     setSearchParams({}, { replace: true });
+    setChatOpenError(null);
   };
 
   const handleSendMessage = async (content: string, type?: string, file?: File) => {
@@ -182,6 +278,28 @@ const Messages = () => {
     );
   }
 
+  // Error state UI component
+  const ErrorState = () => (
+    <div className="flex flex-col items-center justify-center h-full gap-4 p-6 text-center">
+      <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+        <AlertCircle className="h-8 w-8 text-destructive" />
+      </div>
+      <div className="space-y-2">
+        <p className="text-foreground font-medium">{chatOpenError}</p>
+        <p className="text-sm text-muted-foreground">
+          Verificá que el enlace sea correcto o intentá nuevamente.
+        </p>
+      </div>
+      <Button onClick={handleRetry} variant="default" className="gap-2">
+        <RefreshCw className="h-4 w-4" />
+        Reintentar
+      </Button>
+      <Button onClick={handleBack} variant="ghost" size="sm">
+        Volver a la lista
+      </Button>
+    </div>
+  );
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header - Mobile only when no chat selected, or always on desktop */}
@@ -223,12 +341,14 @@ const Messages = () => {
         </div>
 
         {/* Chat view - full width on mobile, or right side on desktop */}
-        <div className={`flex-1 ${selectedConversationId ? 'block' : 'hidden md:block'}`}>
-          {isCreatingChat ? (
+        <div className={`flex-1 ${selectedConversationId || isProcessingChat || chatOpenError ? 'block' : 'hidden md:block'}`}>
+          {isProcessingChat ? (
             <div className="flex flex-col items-center justify-center h-full gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-muted-foreground">Abriendo conversación...</p>
             </div>
+          ) : chatOpenError ? (
+            <ErrorState />
           ) : (
             <WhatsAppChatView
               conversation={selectedConversation as Conversation | null}
