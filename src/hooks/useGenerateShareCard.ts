@@ -19,29 +19,72 @@ export interface Professional {
   professions?: ProfessionItem[];
 }
 
-// Helper to get the best profession display text
+// Helper to get all professions as a joined string
 const getProfessionDisplay = (professional: Professional): string => {
-  // PRIORITY 1: Custom professions from professional_professions table
+  const professions: string[] = [];
+
+  // PRIORITY 1: Collect all custom professions from professional_professions table
   if (professional.professions && professional.professions.length > 0) {
-    const primaryProfession = professional.professions.find(p => p.is_primary);
-    const professionText = primaryProfession?.profession || professional.professions[0].profession;
-    if (professionText && professionText.trim() !== '') {
-      return professionText;
-    }
+    // Sort: primary first, then the rest
+    const sorted = [...professional.professions].sort((a, b) => {
+      if (a.is_primary && !b.is_primary) return -1;
+      if (!a.is_primary && b.is_primary) return 1;
+      return 0;
+    });
+
+    sorted.forEach(p => {
+      if (p.profession && p.profession.trim() !== '' && !professions.includes(p.profession.trim())) {
+        professions.push(p.profession.trim());
+      }
+    });
   }
 
   // PRIORITY 2: Legacy profession field (but skip generic ones)
   const genericCategories = ['otro', 'otros', 'general', 'profesional'];
   if (
+    professions.length === 0 &&
     professional.profession && 
     professional.profession.trim() !== '' &&
     !genericCategories.includes(professional.profession.toLowerCase())
   ) {
-    return professional.profession;
+    professions.push(professional.profession);
   }
 
   // PRIORITY 3: Default fallback
-  return 'Profesional';
+  if (professions.length === 0) {
+    return 'Profesional';
+  }
+
+  return professions.join(' • '); // Visual separator
+};
+
+// Helper to wrap text into multiple lines
+const wrapText = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string[] => {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const metrics = ctx.measureText(testLine);
+
+    if (metrics.width > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines;
 };
 
 type CardFormat = 'post' | 'story';
@@ -231,24 +274,40 @@ export const generateCard = async (
   ctx.textAlign = 'center';
   ctx.fillText(professional.full_name.toUpperCase(), w / 2, nameY);
 
-  // Profession - use custom profession if available
+  // Profession - use all professions joined with " • "
   const professionDisplay = getProfessionDisplay(professional);
-  ctx.font = `${isPost ? 32 : 40}px Arial, sans-serif`;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-  
-  // Truncate if too long
   const maxTextWidth = w - 120;
-  let displayText = professionDisplay;
-  if (ctx.measureText(displayText).width > maxTextWidth) {
-    while (ctx.measureText(displayText + '...').width > maxTextWidth && displayText.length > 0) {
-      displayText = displayText.slice(0, -1);
+  const professionFontSize = isPost ? 32 : 40;
+  
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.font = `${professionFontSize}px Arial, sans-serif`;
+  
+  // Wrap text to multiple lines
+  const professionLines = wrapText(ctx, professionDisplay, maxTextWidth);
+  
+  // Limit to max 2 lines
+  const linesToShow = professionLines.slice(0, 2);
+  if (professionLines.length > 2) {
+    // Truncate second line with "..."
+    let truncated = linesToShow[1];
+    while (ctx.measureText(truncated + '...').width > maxTextWidth && truncated.length > 0) {
+      truncated = truncated.slice(0, -1);
     }
-    displayText += '...';
+    linesToShow[1] = truncated + '...';
   }
-  ctx.fillText(displayText, w / 2, nameY + (isPost ? 45 : 55));
+  
+  const lineHeight = isPost ? 42 : 50;
+  const professionStartY = nameY + (isPost ? 45 : 55);
+  
+  linesToShow.forEach((line, index) => {
+    ctx.fillText(line, w / 2, professionStartY + (index * lineHeight));
+  });
+
+  // Calculate dynamic offset based on number of profession lines
+  const extraLineOffset = (linesToShow.length - 1) * lineHeight;
 
   // Rating stars
-  const ratingY = nameY + (isPost ? 110 : 130);
+  const ratingY = professionStartY + lineHeight + extraLineOffset + (isPost ? 30 : 40);
   if (professional.rating) {
     const starSize = isPost ? 32 : 40;
     const totalStars = 5;
