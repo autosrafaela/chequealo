@@ -49,6 +49,16 @@ export const useChat = () => {
   const [sending, setSending] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
+  // In some navigation flows, the UI might have a valid Supabase session
+  // before AuthContext finishes hydrating. Use this helper to avoid writes
+  // with undefined user_id (which causes RLS/NOT NULL failures).
+  const getCurrentUserId = useCallback(async (): Promise<string | null> => {
+    if (user?.id) return user.id;
+    const { data, error } = await supabase.auth.getUser();
+    if (error) return null;
+    return data.user?.id ?? null;
+  }, [user?.id]);
+
   // Track processed messages to avoid duplicate sounds
   const processedMessagesRef = useRef<Set<string>>(new Set());
   // Track last sound time to debounce
@@ -131,12 +141,18 @@ export const useChat = () => {
         return null;
       }
 
+       const userId = await getCurrentUserId();
+       if (!userId) {
+         toast.error('Debes iniciar sesión para enviar mensajes');
+         return null;
+       }
+
       // First check if conversation already exists
       const { data: existingConv } = await supabase
         .from('conversations')
         .select('*')
         .eq('professional_id', professionalId)
-        .eq('user_id', user?.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (existingConv) {
@@ -163,7 +179,7 @@ export const useChat = () => {
         .from('conversations')
         .insert({
           professional_id: professionalId,
-          user_id: user?.id,
+          user_id: userId,
           contact_request_id: contactRequestId,
           status: 'active'
         })
@@ -190,6 +206,12 @@ export const useChat = () => {
     try {
       if (!planLimits.canReceiveMessages) {
         toast.error('El chat no está disponible en tu plan actual');
+        return null;
+      }
+
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        toast.error('Debes iniciar sesión para enviar mensajes');
         return null;
       }
 
@@ -221,8 +243,8 @@ export const useChat = () => {
       const { data: professional } = await supabase
         .from('professionals')
         .select('id')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', userId)
+        .maybeSingle();
 
       const senderType = professional ? 'professional' : 'user';
 
@@ -230,7 +252,7 @@ export const useChat = () => {
         .from('messages')
         .insert({
           conversation_id: conversationId,
-          sender_id: user?.id,
+          sender_id: userId,
           sender_type: senderType,
           message_type: messageType,
           content,
@@ -263,8 +285,8 @@ export const useChat = () => {
           const { data: senderProfile } = await supabase
             .from('profiles')
             .select('full_name')
-            .eq('user_id', user?.id)
-            .single();
+            .eq('user_id', userId)
+            .maybeSingle();
 
           const senderName = senderProfile?.full_name || 'Un usuario';
           
