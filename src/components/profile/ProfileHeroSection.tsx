@@ -1,9 +1,7 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Star, Shield, User } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import defaultAvatar from '@/assets/default-avatar.png';
 
 interface Professional {
@@ -16,6 +14,7 @@ interface Professional {
   rating?: number | null;
   review_count?: number | null;
   availability?: string | null;
+  professions?: Array<{ profession: string; is_primary: boolean }>;
 }
 
 interface ProfileHeroSectionProps {
@@ -23,22 +22,6 @@ interface ProfileHeroSectionProps {
 }
 
 export function ProfileHeroSection({ professional }: ProfileHeroSectionProps) {
-  // Fetch professions from the new table
-  const { data: professions } = useQuery({
-    queryKey: ['professional-professions', professional.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('professional_professions')
-        .select('profession, is_primary')
-        .eq('professional_id', professional.id)
-        .order('is_primary', { ascending: false });
-      
-      if (error) return [];
-      return data || [];
-    },
-    enabled: !!professional.id
-  });
-
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -51,10 +34,13 @@ export function ProfileHeroSection({ professional }: ProfileHeroSectionProps) {
   const isAvailable = professional.availability?.toLowerCase().includes('disponible') || 
                       professional.availability?.toLowerCase().includes('abierto');
 
-  // Get display profession: use new table if available, fallback to old column
+  // Get display profession: use professions array from props, fallback to legacy column
   const getProfessionDisplay = () => {
-    if (professions && professions.length > 0) {
-      return professions.map(p => p.profession).join(' • ');
+    if (professional.professions && professional.professions.length > 0) {
+      return professional.professions
+        .sort((a, b) => (a.is_primary === b.is_primary ? 0 : a.is_primary ? -1 : 1))
+        .map(p => p.profession)
+        .join(' • ');
     }
     return professional.profession;
   };

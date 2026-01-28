@@ -84,6 +84,7 @@ export function ProfessionModal({ open, onOpenChange, professionalId }: Professi
       } else {
         toast.success('Profesión agregada');
         queryClient.invalidateQueries({ queryKey: ['professional-professions', professionalId] });
+        queryClient.invalidateQueries({ queryKey: ['professional', professionalId] });
         resetModal();
       }
     } catch (error) {
@@ -124,6 +125,7 @@ export function ProfessionModal({ open, onOpenChange, professionalId }: Professi
 
       toast.success('Profesión actualizada');
       queryClient.invalidateQueries({ queryKey: ['professional-professions', professionalId] });
+      queryClient.invalidateQueries({ queryKey: ['professional', professionalId] });
       resetModal();
     } catch (error) {
       console.error('Error replacing profession:', error);
@@ -144,6 +146,7 @@ export function ProfessionModal({ open, onOpenChange, professionalId }: Professi
 
       toast.success('Profesión eliminada');
       queryClient.invalidateQueries({ queryKey: ['professional-professions', professionalId] });
+      queryClient.invalidateQueries({ queryKey: ['professional', professionalId] });
     } catch (error) {
       console.error('Error removing profession:', error);
       toast.error('Error al eliminar la profesión');
@@ -168,6 +171,7 @@ export function ProfessionModal({ open, onOpenChange, professionalId }: Professi
 
       toast.success('Profesión principal actualizada');
       queryClient.invalidateQueries({ queryKey: ['professional-professions', professionalId] });
+      queryClient.invalidateQueries({ queryKey: ['professional', professionalId] });
     } catch (error) {
       console.error('Error setting primary profession:', error);
       toast.error('Error al cambiar la profesión principal');
