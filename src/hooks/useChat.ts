@@ -92,8 +92,12 @@ export const useChat = () => {
         .order('last_message_at', { ascending: false });
 
       if (professional) {
-        query = query.eq('professional_id', professional.id);
+        // Profesional puede tener conversaciones en ambos roles:
+        // - Como profesional que recibe consultas (professional_id = su ID)
+        // - Como usuario que consulta a otros profesionales (user_id = su auth ID)
+        query = query.or(`professional_id.eq.${professional.id},user_id.eq.${user?.id}`);
       } else {
+        // Usuario normal solo tiene conversaciones como user_id
         query = query.eq('user_id', user?.id);
       }
 
