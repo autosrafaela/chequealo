@@ -21,7 +21,7 @@ const Hero = () => {
         <div className="max-w-3xl mx-auto">
           {/* Display title */}
           <h1 className="text-display-lg text-white mb-4 sm:mb-6 px-2">
-            Encontrá al <span className="text-primary">profesional</span> ideal
+            Encontrá al <span className="text-gradient-brand" style={{ WebkitTextFillColor: 'transparent', background: 'linear-gradient(90deg, hsl(258 90% 76%), hsl(270 100% 82%), hsl(258 90% 66%))', WebkitBackgroundClip: 'text', backgroundClip: 'text' }}>profesional</span> ideal
           </h1>
           
           <p className="text-sm sm:text-base md:text-lg text-white/70 mb-6 sm:mb-8 max-w-xl mx-auto">

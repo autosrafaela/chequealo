@@ -89,7 +89,7 @@ export const LatestProfessionals = () => {
     <section className="py-10 sm:py-14 md:py-20 bg-background">
       <div className="container mx-auto px-3 sm:px-4">
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-display text-foreground mb-2 sm:mb-3" style={{ fontSize: 'clamp(1.5rem, 3vw + 0.5rem, 2.5rem)' }}>
+          <h2 className="text-display text-gradient-brand mb-2 sm:mb-3" style={{ fontSize: 'clamp(1.5rem, 3vw + 0.5rem, 2.5rem)', letterSpacing: '-0.03em' }}>
             <Star className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500 inline-block mr-2 align-middle" />
             Profesionales Destacados
           </h2>
