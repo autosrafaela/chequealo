@@ -205,3 +205,28 @@ All colors MUST be HSL.
     bottom: 0 !important;
   }
 }
+
+/* Text gradient brand */
+.text-gradient-brand {
+  background: linear-gradient(90deg, hsl(220 26% 14%) 0%, hsl(220 40% 35%) 50%, hsl(258 90% 66%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Avatar organic morph animation (featured only) */
+@keyframes morph {
+  0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+}
+
+.avatar-organic-animated {
+  animation: morph 8s ease-in-out infinite;
+  border: 2px solid white;
+  box-shadow: 0 0 0 3px hsl(258 90% 66%);
+}
+
+.avatar-organic-static {
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+}

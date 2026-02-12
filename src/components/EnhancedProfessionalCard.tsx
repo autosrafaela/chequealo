@@ -90,7 +90,7 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
         <div className="flex gap-3 sm:gap-4">
           {/* Avatar and Status - Responsive */}
           <div className="relative flex-shrink-0">
-            <Avatar className={featured ? "h-16 w-16 sm:h-20 sm:w-20" : compact ? "h-10 w-10 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16"}>
+            <Avatar className={`${featured ? "h-16 w-16 sm:h-20 sm:w-20 avatar-organic-animated" : compact ? "h-10 w-10 sm:h-12 sm:w-12 avatar-organic-static" : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 avatar-organic-static"}`}>
               <AvatarImage src={professional.image_url} alt={professional.full_name.toUpperCase()} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs sm:text-sm">
                 {professional.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
@@ -198,7 +198,7 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
                 <Button
                   size={featured ? "default" : "sm"}
                   onClick={handleContactClick}
-                  className={`flex items-center gap-1 sm:gap-2 bg-green-600 hover:bg-green-700 h-auto ${featured ? 'text-sm px-4 py-2 rounded-xl' : 'text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5'}`}
+                  className={`flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-green-500 to-green-700 shadow-[0_4px_15px_rgba(37,211,102,0.4)] hover:shadow-[0_0_25px_rgba(37,211,102,0.7)] hover:scale-105 transition-all duration-300 h-auto ${featured ? 'text-sm px-4 py-2 rounded-xl' : 'text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5'}`}
                 >
                   <MessageCircle className={featured ? "h-4 w-4" : "h-3 w-3 sm:h-4 sm:w-4"} />
                   <span className={featured ? "" : "hidden sm:inline"}>WhatsApp</span>
