@@ -30,6 +30,18 @@ const Messages = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [isProcessingChat, setIsProcessingChat] = useState(false);
   const [chatOpenError, setChatOpenError] = useState<string | null>(null);
+  const [isProfessional, setIsProfessional] = useState(false);
+
+  // Detect if logged-in user is a professional
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from('professionals')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setIsProfessional(!!data));
+  }, [user?.id]);
   
   // Anti-loop guard: track last processed chatParam to prevent infinite retries
   const lastProcessedChatRef = useRef<string | null>(null);
@@ -200,11 +212,15 @@ const Messages = () => {
     
     const query = searchQuery.toLowerCase();
     return conversations.filter(conv => {
-      const name = conv.professionals?.full_name || '';
+      const profName = conv.professionals?.full_name || '';
       const profession = conv.professionals?.profession || '';
-      return name.toLowerCase().includes(query) || profession.toLowerCase().includes(query);
+      const clientName = (conv as any).profiles?.full_name || '';
+      if (isProfessional) {
+        return clientName.toLowerCase().includes(query) || profession.toLowerCase().includes(query);
+      }
+      return profName.toLowerCase().includes(query) || profession.toLowerCase().includes(query);
     });
-  }, [conversations, searchQuery]);
+  }, [conversations, searchQuery, isProfessional]);
 
   const selectedConversation = useMemo(() => {
     if (!selectedConversationId) return null;
@@ -337,6 +353,7 @@ const Messages = () => {
             onChatSelect={handleChatSelect}
             currentChatId={selectedConversationId || undefined}
             currentUserId={user?.id}
+            isProfessional={isProfessional}
           />
         </div>
 
@@ -360,6 +377,7 @@ const Messages = () => {
               onCall={handleCall}
               onArchive={handleArchive}
               onBlock={handleBlock}
+              isProfessional={isProfessional}
             />
           )}
         </div>

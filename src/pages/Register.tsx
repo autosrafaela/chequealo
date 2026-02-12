@@ -791,14 +791,14 @@ const Register = () => {
                           <div className="space-y-4 text-sm">
                             <p><strong>Última actualización:</strong> 12 de septiembre de 2025</p>
                             <p>
-                              Bienvenido/a a CHEQUEALO.AR (el "Sitio" y/o la "Plataforma"), operado por [Razón Social], CUIT [CUIT], con domicilio en [Domicilio legal] ("CHEQUEALO.AR", "nosotros" o "nuestro").
+                              Bienvenido/a a CHEQUEALO.NET (el "Sitio" y/o la "Plataforma"), operado por [Razón Social], CUIT [CUIT], con domicilio en [Domicilio legal] ("CHEQUEALO.NET", "nosotros" o "nuestro").
                               Estos Términos y Condiciones (los "Términos") regulan el acceso y uso del Sitio, de nuestras aplicaciones asociadas y de los servicios que ofrecemos (los "Servicios"). Al registrarte, acceder o utilizar la Plataforma aceptás estos Términos y nuestra Política de Privacidad.
                             </p>
                             <p>Si no estás de acuerdo, no utilices la Plataforma.</p>
 
                             <div>
                               <h3 className="font-semibold mb-2">1) Objeto del servicio</h3>
-                              <p>CHEQUEALO.AR es un directorio y canal de contacto que conecta usuarios que buscan servicios ("Usuarios") con profesionales y comercios que los ofrecen ("Profesionales"). CHEQUEALO.AR no presta servicios profesionales, no participa en la relación contractual entre Usuarios y Profesionales, ni garantiza resultados, precios, plazos, títulos, habilitaciones o calidad.</p>
+                              <p>CHEQUEALO.NET es un directorio y canal de contacto que conecta usuarios que buscan servicios ("Usuarios") con profesionales y comercios que los ofrecen ("Profesionales"). CHEQUEALO.NET no presta servicios profesionales, no participa en la relación contractual entre Usuarios y Profesionales, ni garantiza resultados, precios, plazos, títulos, habilitaciones o calidad.</p>
                             </div>
                             <div>
                               <h3 className="font-semibold mb-2">2) Cuentas y veracidad de la información</h3>
@@ -806,7 +806,7 @@ const Register = () => {
                             </div>
                             <div>
                               <h3 className="font-semibold mb-2">3) Rol y responsabilidades</h3>
-                              <p>Usuarios deben verificar la idoneidad del Profesional. Profesionales deben publicar información veraz. CHEQUEALO.AR ofrece herramientas de exhibición, búsqueda, mensajería y reseñas.</p>
+                              <p>Usuarios deben verificar la idoneidad del Profesional. Profesionales deben publicar información veraz. CHEQUEALO.NET ofrece herramientas de exhibición, búsqueda, mensajería y reseñas.</p>
                             </div>
                             <div>
                               <h3 className="font-semibold mb-2">4-18) Términos adicionales</h3>
