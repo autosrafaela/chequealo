@@ -8,6 +8,7 @@ interface QuickActionTileProps {
   icon: LucideIcon;
   label: string;
   description?: string;
+  subtitle?: string;
   badge?: number | string;
   badgeVariant?: 'default' | 'destructive' | 'secondary';
   iconColor?: string;
@@ -20,6 +21,7 @@ export function QuickActionTile({
   icon: Icon,
   label,
   description,
+  subtitle,
   badge,
   badgeVariant = 'default',
   iconColor,
@@ -59,6 +61,11 @@ export function QuickActionTile({
           {description && (
             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
               {description}
+            </p>
+          )}
+          {subtitle && (
+            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 leading-tight">
+              {subtitle}
             </p>
           )}
         </div>
