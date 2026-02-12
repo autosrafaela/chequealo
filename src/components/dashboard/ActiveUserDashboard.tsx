@@ -9,7 +9,6 @@ import {
   MapPin, 
   MessageCircle, 
   Eye, 
-  Camera,
   Package,
   ChevronRight,
   Bell,
@@ -81,7 +80,7 @@ export function ActiveUserDashboard({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* ZONA 0: Subscription badge */}
       {subStatus !== 'none' && subStatus !== 'expired' && (
         <div className="flex items-center gap-2 px-1">
@@ -225,57 +224,40 @@ export function ActiveUserDashboard({
           )}
         </div>
 
-        {/* ZONA 4: Acción principal - Mensajes con contador */}
-        <div>
-          <div 
-            className="rounded-2xl shadow-sm p-5 bg-card border-0 cursor-pointer hover:shadow-md transition-all mb-3"
+        {/* ZONA 4: Acciones Rápidas - 3 botones grandes */}
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-card shadow-sm hover:shadow-md transition-all hover:scale-[1.02] active:scale-95"
+            onClick={() => navigate(`/professional/${professional.id}`)}
+          >
+            <div className="p-3 rounded-full bg-primary/10">
+              <Eye className="h-6 w-6 text-primary" />
+            </div>
+            <span className="text-xs font-semibold text-foreground text-center leading-tight">Ver mi Perfil</span>
+          </button>
+          <button
+            className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-card shadow-sm hover:shadow-md transition-all hover:scale-[1.02] active:scale-95"
+            onClick={() => onTabChange('services')}
+          >
+            <div className="p-3 rounded-full bg-primary/10">
+              <Package className="h-6 w-6 text-primary" />
+            </div>
+            <span className="text-xs font-semibold text-foreground text-center leading-tight">Mis Servicios</span>
+          </button>
+          <button
+            className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-card shadow-sm hover:shadow-md transition-all hover:scale-[1.02] active:scale-95"
             onClick={() => onTabChange('messages')}
           >
-            <div className="flex items-center gap-4">
-              <div className="relative p-3 rounded-full bg-primary/10">
-                <MessageCircle className="h-7 w-7 text-primary" />
-                {(stats.pendingRequests > 0) && (
-                  <span className="absolute -top-1 -right-1 min-w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground px-1">
-                    {stats.pendingRequests}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-base text-foreground">Mensajes</p>
-                <p className="text-sm text-muted-foreground">
-                  {stats.pendingRequests > 0 
-                    ? `${stats.pendingRequests} pendiente${stats.pendingRequests > 1 ? 's' : ''}`
-                    : 'Ver todas las conversaciones'}
-                </p>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            <div className="relative p-3 rounded-full bg-primary/10">
+              <MessageCircle className="h-6 w-6 text-primary" />
+              {stats.pendingRequests > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground px-1">
+                  {stats.pendingRequests}
+                </span>
+              )}
             </div>
-          </div>
-
-          {/* Links secundarios */}
-          <div className="grid grid-cols-3 gap-2">
-            <button 
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-muted/50 transition-colors text-center"
-              onClick={() => navigate(`/professional/${professional.id}`)}
-            >
-              <Eye className="h-5 w-5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Mi Perfil</span>
-            </button>
-            <button 
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-muted/50 transition-colors text-center"
-              onClick={() => onTabChange('services')}
-            >
-              <Package className="h-5 w-5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Servicios</span>
-            </button>
-            <button 
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-muted/50 transition-colors text-center"
-              onClick={() => onTabChange('portfolio')}
-            >
-              <Camera className="h-5 w-5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Galería</span>
-            </button>
-          </div>
+            <span className="text-xs font-semibold text-foreground text-center leading-tight">Mensajes</span>
+          </button>
         </div>
       </div>
     </div>

@@ -590,7 +590,7 @@ const ProfessionalDashboard = () => {
         <div ref={tabsRef} className="scroll-mt-4">
           {(showTabs || pendingTransactions.length > 0) && (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 sticky top-4 z-10 bg-background h-auto flex-wrap">
+              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 sticky top-4 z-10 bg-background h-auto flex-wrap">
                 <TabsTrigger value="messages" className="text-xs">
                   <MessageCircle className="h-3 w-3 mr-1" />
                   Mensajes
@@ -607,19 +607,13 @@ const ProfessionalDashboard = () => {
                   Servicios
                 </TabsTrigger>
                 <TabsTrigger value="portfolio" className="text-xs">
-                  Portfolio
-                </TabsTrigger>
-                <TabsTrigger value="transactions" className="text-xs">
-                  Trabajos
+                  Galería
                 </TabsTrigger>
                 <TabsTrigger value="subscription" className="text-xs">
                   Suscripción
                 </TabsTrigger>
                 <TabsTrigger value="profile" className="text-xs">
                   Mi Perfil
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="text-xs">
-                  Config
                 </TabsTrigger>
               </TabsList>
 
@@ -680,9 +674,8 @@ const ProfessionalDashboard = () => {
               </TabsContent>
 
 
-              <TabsContent value="transactions">
-                <EnhancedTransactionManager />
-              </TabsContent>
+
+
 
               <TabsContent value="subscription">
                 <SubscriptionPanel />
@@ -763,12 +756,8 @@ const ProfessionalDashboard = () => {
 
                   <AchievementsBadges userId={user?.id} />
                   <BankingInfoForm professionalId={professional.id} />
-                </div>
-              </TabsContent>
 
-              <TabsContent value="settings">
-                <div className="space-y-6">
-                  {/* URL Personalizada */}
+                  {/* URL Personalizada (moved from Config) */}
                   <SlugConfiguration 
                     professionalId={professional.id} 
                     currentSlug={professional.slug || null}
@@ -777,38 +766,17 @@ const ProfessionalDashboard = () => {
                     }}
                   />
 
+                  {/* Zona Hoy (moved from Config) */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Settings className="h-5 w-5" />
-                        Configuración de Cuenta
-                      </CardTitle>
+                      <CardTitle>Zona Hoy</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-6">
-                        <div>
-                          <h4 className="font-semibold mb-4">Disponibilidad</h4>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Estado actual: <Badge>{professional.availability || 'No especificado'}</Badge>
-                          </p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-semibold mb-4">Notificaciones</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Recibirás notificaciones cuando tengas nuevas solicitudes de contacto o presupuesto.
-                          </p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-semibold mb-4">Zona Hoy</h4>
-                          <ZonaTodayManager 
-                            professionalName={professional?.full_name || ''}
-                            profession={professional?.profession || ''}
-                            phone={professional?.phone}
-                          />
-                        </div>
-                      </div>
+                      <ZonaTodayManager 
+                        professionalName={professional?.full_name || ''}
+                        profession={professional?.profession || ''}
+                        phone={professional?.phone}
+                      />
                     </CardContent>
                   </Card>
                 </div>
