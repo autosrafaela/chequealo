@@ -1,45 +1,77 @@
 
-# Plan: Header Minimalista Silicon Valley
+# Plan: Rediseno Profesionales Destacados, CTA y Footer
 
 ## Resumen
 
-Redisenar el Header completo para que sea ultra-limpio y minimalista, eliminando elementos redundantes y agrupando acciones secundarias dentro del menu hamburguesa.
+Tres bloques de mejora: (1) tarjetas de profesionales con avatares modernos, sombras, badge verificado prominente y nombres en negrita; (2) seccion CTA con fondo azul oscuro, patron de puntos y boton dorado protagonista; (3) footer con mas aire, iconos sociales y mejor organizacion.
 
 ---
 
-## Cambios en `src/components/Header.tsx`
+## Cambio 1: Tarjetas de Profesionales Mejoradas
 
-### 1. Logo + Badge Pioneros separado
-- Mantener logo a la izquierda
-- Badge "PIONEROS" como capsula independiente: fondo dorado solido (`bg-gradient-to-r from-amber-400 to-orange-400`), texto negro (`text-black`), font-weight bold, rounded-full, separado del logo con gap
+**Archivo:** `src/components/EnhancedProfessionalCard.tsx`
 
-### 2. Eliminar selectores de Provincia/Ciudad
-- Quitar los dos `<select>` de provincia y ciudad del desktop (lineas 182-209)
-- Quitar los selectores de ubicacion del menu desplegable mobile (lineas 330-357)
-- Reemplazar por texto estatico: icono MapPin + "Rafaela, Santa Fe" en texto pequeno, visible solo en desktop (`hidden md:flex`)
+### Avatar sin foto - Silueta elegante
+- Reemplazar el fallback de iniciales por un icono `User` de Lucide en tonos grises
+- AvatarFallback: fondo `bg-gray-100 dark:bg-gray-800` con icono `User` en `text-gray-400` (tamanio responsive segun featured/compact)
+- Eliminar las iniciales de texto
 
-### 3. Eliminar barra de busqueda del header
-- Eliminar todo el bloque "Desktop Search Section" (lineas 159-231): input, selects, boton buscar, FilterDropdown
-- Eliminar el bloque "Mobile Search Expanded" (lineas 399-425)
-- Mantener solo un icono de lupa en mobile que navega a `/search` (ya existe el boton mobile)
-- En desktop, mostrar un boton icono de lupa discreto que navega a `/search` o hace scroll al Hero
+### Sombra en tarjetas
+- Agregar `shadow-sm` base al Card (no solo en hover)
+- Hover mantiene el efecto premium existente pero con `shadow-lg` mas visible
 
-### 4. Mover "Sugerencias" y "Publicaciones" al menu hamburguesa
-- Quitar `FloatingWhatsAppWidget` del header principal
-- Agregar dentro del dropdown menu: boton "Sugerencias" (con icono MessageCircle) que ejecuta la misma logica de WhatsApp
-- Agregar "Publicaciones" (link a filtro "latest") dentro del menu
-- Eliminar FilterDropdown del header y moverlo al menu
+### Badge Verificado prominente
+- Cambiar de `border-green-500 text-green-600 bg-green-50` a fondo solido esmeralda: `bg-emerald-500 text-white`
+- Agregar icono `CheckCircle` blanco en lugar del texto "checkmark"
+- Hacerlo siempre visible (quitar el hidden/inline toggle en mobile, mostrar "Verificado" siempre)
 
-### 5. Estetica general
-- Cambiar fondo del header de `bg-navy` a `bg-white/80 backdrop-blur-xl border-b border-black/5` para efecto glassmorphism sutil sobre blanco
-- Actualizar colores de texto e iconos de `text-navy-foreground` a `text-foreground` (oscuro sobre fondo claro)
-- Aumentar padding interno para dar "aire": altura `h-16 sm:h-18`
-- Menu hamburguesa con icono limpio, sin texto extra visible
+### Nombres con peso marcado
+- Cambiar `font-semibold` a `font-bold` en el h3 del nombre
+- En tarjetas featured: usar `font-extrabold`
 
-### 6. Menu desplegable rediseñado
-- Fondo blanco puro con sombra elegante y border-radius mayor (`rounded-2xl`)
-- Items con padding generoso y tipografia limpia
-- Incluir: Sugerencias (WhatsApp), Favoritos, Ordenar por (FilterDropdown), Instalar App, auth actions
+---
+
+## Cambio 2: Seccion CTA Rediseñada
+
+**Archivo:** `src/components/ProfessionalCTABanner.tsx`
+
+### Fondo azul oscuro con patron de puntos
+- Cambiar gradiente de `from-[#667eea] to-[#764ba2]` a `from-[#0f172a] to-[#1e293b]` (azul oscuro profundo, tipo Stripe)
+- Agregar patron de puntos via CSS radial-gradient como background-image superpuesto (puntos blancos al 5% de opacidad, separados 20px)
+
+### Boton protagonista dorado
+- Cambiar el boton "Registrate gratis" de `bg-white/90 text-[#667eea]` a `bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold`
+- Agregar glow dorado: `shadow-[0_0_20px_rgba(251,191,36,0.4)]`
+- Hover: `shadow-[0_0_30px_rgba(251,191,36,0.6)]` + scale 1.05
+
+### Icono estilizado
+- Reemplazar `Briefcase` por `Rocket` de Lucide (mas aspiracional y moderno)
+- Contenedor del icono con borde sutil glass
+
+### Blobs actualizados
+- Cambiar colores de blobs a tonos azul electrico (`bg-blue-500/10`, `bg-indigo-500/5`) para que combinen con el fondo oscuro
+
+---
+
+## Cambio 3: Footer Premium
+
+**Archivo:** `src/pages/Index.tsx`
+
+### Mas padding
+- Cambiar `py-8 sm:py-10 md:py-12` a `py-12 sm:py-16 md:py-20`
+- Fondo: mantener `bg-card` pero agregar sutil separacion con `border-t-2`
+
+### Titulos en negrita y jerarquia
+- Titulos de columna: `font-bold text-base sm:text-lg` (subir de semibold a bold)
+- Links: `text-xs sm:text-sm` con hover underline
+
+### Iconos sociales
+- Agregar fila de iconos sociales (Instagram, Facebook, Linkedin) debajo de la descripcion de Chequealo
+- Usar iconos custom SVG inline (Lucide no tiene iconos de redes sociales, asi que se renderizan como SVG pequenos)
+- Estilo: circulos `w-8 h-8` con fondo `bg-muted hover:bg-primary hover:text-white` y transicion
+
+### Copyright actualizado
+- Cambiar "2024" a "2025"
 
 ---
 
@@ -47,8 +79,6 @@ Redisenar el Header completo para que sea ultra-limpio y minimalista, eliminando
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/Header.tsx` | Rediseno completo: eliminar search bar, selectores, mover items al menu, glassmorphism blanco |
-
-## Resultado esperado
-
-Header ultra-limpio con solo: Logo | Badge Pioneros | Ubicacion (texto) | Lupa (icono) | Notificaciones | Menu hamburguesa. Todo lo demas dentro del menu. Fondo blanco con blur sutil.
+| `src/components/EnhancedProfessionalCard.tsx` | Avatar silueta, sombra base, badge esmeralda, nombre bold |
+| `src/components/ProfessionalCTABanner.tsx` | Fondo azul oscuro + puntos, boton dorado, icono Rocket |
+| `src/pages/Index.tsx` | Footer con mas padding, iconos sociales, titulos bold |
