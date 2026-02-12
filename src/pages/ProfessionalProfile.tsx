@@ -771,6 +771,9 @@ const ProfessionalProfile = () => {
         professionalId={professional.id}
         professionalName={professional.full_name}
         type="quote"
+        open={showContactDialog}
+        onOpenChange={setShowContactDialog}
+        hideTrigger
       />
 
       {/* ===== SHARE MODAL (hidden trigger) ===== */}
