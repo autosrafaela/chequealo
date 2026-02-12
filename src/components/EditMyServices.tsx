@@ -5,12 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Search, X, Loader2, ChevronDown, ChevronUp, Plus, Lightbulb,
+  Search, X, Loader2, ChevronDown, ChevronUp, Plus,
   Wrench, Zap, Car, Sparkles, Dumbbell, Paintbrush, 
   Hammer, Flame, TreePine, Building, Heart, Laptop 
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface EditMyServicesProps {
   professionalData: any;
@@ -98,10 +99,9 @@ const serviceCategories = [
 ];
 
 export const EditMyServices = ({ professionalData, onUpdate }: EditMyServicesProps) => {
+  const queryClient = useQueryClient();
   const [rubros, setRubros] = useState<SelectedRubro[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showSuggestion, setShowSuggestion] = useState(false);
-  const [customRubro, setCustomRubro] = useState('');
   const [expandedRubro, setExpandedRubro] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -139,8 +139,6 @@ export const EditMyServices = ({ professionalData, onUpdate }: EditMyServicesPro
     setRubros(prev => [...prev, { name, description: '' }]);
     setSearchTerm('');
     setShowDropdown(false);
-    setShowSuggestion(false);
-    setCustomRubro('');
   };
 
   const removeRubro = (name: string) => {
@@ -189,6 +187,7 @@ export const EditMyServices = ({ professionalData, onUpdate }: EditMyServicesPro
       if (insertError) throw insertError;
 
       toast.success('¡Rubros actualizados correctamente!');
+      queryClient.invalidateQueries({ queryKey: ['professional', professionalData.id] });
       onUpdate();
     } catch (err: any) {
       toast.error('Error al guardar: ' + err.message);
@@ -198,6 +197,8 @@ export const EditMyServices = ({ professionalData, onUpdate }: EditMyServicesPro
   };
 
   const noResults = searchTerm.length >= 2 && filteredServices.length === 0;
+  const hasExactMatch = serviceCategories.some(s => s.name.toLowerCase() === searchTerm.toLowerCase()) || rubros.some(r => r.name.toLowerCase() === searchTerm.toLowerCase());
+  const showCustomOption = searchTerm.length >= 2 && !hasExactMatch && rubros.length < 3;
 
   return (
     <Card className="rounded-xl shadow-sm border-0 bg-card">
@@ -254,8 +255,17 @@ export const EditMyServices = ({ professionalData, onUpdate }: EditMyServicesPro
           )}
 
           {/* Dropdown */}
-          {showDropdown && searchTerm.length >= 1 && filteredServices.length > 0 && (
+          {showDropdown && searchTerm.length >= 1 && (filteredServices.length > 0 || showCustomOption) && (
             <div className="absolute z-20 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {showCustomOption && (
+                <button
+                  onClick={() => addRubro(searchTerm.trim())}
+                  className="w-full text-left px-3 py-2 hover:bg-accent flex items-center gap-2 text-sm transition-colors text-primary font-medium border-b border-border"
+                >
+                  <Plus className="h-4 w-4" />
+                  Agregar "{searchTerm.trim()}" como nueva profesión
+                </button>
+              )}
               {filteredServices.slice(0, 8).map(service => {
                 const Icon = service.icon;
                 return (
@@ -305,39 +315,6 @@ export const EditMyServices = ({ professionalData, onUpdate }: EditMyServicesPro
                 </div>
               );
             })}
-          </div>
-        )}
-
-        {/* Suggest new */}
-        {noResults && !showSuggestion && (
-          <button
-            onClick={() => setShowSuggestion(true)}
-            className="flex items-center gap-2 text-sm text-primary hover:underline"
-          >
-            <Lightbulb className="h-4 w-4" />
-            ¿No encontrás tu rubro? Sugerirlo aquí
-          </button>
-        )}
-
-        {showSuggestion && (
-          <div className="flex gap-2">
-            <Input
-              placeholder="Escribí tu rubro personalizado..."
-              value={customRubro}
-              onChange={e => setCustomRubro(e.target.value)}
-              className="flex-1"
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={!customRubro.trim() || rubros.length >= 3}
-              onClick={() => {
-                if (customRubro.trim()) addRubro(customRubro.trim());
-              }}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Agregar
-            </Button>
           </div>
         )}
 
