@@ -1,100 +1,146 @@
 
 
-# Plan: Rediseno de la Pestana de Suscripcion
+# Plan: Rebranding de chequealo.ar a chequealo.net
 
 ## Resumen
 
-Reemplazar el contenido actual de `SubscriptionPanel` con un diseno que replica las 3 tarjetas de la pagina de Pricing, agrega un badge "TU PLAN ACTUAL", informacion del Programa Pioneros, y una seccion minimalista de vencimiento.
+Actualizar todas las referencias de dominio `.ar` a `.net` en toda la aplicacion: frontend, emails, edge functions, SEO, configuracion y documentacion. Aproximadamente 20+ archivos afectados.
 
 ---
 
-## Cambios en `src/components/SubscriptionPanel.tsx`
+## Alcance de cambios
 
-Reescribir el componente completo. El nuevo diseno incluye:
+### Regla general de reemplazo
 
-### 1. Tarjetas de Planes (clonadas del Index/Pricing)
+| Patron actual | Reemplazo |
+|---|---|
+| `chequealo.ar` (dominio en URLs) | `chequealo.net` |
+| `CHEQUEALO.AR` (texto legal) | `CHEQUEALO.NET` |
+| `Chequealo.ar` (texto UI) | `Chequealo.net` |
+| `info@chequealo.ar` | `info@chequealo.net` |
+| `contacto@chequealo.ar` | `contacto@chequealo.net` |
+| `noreply@chequealo.ar` | `noreply@chequealo.net` |
+| `instagram.com/chequealo.ar` | `instagram.com/chequealo.net` (o el handle correcto) |
+| `@chequealoar` (Twitter) | `@chequealonet` (o el handle correcto) |
 
-Usar exactamente la misma estructura de 3 tarjetas (Basico, Premium, Pro) definida en `src/pages/Pricing.tsx`:
-- Mismos precios, features, iconografia con checks verdes
-- Misma estetica: bordes redondeados, badge "MAS ELEGIDO" en Premium, escala 1.1x en desktop
-- Grid responsive: `grid-cols-1 lg:grid-cols-3` con Premium centrado y escalado
-
-### 2. Badge "TU PLAN ACTUAL"
-
-- Agregar un badge violeta (bg-primary) en la parte superior de la tarjeta correspondiente al plan actual del usuario
-- Para el Programa Pioneros (status trial): marcar la tarjeta Premium (o la que corresponda) con:
-  - Precio tachado y "$0" destacado en verde
-  - Leyenda: "Bonificado por ser Miembro Fundador"
-
-### 3. Botones de Cambio
-
-- Boton deshabilitado (disabled, variant="default") en el plan actual con texto "Tu Plan Actual"
-- Botones activos (variant="outline") en los demas planes con texto "Elegir [Plan]"
-- Estilo redondeado y color violeta de la marca
-
-### 4. Seccion de Proximo Vencimiento
-
-Debajo de las tarjetas, una seccion minimalista:
-- Card con icono de calendario
-- Texto: "Proximo Vencimiento: [fecha de trial_end_date]"
-- Sub-texto para Pioneros: "Programa Pioneros - Acceso bonificado hasta [fecha]"
-- Sin tablas, sin formularios grises
-
-### 5. Eliminaciones
-
-- Eliminar toda la UI anterior: status cards, alerts, PlanSelector inline, PlanSelectionModal, formularios de pago
-- Eliminar imports no usados: `PlanSelectionModal`, `PlanSelector`, `Alert`, `AlertDescription`, `Settings`, `CreditCard`, `XCircle`
+**Nota:** Los textos que dicen solo "CHEQUEALO" (sin dominio) no se modifican.
 
 ---
 
-## Estructura del nuevo componente
+## 1. Frontend - Componentes y Paginas
 
-```
-<div className="space-y-8">
-  {/* Titulo */}
-  <div className="text-center">
-    <h2>Planes y Precios</h2>
-    <p>Tu plan actual y opciones disponibles</p>
-  </div>
+### `src/components/SEO/SEOHead.tsx`
+- Linea 13: `BASE_URL` de `https://chequealo.ar` a `https://chequealo.net`
+- Linea 99: email de contacto en structured data
 
-  {/* Grid de 3 tarjetas (mismo estilo Pricing.tsx) */}
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    {plans.map(plan => (
-      <Card>
-        {isPionero && plan.id === currentPlan && <Badge>TU PLAN ACTUAL</Badge>}
-        {plan.badge && <Badge>MAS ELEGIDO</Badge>}
-        <h2>{plan.name}</h2>
-        <Price strikethrough={isPionero} />
-        {isPionero && <p>$0 - Bonificado por ser Miembro Fundador</p>}
-        <Features with green checks />
-        <Button disabled={isCurrentPlan}>
-          {isCurrentPlan ? 'Tu Plan Actual' : plan.cta}
-        </Button>
-      </Card>
-    ))}
-  </div>
+### `src/components/SEO/ProfessionalSEO.tsx`
+- Lineas 85, 137, 163, 166, 223, 227: todas las URLs canonicas y OG image fallback
 
-  {/* Seccion Vencimiento */}
-  <Card className="border border-border">
-    <Calendar icon />
-    <p>Proximo Vencimiento: {trialEndDate}</p>
-    <p>Programa Pioneros - Acceso bonificado</p>
-  </Card>
-</div>
-```
+### `src/components/SlugConfiguration.tsx`
+- Lineas 171, 195, 232, 260: prefijo de URL visible y copiable
+
+### `src/components/ProfileShareCard.tsx`
+- Lineas 71, 73: `getProfileUrl()` URLs de perfil compartido
+
+### `src/hooks/useGenerateShareCard.ts`
+- Lineas 223, 227: texto del canvas "Chequealo.ar" -> "Chequealo.net"
+- Lineas 394-395: displayUrl en la tarjeta de compartir
+
+### `src/utils/utmHelpers.ts`
+- Lineas 45-46: baseUrl para links compartidos con UTM
+
+### `src/pages/Index.tsx`
+- Linea 130: link de Instagram
+- Linea 166: email de contacto en footer
+
+### `src/pages/AISearch.tsx`
+- Lineas 196, 199, 221, 232, 235, 272, 275, 336, 339: todas las referencias a "Chequealo.ar" en texto y URLs
+
+### `src/pages/NotFound.tsx`
+- Lineas 115, 118: email de contacto
+
+### `src/pages/TermsOfService.tsx`
+- Todas las menciones de "CHEQUEALO.AR" en el texto legal (aprox. 15+ ocurrencias)
+
+### `src/components/FavoritesPanel.tsx`
+- Linea 103: subject del email "Contacto desde Chequealo"
 
 ---
 
-## Archivos a modificar
+## 2. Configuracion y Estaticos
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/components/SubscriptionPanel.tsx` | Reescritura completa con nuevo diseno |
+### `index.html`
+- Linea 28: `og:url`
+- Lineas 48, 51, 54: App Links URLs (iOS, Android, Web)
+- Titulo y description ya dicen "Chequealo" sin ".ar", OK
 
-## Notas
+### `public/sitemap.xml`
+- Todas las URLs (9 entradas): reemplazar `chequealo.ar` por `chequealo.net`
 
-- Los datos de planes se definen estaticamente (igual que en Pricing.tsx) ya que no dependen de la base de datos para el display
-- El estado de suscripcion (trial, active, expired) se sigue obteniendo de `useSubscription`
-- La fecha de vencimiento se calcula desde `subscription.trial_end_date`
-- No se requieren cambios en la base de datos
+### `public/manifest.json`
+- Sin cambios necesarios (ya dice "Chequealo" sin dominio)
 
+### `capacitor.config.ts`
+- Linea 8: `url: 'https://chequealo.ar'` a `https://chequealo.net`
+
+---
+
+## 3. Edge Functions (Supabase)
+
+### `supabase/functions/send-custom-auth-email/index.ts`
+- Linea 197: `from: 'CHEQUEALO <noreply@chequealo.ar>'` a `noreply@chequealo.net`
+- Copyright en templates HTML (ya dice solo "CHEQUEALO" sin dominio, OK)
+
+### `supabase/functions/send-custom-auth-email/_templates/confirmation-email.tsx`
+- Sin cambios (usa "CHEQUEALO" sin dominio)
+
+### `supabase/functions/send-custom-auth-email/_templates/recovery-email.tsx`
+- Sin cambios
+
+### `supabase/functions/send-custom-auth-email/_templates/magic-link-email.tsx`
+- Sin cambios
+
+### `supabase/functions/billing-subscribe/index.ts`
+- Lineas 30-31: agregar `chequealo.net` y `www.chequealo.net` a allowedDomains (mantener .ar temporalmente para transicion)
+
+### `supabase/functions/billing-portal/index.ts`
+- Lineas 22-23: agregar `chequealo.net` y `www.chequealo.net`
+
+### `supabase/functions/create-payment-preference/index.ts`
+- Lineas 29-30: agregar `chequealo.net` y `www.chequealo.net`
+
+### `supabase/functions/send-push-notification/index.ts`
+- Linea 52: email de VAPID a `contacto@chequealo.net`
+
+---
+
+## 4. Documentacion (MD files)
+
+### Archivos a actualizar:
+- `CHECKLIST_REGISTRO.md` - URLs de redirect
+- `README_billing.md` - URLs de ejemplo
+- `PROBLEMA_COMPARTIR_PERFILES.md` - URLs de ejemplo
+- `PROBLEMA_META_TAGS_SOLUCION.md` - URLs de ejemplo
+- `CLOUDFLARE_WORKER_SETUP.md` - configuracion de dominio
+- `INSTRUCCIONES_WEB_PUSH.md` - email de contacto
+
+---
+
+## 5. Logo
+
+Los logos existentes en `src/assets/` son:
+- `chequealo-final-logo.png`
+- `chequealo-logo.png`
+- `chequealo-new-logo.png`
+- `chequealo-transparent-logo.png`
+
+Estos son archivos de imagen y no pueden ser editados programaticamente. Si alguno contiene ".ar" en el grafico, el usuario debera proporcionar nuevas versiones. El codigo no hace referencia textual a ".ar" en los nombres de archivo.
+
+---
+
+## Notas importantes
+
+- Las edge functions de billing mantendran AMBOS dominios (.ar y .net) en la whitelist durante la transicion
+- Los emails (noreply@, contacto@, info@) cambian a .net -- el usuario debe configurar el dominio de envio en Resend para chequealo.net
+- El handle de Instagram `chequealo.ar` debe confirmarse si cambia o se mantiene
+- El handle de Twitter `@chequealoar` debe confirmarse si cambia
