@@ -1,53 +1,57 @@
 
 
-# Plan: Limpieza Final del Dashboard Profesional
+# Plan: Limpieza Radical del Perfil Profesional
 
 ## Resumen
 
-Reorganizar las acciones rapidas del dashboard activo a solo 3 botones grandes y elegantes, eliminar tabs innecesarias del menu inferior, y mejorar el espaciado general.
+Transformar la tab "Mi Perfil" del dashboard profesional en una tarjeta de presentacion limpia y minimalista, eliminando secciones irrelevantes y unificando la edicion en un solo lugar.
 
 ---
 
-## Cambios
+## Cambios en `src/pages/ProfessionalDashboard.tsx`
 
-### 1. ActiveUserDashboard.tsx - Acciones Rapidas de 3 botones
+### Eliminar del tab "profile" (lineas 684-782):
 
-**ZONA 4 (lineas 228-279):** Reemplazar completamente la seccion actual (tile grande de Mensajes + grid de 3 iconos pequenos) por un grid de 3 botones grandes y elegantes en una sola fila:
+1. **ProfileCompletionProgress** (linea 686-689) - Eliminar la barra circular de progreso y checklist de tareas pendientes
+2. **Card "Informacion del Perfil"** (lineas 691-733) - Eliminar el bloque de solo lectura que muestra datos no editables (nombre, email, telefono, ubicacion como texto plano)
+3. **AchievementsBadges** (linea 757) - Eliminar insignias y logros
+4. **BankingInfoForm** (linea 758) - Eliminar datos bancarios
+5. **SlugConfiguration** (lineas 761-767) - Mantener (URL personalizada es util)
+6. **ZonaTodayManager** (lineas 770-781) - Mantener
 
-- **Ver mi Perfil Publico** (icono Eye) - navega a `/professional/{id}`
-- **Editar Mis Servicios** (icono Package) - `onTabChange('services')`
-- **Mis Mensajes** (icono MessageCircle con badge de pendientes) - `onTabChange('messages')`
+### Reemplazar con estructura limpia:
 
-Cada boton sera un card redondeado con icono grande, label, y efecto hover. Grid `grid-cols-3` con gap uniforme.
+```
+TabsContent value="profile":
+  1. Header elegante con foto grande editable + nombre + boton "Ver Perfil Publico"
+  2. Seccion "Datos Personales" - formulario inline editable:
+     - Foto de perfil (click para cambiar)
+     - Nombre completo
+     - WhatsApp / Telefono
+     - Ubicacion
+     - Descripcion profesional
+     Boton "Guardar Cambios"
+  3. ProfessionManager (Mis Profesiones) - ya existe, se mantiene
+  4. Boton de acceso a "Galeria de Trabajos" (link a tab portfolio)
+  5. SlugConfiguration (URL personalizada)
+  6. ZonaTodayManager (Zona Hoy)
+```
 
-**Espaciado:** Cambiar `space-y-4` del contenedor principal a `space-y-6` para dar mas "aire" al widget EN LINEA y Consultas Recientes.
+### Diseno visual:
+- Foto de perfil grande (w-24 h-24) centrada con overlay de camara para editar
+- Tipografia grande para el nombre (text-2xl font-bold)
+- Campos de formulario con mucho espacio (space-y-6)
+- Fondo limpio sin cards anidadas innecesarias
+- Una sola Card principal con padding generoso (p-8)
 
-### 2. ProfessionalDashboard.tsx - Eliminar tabs "Trabajos" y "Config"
+### Eliminar imports no usados:
+- `ProfileCompletionProgress`
+- `AchievementsBadges`
+- `BankingInfoForm`
+- `ProfessionalProfileEdit` (su logica de edicion se integra directamente en el tab)
 
-**TabsList (lineas 593-624):** Eliminar:
-- `TabsTrigger value="transactions"` (Trabajos)
-- `TabsTrigger value="settings"` (Config)
-
-Reducir grid de `grid-cols-8` a `grid-cols-6`.
-
-**TabsContent:** Eliminar:
-- `TabsContent value="transactions"` (lineas 683-685)
-- `TabsContent value="settings"` (lineas 769-815)
-
-Mover el contenido esencial de "Config" (SlugConfiguration, ZonaTodayManager) al tab "Mi Perfil" para no perder funcionalidad.
-
-Renombrar tab "Portfolio" a "Galeria" para consistencia.
-
-### 3. Tabs finales resultantes (6 tabs)
-
-| Tab | Nombre |
-|-----|--------|
-| messages | Mensajes |
-| reviews | Resenas |
-| services | Servicios |
-| portfolio | Galeria |
-| subscription | Suscripcion |
-| profile | Mi Perfil |
+### Logica de edicion unificada:
+En lugar de abrir un Dialog para editar, los campos seran editables inline dentro de la misma tarjeta. Un estado `isEditing` controla si los campos son de lectura o edicion. Al hacer click en "Editar", los campos se transforman en inputs. Al guardar, se actualiza todo junto.
 
 ---
 
@@ -55,6 +59,11 @@ Renombrar tab "Portfolio" a "Galeria" para consistencia.
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/dashboard/ActiveUserDashboard.tsx` | Reemplazar ZONA 4 con grid de 3 botones grandes, aumentar espaciado |
-| `src/pages/ProfessionalDashboard.tsx` | Eliminar tabs Trabajos y Config, mover contenido Config a Mi Perfil, renombrar Portfolio a Galeria |
+| `src/pages/ProfessionalDashboard.tsx` | Reescribir TabsContent "profile" completo, eliminar imports innecesarios |
+
+## Notas
+
+- No se eliminan los componentes (AchievementsBadges, BankingInfoForm, ProfileCompletionProgress) del proyecto, solo se dejan de usar en esta vista
+- ProfessionalProfileEdit se reemplaza por edicion inline directa
+- La galeria de trabajos se accede desde un boton que cambia a la tab "portfolio"
 
