@@ -17,6 +17,10 @@ interface ChatHeaderProps {
       profession?: string;
       phone?: string;
     };
+    contact_requests?: {
+      service_type?: string;
+      type?: string;
+    };
     status?: string;
   } | null;
   isOnline?: boolean;
@@ -39,6 +43,7 @@ export const ChatHeader = ({
   showBackButton = true
 }: ChatHeaderProps) => {
   const professional = conversation?.professionals;
+  const contactRequest = conversation?.contact_requests;
 
   const getInitials = (name: string) => {
     return name
@@ -97,14 +102,20 @@ export const ChatHeader = ({
           <span className="font-semibold text-sm leading-tight">
             {professional?.full_name || 'Usuario'}
           </span>
-          <span className="text-xs text-primary-foreground/70 leading-tight">
-            {professional?.profession && (
-              <span>{professional.profession} • </span>
-            )}
-            <span className={isOnline ? 'text-green-300' : ''}>
-              {getStatusText()}
+          {contactRequest?.service_type ? (
+            <span className="text-xs text-primary-foreground/70 leading-tight">
+              Interesado en: {contactRequest.service_type}
             </span>
-          </span>
+          ) : (
+            <span className="text-xs text-primary-foreground/70 leading-tight">
+              {professional?.profession && (
+                <span>{professional.profession} • </span>
+              )}
+              <span className={isOnline ? 'text-green-300' : ''}>
+                {getStatusText()}
+              </span>
+            </span>
+          )}
         </div>
       </div>
 

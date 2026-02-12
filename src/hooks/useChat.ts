@@ -86,7 +86,8 @@ export const useChat = () => {
         .from('conversations')
         .select(`
           *,
-          professionals!professional_id(full_name, image_url, profession)
+          professionals!professional_id(full_name, image_url, profession),
+          contact_requests(service_type, type)
         `)
         .eq('status', 'active')
         .order('last_message_at', { ascending: false });
@@ -553,7 +554,7 @@ export const useChat = () => {
     getConversationWithRelations: async (conversationId: string) => {
       const { data } = await supabase
         .from('conversations')
-        .select(`*, professionals!professional_id(full_name, image_url)`) 
+        .select(`*, professionals!professional_id(full_name, image_url, profession, phone), contact_requests(service_type, type)`) 
         .eq('id', conversationId)
         .single();
       return data;

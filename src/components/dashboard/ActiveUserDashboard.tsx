@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { DashboardHero } from './DashboardHero';
-import { QuickActionTile } from './QuickActionTile';
 import { 
   MapPin, 
   MessageCircle, 
@@ -107,9 +106,9 @@ export function ActiveUserDashboard({
             <Button 
               size="lg" 
               className="w-full sm:w-auto gap-2"
-              onClick={() => onTabChange('requests')}
+              onClick={() => onTabChange('messages')}
             >
-              Ver solicitudes ahora
+              Ver mensajes ahora
               <ChevronRight className="h-4 w-4" />
             </Button>
           }
@@ -180,7 +179,7 @@ export function ActiveUserDashboard({
                 <div 
                   key={req.id}
                   className="flex items-start gap-3 p-2 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => onTabChange('requests')}
+                  onClick={() => onTabChange('messages')}
                 >
                   <div className="p-2 rounded-full bg-primary/10 shrink-0">
                     <User className="h-4 w-4 text-primary" />
@@ -198,7 +197,7 @@ export function ActiveUserDashboard({
               <Button 
                 variant="ghost" 
                 className="w-full text-primary gap-1 mt-1"
-                onClick={() => onTabChange('requests')}
+                onClick={() => onTabChange('messages')}
               >
                 Ver todas las consultas
                 <ChevronRight className="h-4 w-4" />
@@ -226,40 +225,56 @@ export function ActiveUserDashboard({
           )}
         </div>
 
-        {/* ZONA 4: Acciones rápidas - 4 tiles */}
+        {/* ZONA 4: Acción principal - Mensajes con contador */}
         <div>
-          <h3 className="text-base font-semibold mb-3">Acciones rápidas</h3>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <QuickActionTile
-              icon={Eye}
-              label="Ver mi Perfil Público"
-              subtitle="(Haz clic para ver cómo te encuentran tus clientes)"
-              iconColor="text-blue-500"
-              iconBg="bg-blue-50"
+          <div 
+            className="rounded-2xl shadow-sm p-5 bg-card border-0 cursor-pointer hover:shadow-md transition-all mb-3"
+            onClick={() => onTabChange('messages')}
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative p-3 rounded-full bg-primary/10">
+                <MessageCircle className="h-7 w-7 text-primary" />
+                {(stats.pendingRequests > 0) && (
+                  <span className="absolute -top-1 -right-1 min-w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground px-1">
+                    {stats.pendingRequests}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-base text-foreground">Mensajes</p>
+                <p className="text-sm text-muted-foreground">
+                  {stats.pendingRequests > 0 
+                    ? `${stats.pendingRequests} pendiente${stats.pendingRequests > 1 ? 's' : ''}`
+                    : 'Ver todas las conversaciones'}
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </div>
+
+          {/* Links secundarios */}
+          <div className="grid grid-cols-3 gap-2">
+            <button 
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-muted/50 transition-colors text-center"
               onClick={() => navigate(`/professional/${professional.id}`)}
-            />
-            <QuickActionTile
-              icon={Package}
-              label="Editar Mis Servicios"
-              iconColor="text-green-500"
-              iconBg="bg-green-50"
+            >
+              <Eye className="h-5 w-5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Mi Perfil</span>
+            </button>
+            <button 
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-muted/50 transition-colors text-center"
               onClick={() => onTabChange('services')}
-            />
-            <QuickActionTile
-              icon={MessageCircle}
-              label="Mis Mensajes"
-              iconColor="text-orange-500"
-              iconBg="bg-orange-50"
-              onClick={() => onTabChange('messages')}
-            />
-            <QuickActionTile
-              icon={Camera}
-              label="Galería de Trabajos"
-              iconColor="text-purple-500"
-              iconBg="bg-purple-50"
+            >
+              <Package className="h-5 w-5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Servicios</span>
+            </button>
+            <button 
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-muted/50 transition-colors text-center"
               onClick={() => onTabChange('portfolio')}
-            />
+            >
+              <Camera className="h-5 w-5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Galería</span>
+            </button>
           </div>
         </div>
       </div>

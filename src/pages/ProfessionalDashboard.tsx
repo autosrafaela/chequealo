@@ -90,7 +90,7 @@ const ProfessionalDashboard = () => {
     lastMonthContacts: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>('requests');
+  const [activeTab, setActiveTab] = useState<string>('messages');
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [isActiveInZone, setIsActiveInZone] = useState(false);
   const [showTabs, setShowTabs] = useState(false);
@@ -590,18 +590,15 @@ const ProfessionalDashboard = () => {
         <div ref={tabsRef} className="scroll-mt-4">
           {(showTabs || pendingTransactions.length > 0) && (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5 md:grid-cols-9 sticky top-4 z-10 bg-background h-auto flex-wrap">
-                <TabsTrigger value="requests" className="text-xs">
-                  Solicitudes
+              <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 sticky top-4 z-10 bg-background h-auto flex-wrap">
+                <TabsTrigger value="messages" className="text-xs">
+                  <MessageCircle className="h-3 w-3 mr-1" />
+                  Mensajes
                   {stats.pendingRequests > 0 && (
                     <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 text-[10px]">
                       {stats.pendingRequests}
                     </Badge>
                   )}
-                </TabsTrigger>
-                <TabsTrigger value="messages" className="text-xs">
-                  <MessageCircle className="h-3 w-3 mr-1" />
-                  Mensajes
                 </TabsTrigger>
                 <TabsTrigger value="reviews" className="text-xs">
                   Reseñas
@@ -626,39 +623,38 @@ const ProfessionalDashboard = () => {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="requests">
-                {pendingTransactions.length > 0 && (
-                  <div className="mb-6 space-y-4">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold">Confirmaciones Pendientes</h3>
-                      <Badge variant="default">{pendingTransactions.length}</Badge>
-                    </div>
-                    {pendingTransactions.map((transaction) => (
-                      <TransactionConfirmationCard
-                        key={transaction.id}
-                        transaction={transaction}
-                        isProfessional={true}
-                        onConfirm={confirmCompletion}
-                        disabled={confirmLoading}
-                      />
-                    ))}
+              <TabsContent value="messages">
+                {/* Solicitudes integradas como sección colapsable */}
+                {(pendingTransactions.length > 0 || stats.pendingRequests > 0) && (
+                  <div className="mb-4 space-y-4">
+                    {pendingTransactions.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-5 w-5 text-primary" />
+                          <h3 className="text-base font-semibold">Confirmaciones Pendientes</h3>
+                          <Badge variant="default">{pendingTransactions.length}</Badge>
+                        </div>
+                        {pendingTransactions.map((transaction) => (
+                          <TransactionConfirmationCard
+                            key={transaction.id}
+                            transaction={transaction}
+                            isProfessional={true}
+                            onConfirm={confirmCompletion}
+                            disabled={confirmLoading}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <ReadyToRateTransactions 
+                      isProfessional={true}
+                      onRate={() => setActiveTab('reviews')}
+                    />
+
+                    <ContactRequestsPanel />
                   </div>
                 )}
 
-                <div className="mb-6">
-                  <ReadyToRateTransactions 
-                    isProfessional={true}
-                    onRate={(transactionId) => {
-                      setActiveTab('reviews');
-                    }}
-                  />
-                </div>
-
-                <ContactRequestsPanel />
-              </TabsContent>
-
-              <TabsContent value="messages">
                 <MessagesDesktopLayout 
                   initialConversationId={conversationId} 
                   isProfessional={true} 
