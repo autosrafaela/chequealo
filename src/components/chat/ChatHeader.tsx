@@ -17,12 +17,17 @@ interface ChatHeaderProps {
       profession?: string;
       phone?: string;
     };
+    profiles?: {
+      full_name: string;
+      avatar_url?: string;
+    };
     contact_requests?: {
       service_type?: string;
       type?: string;
     };
     status?: string;
   } | null;
+  isProfessional?: boolean;
   isOnline?: boolean;
   lastSeen?: string;
   onBack: () => void;
@@ -34,6 +39,7 @@ interface ChatHeaderProps {
 
 export const ChatHeader = ({
   conversation,
+  isProfessional = false,
   isOnline = false,
   lastSeen,
   onBack,
@@ -43,7 +49,17 @@ export const ChatHeader = ({
   showBackButton = true
 }: ChatHeaderProps) => {
   const professional = conversation?.professionals;
+  const clientProfile = conversation?.profiles;
   const contactRequest = conversation?.contact_requests;
+
+  // Dynamic identity: show client name for professionals, professional name for clients
+  const displayName = isProfessional
+    ? (clientProfile?.full_name || `Cliente de ${professional?.profession || 'consulta'}`)
+    : (professional?.full_name || 'Usuario');
+  
+  const displayImage = isProfessional
+    ? clientProfile?.avatar_url
+    : professional?.image_url;
 
   const getInitials = (name: string) => {
     return name
@@ -60,7 +76,6 @@ export const ChatHeader = ({
       const lastSeenDate = new Date(lastSeen);
       const now = new Date();
       const diffMinutes = Math.floor((now.getTime() - lastSeenDate.getTime()) / 60000);
-      
       if (diffMinutes < 5) return 'En línea';
       if (diffMinutes < 60) return `Activo hace ${diffMinutes} min`;
       if (diffMinutes < 1440) return `Activo hace ${Math.floor(diffMinutes / 60)}h`;
@@ -71,7 +86,6 @@ export const ChatHeader = ({
 
   const handleCall = () => {
     if (professional?.phone) {
-      // Try WhatsApp first
       const cleanPhone = professional.phone.replace(/\D/g, '');
       window.open(`https://wa.me/${cleanPhone}`, '_blank');
     }
@@ -92,15 +106,15 @@ export const ChatHeader = ({
         )}
 
         <Avatar className="h-9 w-9 border-2 border-primary-foreground/20">
-          <AvatarImage src={professional?.image_url} />
+          <AvatarImage src={displayImage} />
           <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-xs">
-            {getInitials(professional?.full_name || 'Usuario')}
+            {getInitials(displayName)}
           </AvatarFallback>
         </Avatar>
 
         <div className="flex flex-col">
           <span className="font-semibold text-sm leading-tight">
-            {professional?.full_name || 'Usuario'}
+            {displayName}
           </span>
           {contactRequest?.service_type ? (
             <span className="text-xs text-primary-foreground/70 leading-tight">
@@ -108,7 +122,7 @@ export const ChatHeader = ({
             </span>
           ) : (
             <span className="text-xs text-primary-foreground/70 leading-tight">
-              {professional?.profession && (
+              {professional?.profession && !isProfessional && (
                 <span>{professional.profession} • </span>
               )}
               <span className={isOnline ? 'text-green-300' : ''}>
@@ -120,7 +134,7 @@ export const ChatHeader = ({
       </div>
 
       <div className="flex items-center gap-1">
-        {professional?.phone && (
+        {professional?.phone && !isProfessional && (
           <Button
             variant="ghost"
             size="icon"
