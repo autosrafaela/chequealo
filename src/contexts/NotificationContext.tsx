@@ -69,7 +69,7 @@ const getNotificationSound = (notifType: string, title: string): { sound: Notifi
     return { sound: 'express', vibration: 'urgent' };
   }
   if (titleLower.includes('mensaje') || titleLower.includes('message')) {
-    return { sound: 'message', vibration: 'short' };
+    return { sound: 'message', vibration: 'chat_message' };
   }
   if (titleLower.includes('reseña') || titleLower.includes('review')) {
     return { sound: 'new_review', vibration: 'success' };
@@ -230,6 +230,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       console.error('[NotificationProvider] Error fetching notifications:', error);
     }
   }, [user]);
+
+  // PWA App Badge - show unread count on app icon
+  useEffect(() => {
+    if ('setAppBadge' in navigator) {
+      if (unreadCount > 0) {
+        (navigator as any).setAppBadge(unreadCount);
+      } else {
+        (navigator as any).clearAppBadge();
+      }
+    }
+  }, [unreadCount]);
 
   // Set up realtime subscription - only once per user
   useEffect(() => {

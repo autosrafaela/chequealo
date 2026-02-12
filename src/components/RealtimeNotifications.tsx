@@ -57,7 +57,7 @@ const getNotificationConfig = (notification: RealtimeNotification): {
 
   switch (notification.type) {
     case 'message':
-      return { sound: 'message', vibration: 'short' };
+      return { sound: 'message', vibration: 'chat_message' };
     case 'booking':
       if (title.includes('confirmad')) {
         return { sound: 'booking_confirmed', vibration: 'success' };
@@ -239,7 +239,7 @@ export const RealtimeNotifications: React.FC = () => {
                       : `/user-dashboard?tab=messages&conversation=${message.conversation_id}`;
                     
                     // Play message notification sound with vibration
-                    playNotificationWithVibration('message', 'short');
+                    playNotificationWithVibration('message', 'chat_message');
                     
                     toast('Nuevo mensaje', {
                       description: `Tienes un nuevo mensaje: ${message.content.substring(0, 50)}...`,
