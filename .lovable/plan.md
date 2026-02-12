@@ -1,78 +1,68 @@
 
-# Plan: Finalizacion del Rediseno del Dashboard Profesional
+# Plan: Simplificacion Radical del Dashboard Profesional
 
 ## Resumen
 
-Transformar el dashboard profesional con un widget de visibilidad mas impactante, acciones rapidas con iconos circulares en colores pastel, un feed de "Consultas Recientes", y una estetica general mas limpia con sombras suaves y sin bordes innecesarios.
+Reducir el dashboard a una herramienta de consulta rapida que quepa en una sola pantalla: eliminar tabs innecesarios (Analytics, Combos, Calendario, Finanzas), reducir acciones rapidas a 4, mover estado de suscripcion al header, y reemplazar metricas complejas por actividad reciente.
 
 ---
 
-## 1. Saludo con emoji y tipografia amigable
+## Cambios
 
-**Archivo:** `src/pages/ProfessionalDashboard.tsx` (linea ~516)
+### 1. Simplificar ActiveUserDashboard (`src/components/dashboard/ActiveUserDashboard.tsx`)
 
-- Cambiar `Hola, {nombre} 👋` a usar tipografia mas amigable: `text-2xl md:text-3xl font-extrabold tracking-tight`
-- Mantener el emoji de saludo (ya existe el 👋)
+**Acciones rapidas**: Reducir de 6 tiles a 4:
+- "Ver mi Perfil Publico" (Eye, azul)
+- "Editar Mis Servicios" (Package, verde)
+- "Mis Mensajes" (MessageCircle, naranja)
+- "Galeria de Trabajos" (Camera, purpura)
 
-## 2. Widget de Visibilidad rediseñado
+Eliminar: "Configuracion" y "Mi Plan Pioneros"
 
-**Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
+**Grid**: Cambiar de `grid-cols-3` a `grid-cols-2 sm:grid-cols-4` para que las 4 acciones quepan en una fila en desktop.
 
-- Reemplazar el `DashboardHero` de visibilidad por un bloque custom sin usar Card con bordes:
-  - Fondo: `bg-white rounded-2xl shadow-sm p-6` (shadow suave, sin borde visible)
-  - Switch mas grande y prominente con label claro
-  - **ON**: badge verde pulsante "Activo en [ciudad]" (usa `professional.city` o fallback "tu zona"), borde verde sutil `border border-green-200`, glow `shadow-[0_0_20px_rgba(74,222,128,0.15)]`
-  - **OFF**: aplica `grayscale-[30%] opacity-90` al wrapper del dashboard completo (div padre), con un mensaje centrado: "Estas invisible para los clientes" en `text-muted-foreground italic`
-- El switch ocupa un area visual grande: contenedor flex con icono de MapPin a la izquierda, texto al centro, switch a la derecha
+**Metricas**: Eliminar la seccion completa de MetricCards (visitas, solicitudes, calificacion) y el link "Ver estadisticas completas". Reemplazar por la seccion de "Consultas Recientes" que ya existe (moverla arriba, justo despues del widget de visibilidad).
 
-## 3. Grid de Acciones Rapidas 3x2 con iconos circulares pastel
+**Suscripcion en header**: Agregar una pequena tarjeta/badge dorado arriba del saludo o junto al nombre que diga "Plan Pioneros: Activo - X dias restantes". Usar el hook `useSubscription` para obtener los dias.
 
-**Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
-**Archivo:** `src/components/dashboard/QuickActionTile.tsx`
+### 2. Eliminar tabs innecesarios (`src/pages/ProfessionalDashboard.tsx`)
 
-En `QuickActionTile.tsx`:
-- Cambiar el fondo del icono de `rounded-xl` a `rounded-full` (circular)
-- Usar colores pastel suaves para el fondo: `bg-blue-50`, `bg-green-50`, `bg-purple-50`, etc.
-- Eliminar borde del Card: `border-0 shadow-sm hover:shadow-md`
-- Iconos ligeramente mas grandes: `h-6 w-6`
+**Tabs a eliminar de la TabsList y sus TabsContent**:
+- `analytics` (Analytics)
+- `combos` (Combos)
+- `calendar` (Calendario)
+- `financial` (Finanzas)
+
+**Tabs que permanecen** (8 tabs):
+- `requests` (Solicitudes)
+- `messages` (Mensajes)
+- `reviews` (Resenas)
+- `services` (Servicios)
+- `portfolio` (Portfolio)
+- `transactions` (Trabajos)
+- `subscription` (Suscripcion)
+- `profile` (Mi Perfil)
+- `settings` (Config)
+
+**Imports a eliminar**:
+- `ProfessionalAnalytics`
+- `CombosManager`
+- `AvailabilityCalendar`
+- `AgendaManager`
+- `FinancialDashboard`
+- `BarChart3` icon
+
+**TabsList grid**: Cambiar de `grid-cols-6 md:grid-cols-12` a `grid-cols-5 md:grid-cols-9` para ajustar al nuevo numero de tabs.
+
+**Boton "Ver todas las opciones"**: Cambiar texto a "Gestionar mi negocio" para ser mas directo.
+
+### 3. Layout compacto para above-the-fold
 
 En `ActiveUserDashboard.tsx`:
-- Cambiar grid de `grid-cols-2 md:grid-cols-3 lg:grid-cols-6` a `grid-cols-3 gap-4` (3x2 fijo)
-- Renombrar las 6 acciones:
-  1. "Mi Perfil Publico" (Eye, azul)
-  2. "Mis Servicios" (Package, verde)
-  3. "Galeria de Trabajos" (Camera, purpura)
-  4. "Mensajes" (MessageCircle, naranja)
-  5. "Configuracion" (Settings, gris)
-  6. "Mi Plan Pioneros" (Crown/Award, amber) - reemplaza "Mi Profesion"
-- Eliminar el acordeon de "Mas opciones" (Collapsible) y el ProfessionModal ya que "Mi Plan Pioneros" lleva al tab de suscripcion
-
-## 4. Feed de Consultas Recientes
-
-**Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
-
-- Agregar debajo del widget de visibilidad una seccion "Consultas Recientes"
-- Query a `contact_requests` filtrando por `professional_id`, ordenado por `created_at DESC`, limit 3
-- Si hay consultas: mostrar cada una como un item con avatar placeholder, nombre del cliente, mensaje truncado y fecha relativa
-- Si NO hay consultas (empty state):
-  - Icono grande de `MessageCircle` con opacity baja
-  - Texto: "Aun no tenes mensajes. Asegurate de tener tu perfil completo para atraer clientes!"
-  - Boton sutil: "Completar mi perfil" que lleva a `onTabChange('settings')`
-- Contenedor: `bg-white rounded-2xl shadow-sm p-6` (sin bordes)
-
-## 5. Estetica General - Sombras suaves y sin bordes
-
-**Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
-
-- Wrapper principal: si `isActiveInZone === false`, aplicar `className="grayscale-[30%] opacity-90 transition-all duration-500"` al div padre, con un banner sutil arriba
-- Reemplazar la Card de DashboardHero de "contactos pendientes" (variant danger) por un div con `bg-white rounded-2xl shadow-sm`
-- Eliminar `border-2` de las cards de metricas; usar solo `shadow-sm` y `rounded-2xl`
-
-**Archivo:** `src/components/dashboard/MetricCard.tsx`
-- Cambiar Card a: `border-0 shadow-sm rounded-2xl hover:shadow-md`
-
-**Archivo:** `src/components/dashboard/DashboardHero.tsx`
-- Cambiar Card a: `border-0 shadow-sm rounded-2xl` (eliminar `border-2`)
+- Reducir padding de secciones de `p-6` a `p-4` 
+- Reducir `space-y-6` del wrapper a `space-y-4`
+- Las consultas recientes mantienen limit 3 pero con items mas compactos (menos padding)
+- Eliminar el `py-8` del empty state, usar `py-4`
 
 ---
 
@@ -80,32 +70,28 @@ En `ActiveUserDashboard.tsx`:
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/dashboard/ActiveUserDashboard.tsx` | Widget visibilidad, grid 3x2, feed consultas, estetica sin bordes, efecto grayscale OFF |
-| `src/components/dashboard/QuickActionTile.tsx` | Iconos circulares pastel, sin borde, shadow suave |
-| `src/components/dashboard/MetricCard.tsx` | Sin borde, shadow suave, rounded-2xl |
-| `src/components/dashboard/DashboardHero.tsx` | Sin borde, shadow suave, rounded-2xl |
-| `src/pages/ProfessionalDashboard.tsx` | Tipografia del saludo mas amigable |
+| `src/components/dashboard/ActiveUserDashboard.tsx` | 4 acciones rapidas, eliminar metricas, agregar badge suscripcion, layout compacto |
+| `src/pages/ProfessionalDashboard.tsx` | Eliminar 4 tabs (analytics, combos, calendar, financial), limpiar imports |
 
-## Detalles tecnicos
+## Estructura visual resultante (above the fold)
 
-### Query de Consultas Recientes
+```text
++------------------------------------------+
+| Header                                   |
++------------------------------------------+
+| Hola, MAXIMILIANO 👋                     |
+| Plomero           [Plan Pioneros: 365d]  |
++------------------------------------------+
+| [EN LINEA] Activo en Rafaela    [switch] |
++------------------------------------------+
+| Consultas Recientes                      |
+| > Juan - "Necesito arreglar..."  hace 2h |
+| > Maria - "Presupuesto para..." hace 1d |
+| > Pedro - "Consulta sobre..."   hace 3d |
+| [Ver todas las consultas]                |
++------------------------------------------+
+| [Perfil] [Servicios] [Mensajes] [Galeria]|
++------------------------------------------+
+| [Gestionar mi negocio]                   |
++------------------------------------------+
 ```
-supabase.from('contact_requests')
-  .select('id, client_name, message, created_at, status')
-  .eq('professional_id', professional.id)
-  .order('created_at', { ascending: false })
-  .limit(3)
-```
-
-### Efecto grayscale cuando OFF
-- Envolver todo el contenido del dashboard en un div con clase condicional:
-  `className={cn('space-y-6 transition-all duration-500', !isActiveInZone && 'grayscale-[30%] opacity-90')}`
-- El widget de visibilidad queda FUERA del wrapper grayscale para que siempre se vea a color
-
-### Colores pastel para iconos circulares
-- Mi Perfil Publico: `bg-blue-50 text-blue-500`
-- Mis Servicios: `bg-green-50 text-green-500`
-- Galeria de Trabajos: `bg-purple-50 text-purple-500`
-- Mensajes: `bg-orange-50 text-orange-500`
-- Configuracion: `bg-gray-100 text-gray-500`
-- Mi Plan Pioneros: `bg-amber-50 text-amber-500`
