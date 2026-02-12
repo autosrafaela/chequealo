@@ -1,57 +1,96 @@
 
-
-# Plan: Limpieza Radical del Perfil Profesional
+# Plan: Ajustes Finales de Comunicacion en el Dashboard Profesional
 
 ## Resumen
 
-Transformar la tab "Mi Perfil" del dashboard profesional en una tarjeta de presentacion limpia y minimalista, eliminando secciones irrelevantes y unificando la edicion en un solo lugar.
+Cuatro cambios principales: eliminar secciones redundantes del dashboard, mostrar nombres reales y avatares de clientes en el chat, agregar indicadores de lectura claros, y mejorar el layout de mensajes.
 
 ---
 
-## Cambios en `src/pages/ProfessionalDashboard.tsx`
+## 1. Eliminar "Consultas Recientes" y boton "Mensajes" del Dashboard
 
-### Eliminar del tab "profile" (lineas 684-782):
+**Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
 
-1. **ProfileCompletionProgress** (linea 686-689) - Eliminar la barra circular de progreso y checklist de tareas pendientes
-2. **Card "Informacion del Perfil"** (lineas 691-733) - Eliminar el bloque de solo lectura que muestra datos no editables (nombre, email, telefono, ubicacion como texto plano)
-3. **AchievementsBadges** (linea 757) - Eliminar insignias y logros
-4. **BankingInfoForm** (linea 758) - Eliminar datos bancarios
-5. **SlugConfiguration** (lineas 761-767) - Mantener (URL personalizada es util)
-6. **ZonaTodayManager** (lineas 770-781) - Mantener
+- Eliminar ZONA 3 completa ("Consultas Recientes", lineas 171-225): el bloque con la lista de las ultimas 3 solicitudes y el boton "Ver todas las consultas"
+- Eliminar el boton "Mensajes" de ZONA 4 (lineas 247-260): queda un grid de solo 2 botones ("Ver mi Perfil" y "Mis Servicios") con `grid-cols-2`
+- Eliminar el import de `useQuery` y `formatDistanceToNow` ya que solo se usaban para Consultas Recientes
+- Eliminar los imports de iconos no usados: `Clock`, `User`, `ChevronRight`, `Bell`
+- Eliminar la query `recentRequests` (lineas 66-80)
+- Eliminar el bloque de DashboardHero "URGENTE" (ZONA 1, lineas 96-115) ya que depende de pendingRequests que ahora se gestiona solo desde la tab Mensajes
 
-### Reemplazar con estructura limpia:
+## 2. Mostrar Nombres Reales y Avatares de Clientes (Humanizacion)
 
+**Archivo:** `src/hooks/useChat.ts`
+
+Modificar la query `fetchConversations` (linea 87) para incluir tambien los datos del perfil del usuario (cliente):
 ```
-TabsContent value="profile":
-  1. Header elegante con foto grande editable + nombre + boton "Ver Perfil Publico"
-  2. Seccion "Datos Personales" - formulario inline editable:
-     - Foto de perfil (click para cambiar)
-     - Nombre completo
-     - WhatsApp / Telefono
-     - Ubicacion
-     - Descripcion profesional
-     Boton "Guardar Cambios"
-  3. ProfessionManager (Mis Profesiones) - ya existe, se mantiene
-  4. Boton de acceso a "Galeria de Trabajos" (link a tab portfolio)
-  5. SlugConfiguration (URL personalizada)
-  6. ZonaTodayManager (Zona Hoy)
+conversations: select `*, professionals!professional_id(...), profiles!user_id(full_name, avatar_url)`
 ```
 
-### Diseno visual:
-- Foto de perfil grande (w-24 h-24) centrada con overlay de camara para editar
-- Tipografia grande para el nombre (text-2xl font-bold)
-- Campos de formulario con mucho espacio (space-y-6)
-- Fondo limpio sin cards anidadas innecesarias
-- Una sola Card principal con padding generoso (p-8)
+Esto agrega una relacion `profiles` a cada conversacion con el nombre y avatar del cliente.
 
-### Eliminar imports no usados:
-- `ProfileCompletionProgress`
-- `AchievementsBadges`
-- `BankingInfoForm`
-- `ProfessionalProfileEdit` (su logica de edicion se integra directamente en el tab)
+Modificar la interface `Conversation` dentro de useChat.ts para incluir:
+```
+profiles?: {
+  full_name: string;
+  avatar_url?: string;
+};
+```
 
-### Logica de edicion unificada:
-En lugar de abrir un Dialog para editar, los campos seran editables inline dentro de la misma tarjeta. Un estado `isEditing` controla si los campos son de lectura o edicion. Al hacer click en "Editar", los campos se transforman en inputs. Al guardar, se actualiza todo junto.
+Hacer lo mismo en `getConversationWithRelations` (linea 554-561).
+
+**Archivo:** `src/types/chat.ts`
+
+Agregar el campo `profiles` a la interface `Conversation`:
+```
+profiles?: {
+  full_name: string;
+  avatar_url?: string;
+};
+```
+
+**Archivo:** `src/components/chat/MessagesDesktopLayout.tsx`
+
+En la seccion de ConversationList (lineas 286-350), cuando `isProfessional` es true:
+- Usar `conversation.profiles?.full_name` en lugar del texto fijo 'Usuario'
+- Si no tiene nombre, usar fallback: `'Cliente de ' + (profession || 'consulta')`
+- Usar `conversation.profiles?.avatar_url` como imagen del avatar
+
+**Archivo:** `src/components/chat/WhatsAppChatList.tsx`
+
+Agregar prop `isProfessional` al componente. Cuando es true:
+- Mostrar el nombre del cliente desde `conv.profiles?.full_name`
+- Fallback: `'Cliente de ' + (professional?.profession || 'consulta')`
+- Mostrar avatar del cliente desde `conv.profiles?.avatar_url`
+
+Cuando es false (vista de usuario normal), mantener el comportamiento actual mostrando datos del profesional.
+
+## 3. Indicador Visual de Mensajes No Leidos para el Profesional
+
+**Archivo:** `src/components/chat/MessagesDesktopLayout.tsx`
+
+Ya existe un punto azul para unread (linea 346). Mejorar:
+- Agregar negrita al nombre cuando hay mensajes sin leer (ya se hace para el preview en linea 337-340)
+- Asegurar que `unread_count_professional` se use correctamente cuando `isProfessional=true` (ya esta en linea 295-297)
+
+**Archivo:** `src/components/chat/WhatsAppChatList.tsx`
+
+Agregar prop para determinar que campo de unread usar. Para profesionales, usar `unread_count_professional`. Agregar un punto azul junto al avatar cuando hay mensajes sin leer, similar al estilo de Instagram/WhatsApp.
+
+## 4. Layout Limpio - Mensajes como Seccion Destacada
+
+**Archivo:** `src/pages/ProfessionalDashboard.tsx`
+
+En el TabsContent de "messages" (lineas 872-908):
+- Cambiar la altura del MessagesDesktopLayout de `h-[calc(100vh-300px)]` a `h-[calc(100vh-200px)]` para dar mas espacio vertical
+- Simplificar la seccion de confirmaciones pendientes para que no ocupe tanto espacio visual sobre el chat
+
+**Archivo:** `src/components/chat/MessagesDesktopLayout.tsx`
+
+Actualizar la altura minima del contenedor principal (linea 436) para que ocupe mas espacio:
+```
+h-[calc(100vh-200px)] min-h-[600px]
+```
 
 ---
 
@@ -59,11 +98,15 @@ En lugar de abrir un Dialog para editar, los campos seran editables inline dentr
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/ProfessionalDashboard.tsx` | Reescribir TabsContent "profile" completo, eliminar imports innecesarios |
+| `src/components/dashboard/ActiveUserDashboard.tsx` | Eliminar Consultas Recientes, boton Mensajes, y bloque URGENTE |
+| `src/hooks/useChat.ts` | Incluir `profiles!user_id(full_name, avatar_url)` en queries |
+| `src/types/chat.ts` | Agregar campo `profiles` a interface Conversation |
+| `src/components/chat/MessagesDesktopLayout.tsx` | Mostrar nombre/avatar real del cliente, mejorar layout |
+| `src/components/chat/WhatsAppChatList.tsx` | Soporte para mostrar nombre/avatar de clientes, punto azul de no leido |
+| `src/pages/ProfessionalDashboard.tsx` | Ajustar altura de seccion mensajes |
 
 ## Notas
 
-- No se eliminan los componentes (AchievementsBadges, BankingInfoForm, ProfileCompletionProgress) del proyecto, solo se dejan de usar en esta vista
-- ProfessionalProfileEdit se reemplaza por edicion inline directa
-- La galeria de trabajos se accede desde un boton que cambia a la tab "portfolio"
-
+- No se requieren migraciones de base de datos: la tabla `profiles` ya tiene los campos `full_name` y `avatar_url`
+- La relacion `profiles!user_id` funciona porque `conversations.user_id` referencia al mismo `user_id` que `profiles.user_id`
+- El fallback "Cliente de [Rubro]" asegura que nunca se muestre "Usuario" generico
