@@ -1,146 +1,122 @@
 
 
-# Plan: Rebranding de chequealo.ar a chequealo.net
+# Plan: Fix de Identidad en Mensajeria y Rebranding Pendiente
 
-## Resumen
+## Problema Principal
 
-Actualizar todas las referencias de dominio `.ar` a `.net` en toda la aplicacion: frontend, emails, edge functions, SEO, configuracion y documentacion. Aproximadamente 20+ archivos afectados.
+Hay **dos componentes de chat separados** que muestran conversaciones:
 
----
+1. **`Messages.tsx`** (pagina `/mensajes`) - usa `WhatsAppChatList` y `WhatsAppChatView`
+2. **`MessagesDesktopLayout.tsx`** (dashboard profesional) - usa layout propio
 
-## Alcance de cambios
-
-### Regla general de reemplazo
-
-| Patron actual | Reemplazo |
-|---|---|
-| `chequealo.ar` (dominio en URLs) | `chequealo.net` |
-| `CHEQUEALO.AR` (texto legal) | `CHEQUEALO.NET` |
-| `Chequealo.ar` (texto UI) | `Chequealo.net` |
-| `info@chequealo.ar` | `info@chequealo.net` |
-| `contacto@chequealo.ar` | `contacto@chequealo.net` |
-| `noreply@chequealo.ar` | `noreply@chequealo.net` |
-| `instagram.com/chequealo.ar` | `instagram.com/chequealo.net` (o el handle correcto) |
-| `@chequealoar` (Twitter) | `@chequealonet` (o el handle correcto) |
-
-**Nota:** Los textos que dicen solo "CHEQUEALO" (sin dominio) no se modifican.
+El fix anterior corrigio `MessagesDesktopLayout.tsx` pero **no toco** `Messages.tsx` ni `WhatsAppChatView.tsx`, que son los componentes que el usuario ve en la pagina principal de mensajes. Ambos siempre muestran `professional.full_name` sin importar el rol del usuario logueado.
 
 ---
 
-## 1. Frontend - Componentes y Paginas
+## Cambios a Realizar
 
-### `src/components/SEO/SEOHead.tsx`
-- Linea 13: `BASE_URL` de `https://chequealo.ar` a `https://chequealo.net`
-- Linea 99: email de contacto en structured data
+### 1. `src/pages/Messages.tsx` - Detectar rol y pasar `isProfessional`
 
-### `src/components/SEO/ProfessionalSEO.tsx`
-- Lineas 85, 137, 163, 166, 223, 227: todas las URLs canonicas y OG image fallback
+**Problema**: No detecta si el usuario logueado es profesional. Siempre muestra nombre del profesional.
 
-### `src/components/SlugConfiguration.tsx`
-- Lineas 171, 195, 232, 260: prefijo de URL visible y copiable
+**Solucion**:
+- Agregar deteccion de rol profesional consultando la tabla `professionals` por `user_id`
+- Pasar `isProfessional` a `WhatsAppChatList` y `WhatsAppChatView`
+- Actualizar el filtro de busqueda para incluir `profiles.full_name` cuando es profesional
 
-### `src/components/ProfileShareCard.tsx`
-- Lineas 71, 73: `getProfileUrl()` URLs de perfil compartido
+### 2. `src/components/chat/WhatsAppChatView.tsx` - Header dinamico segun rol
 
-### `src/hooks/useGenerateShareCard.ts`
-- Lineas 223, 227: texto del canvas "Chequealo.ar" -> "Chequealo.net"
-- Lineas 394-395: displayUrl en la tarjeta de compartir
+**Problema**: Lineas 69-72 siempre usan `conversation.professionals` para nombre y avatar, sin importar quien esta viendo.
 
-### `src/utils/utmHelpers.ts`
-- Lineas 45-46: baseUrl para links compartidos con UTM
+**Solucion**:
+- Agregar prop `isProfessional`
+- Cuando `isProfessional=true`, mostrar `conversation.profiles.full_name` (nombre del cliente) y `profiles.avatar_url`
+- Fallback: "Cliente de [profesion]" si no tiene nombre
 
-### `src/pages/Index.tsx`
-- Linea 130: link de Instagram
-- Linea 166: email de contacto en footer
+### 3. `src/components/chat/WhatsAppChatList.tsx` - Identidad correcta en lista
 
-### `src/pages/AISearch.tsx`
-- Lineas 196, 199, 221, 232, 235, 272, 275, 336, 339: todas las referencias a "Chequealo.ar" en texto y URLs
+**Problema**: Lineas 103-109 ya tienen logica para `isProfessional` pero depende de que la prop se pase correctamente desde `Messages.tsx` (actualmente no se pasa).
 
-### `src/pages/NotFound.tsx`
-- Lineas 115, 118: email de contacto
+**Solucion**:
+- Verificar que `Messages.tsx` pase `isProfessional={true}` cuando corresponda
+- El componente ya tiene la logica interna correcta, solo falta la prop
 
-### `src/pages/TermsOfService.tsx`
-- Todas las menciones de "CHEQUEALO.AR" en el texto legal (aprox. 15+ ocurrencias)
+### 4. Avatar con color determinista por nombre
 
-### `src/components/FavoritesPanel.tsx`
-- Linea 103: subject del email "Contacto desde Chequealo"
+**Problema**: Todos los avatars fallback usan el mismo color `bg-primary/10`.
 
----
+**Solucion**:
+- Crear funcion `getAvatarColor(name)` que genere un color determinista basado en el hash del nombre
+- Paleta de 8-10 colores predefinidos (azul, verde, rojo, naranja, etc.)
+- Aplicar en `WhatsAppChatList`, `WhatsAppChatView` y `MessagesDesktopLayout`
 
-## 2. Configuracion y Estaticos
+### 5. `src/pages/Register.tsx` - Rebranding pendiente
 
-### `index.html`
-- Linea 28: `og:url`
-- Lineas 48, 51, 54: App Links URLs (iOS, Android, Web)
-- Titulo y description ya dicen "Chequealo" sin ".ar", OK
+**Problema**: Los terminos y condiciones en el modal de registro todavia dicen "CHEQUEALO.AR" (25 ocurrencias).
 
-### `public/sitemap.xml`
-- Todas las URLs (9 entradas): reemplazar `chequealo.ar` por `chequealo.net`
-
-### `public/manifest.json`
-- Sin cambios necesarios (ya dice "Chequealo" sin dominio)
-
-### `capacitor.config.ts`
-- Linea 8: `url: 'https://chequealo.ar'` a `https://chequealo.net`
+**Solucion**:
+- Reemplazar todas las menciones de "CHEQUEALO.AR" por "CHEQUEALO.NET" en el texto legal del modal
 
 ---
 
-## 3. Edge Functions (Supabase)
+## Detalle Tecnico
 
-### `supabase/functions/send-custom-auth-email/index.ts`
-- Linea 197: `from: 'CHEQUEALO <noreply@chequealo.ar>'` a `noreply@chequealo.net`
-- Copyright en templates HTML (ya dice solo "CHEQUEALO" sin dominio, OK)
+### Deteccion de rol en Messages.tsx
 
-### `supabase/functions/send-custom-auth-email/_templates/confirmation-email.tsx`
-- Sin cambios (usa "CHEQUEALO" sin dominio)
+```typescript
+const [isProfessional, setIsProfessional] = useState(false);
 
-### `supabase/functions/send-custom-auth-email/_templates/recovery-email.tsx`
-- Sin cambios
+useEffect(() => {
+  if (!user?.id) return;
+  supabase
+    .from('professionals')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+    .then(({ data }) => setIsProfessional(!!data));
+}, [user?.id]);
+```
 
-### `supabase/functions/send-custom-auth-email/_templates/magic-link-email.tsx`
-- Sin cambios
+### Funcion de color determinista para avatars
 
-### `supabase/functions/billing-subscribe/index.ts`
-- Lineas 30-31: agregar `chequealo.net` y `www.chequealo.net` a allowedDomains (mantener .ar temporalmente para transicion)
+```typescript
+const avatarColors = [
+  'bg-blue-500', 'bg-green-500', 'bg-purple-500',
+  'bg-orange-500', 'bg-pink-500', 'bg-teal-500',
+  'bg-red-500', 'bg-indigo-500', 'bg-amber-500', 'bg-cyan-500'
+];
 
-### `supabase/functions/billing-portal/index.ts`
-- Lineas 22-23: agregar `chequealo.net` y `www.chequealo.net`
+const getAvatarColor = (name: string): string => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return avatarColors[Math.abs(hash) % avatarColors.length];
+};
+```
 
-### `supabase/functions/create-payment-preference/index.ts`
-- Lineas 29-30: agregar `chequealo.net` y `www.chequealo.net`
+### WhatsAppChatView - Logica de identidad
 
-### `supabase/functions/send-push-notification/index.ts`
-- Linea 52: email de VAPID a `contacto@chequealo.net`
-
----
-
-## 4. Documentacion (MD files)
-
-### Archivos a actualizar:
-- `CHECKLIST_REGISTRO.md` - URLs de redirect
-- `README_billing.md` - URLs de ejemplo
-- `PROBLEMA_COMPARTIR_PERFILES.md` - URLs de ejemplo
-- `PROBLEMA_META_TAGS_SOLUCION.md` - URLs de ejemplo
-- `CLOUDFLARE_WORKER_SETUP.md` - configuracion de dominio
-- `INSTRUCCIONES_WEB_PUSH.md` - email de contacto
-
----
-
-## 5. Logo
-
-Los logos existentes en `src/assets/` son:
-- `chequealo-final-logo.png`
-- `chequealo-logo.png`
-- `chequealo-new-logo.png`
-- `chequealo-transparent-logo.png`
-
-Estos son archivos de imagen y no pueden ser editados programaticamente. Si alguno contiene ".ar" en el grafico, el usuario debera proporcionar nuevas versiones. El codigo no hace referencia textual a ".ar" en los nombres de archivo.
+```typescript
+// Nuevo: recibir isProfessional como prop
+const clientProfile = conversation?.profiles;
+const name = isProfessional
+  ? (clientProfile?.full_name || `Cliente de ${professional?.profession || 'consulta'}`)
+  : (professional?.full_name || 'Usuario');
+const avatar = isProfessional
+  ? clientProfile?.avatar_url
+  : professional?.image_url;
+```
 
 ---
 
-## Notas importantes
+## Archivos a modificar
 
-- Las edge functions de billing mantendran AMBOS dominios (.ar y .net) en la whitelist durante la transicion
-- Los emails (noreply@, contacto@, info@) cambian a .net -- el usuario debe configurar el dominio de envio en Resend para chequealo.net
-- El handle de Instagram `chequealo.ar` debe confirmarse si cambia o se mantiene
-- El handle de Twitter `@chequealoar` debe confirmarse si cambia
+| Archivo | Cambio |
+|---------|--------|
+| `src/pages/Messages.tsx` | Detectar rol, pasar isProfessional, fix filtro busqueda |
+| `src/components/chat/WhatsAppChatView.tsx` | Header dinamico con isProfessional |
+| `src/components/chat/WhatsAppChatList.tsx` | Avatars con color determinista |
+| `src/components/chat/MessagesDesktopLayout.tsx` | Avatars con color determinista |
+| `src/pages/Register.tsx` | Rebranding CHEQUEALO.AR a CHEQUEALO.NET |
+
