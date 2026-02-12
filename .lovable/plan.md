@@ -1,111 +1,119 @@
 
 
-# Plan: Fix de Identidad en Mensajeria y Rebranding Pendiente
+# Plan: Reparar Formularios de Presupuesto y Express
 
-## Problema Principal
+## Problema Detectado
 
-Hay **dos componentes de chat separados** que muestran conversaciones:
+Hay dos problemas principales:
 
-1. **`Messages.tsx`** (pagina `/mensajes`) - usa `WhatsAppChatList` y `WhatsAppChatView`
-2. **`MessagesDesktopLayout.tsx`** (dashboard profesional) - usa layout propio
+1. **"Solicitar Presupuesto" (ContactRequestDialog)**: El codigo parece correcto (inserta contact_request, crea conversacion, envia mensaje, notifica). El error podria estar relacionado con el estado de autenticacion del usuario o un problema de RLS. Necesitamos agregar mejor manejo de errores y feedback visual.
 
-El fix anterior corrigio `MessagesDesktopLayout.tsx` pero **no toco** `Messages.tsx` ni `WhatsAppChatView.tsx`, que son los componentes que el usuario ve en la pagina principal de mensajes. Ambos siempre muestran `professional.full_name` sin importar el rol del usuario logueado.
+2. **"Presupuesto Express disponible"**: El link en la linea 356 de ProfessionalProfile.tsx abre el mismo `ContactRequestDialog` estandar en vez del componente `ExpressQuoteButton`. Esto significa que NO se marca como `is_express`, NO se envia la notificacion urgente con sonido express, y NO se usa el formato de mensaje prioritario.
 
 ---
 
 ## Cambios a Realizar
 
-### 1. `src/pages/Messages.tsx` - Detectar rol y pasar `isProfessional`
+### 1. `src/pages/ProfessionalProfile.tsx` - Integrar Express real
 
-**Problema**: No detecta si el usuario logueado es profesional. Siempre muestra nombre del profesional.
-
-**Solucion**:
-- Agregar deteccion de rol profesional consultando la tabla `professionals` por `user_id`
-- Pasar `isProfessional` a `WhatsAppChatList` y `WhatsAppChatView`
-- Actualizar el filtro de busqueda para incluir `profiles.full_name` cuando es profesional
-
-### 2. `src/components/chat/WhatsAppChatView.tsx` - Header dinamico segun rol
-
-**Problema**: Lineas 69-72 siempre usan `conversation.professionals` para nombre y avatar, sin importar quien esta viendo.
+**Problema**: El link "Presupuesto Express disponible" (linea 356) abre `setShowContactDialog(true)` que muestra el formulario estandar.
 
 **Solucion**:
-- Agregar prop `isProfessional`
-- Cuando `isProfessional=true`, mostrar `conversation.profiles.full_name` (nombre del cliente) y `profiles.avatar_url`
-- Fallback: "Cliente de [profesion]" si no tiene nombre
+- Agregar estado `showExpressQuote` separado
+- Importar `ExpressQuoteButton` (actualmente comentado en linea 12)
+- Reemplazar el link express para que abra el `ExpressQuoteButton` con su dialog propio
+- Alternativa: usar el `ExpressQuoteButton` directamente como componente inline
 
-### 3. `src/components/chat/WhatsAppChatList.tsx` - Identidad correcta en lista
+### 2. `src/components/ContactRequestDialog.tsx` - Mejorar manejo de errores y feedback
 
-**Problema**: Lineas 103-109 ya tienen logica para `isProfessional` pero depende de que la prop se pase correctamente desde `Messages.tsx` (actualmente no se pasa).
-
-**Solucion**:
-- Verificar que `Messages.tsx` pase `isProfessional={true}` cuando corresponda
-- El componente ya tiene la logica interna correcta, solo falta la prop
-
-### 4. Avatar con color determinista por nombre
-
-**Problema**: Todos los avatars fallback usan el mismo color `bg-primary/10`.
+**Problema**: El error generico "Error al enviar la solicitud" no da informacion util al usuario.
 
 **Solucion**:
-- Crear funcion `getAvatarColor(name)` que genere un color determinista basado en el hash del nombre
-- Paleta de 8-10 colores predefinidos (azul, verde, rojo, naranja, etc.)
-- Aplicar en `WhatsAppChatList`, `WhatsAppChatView` y `MessagesDesktopLayout`
+- Agregar validacion de autenticacion con fallback a `supabase.auth.getUser()` (patron ya usado en useChat para evitar race conditions de AuthContext)
+- Agregar feedback visual de exito: animacion con checkmark antes de redirigir
+- Agregar manejo especifico de errores de RLS vs errores de red
+- Log detallado del error para diagnostico
 
-### 5. `src/pages/Register.tsx` - Rebranding pendiente
+### 3. `src/components/ExpressQuoteButton.tsx` - Verificar y corregir
 
-**Problema**: Los terminos y condiciones en el modal de registro todavia dicen "CHEQUEALO.AR" (25 ocurrencias).
+**Problema**: Puede tener el mismo problema de autenticacion.
 
 **Solucion**:
-- Reemplazar todas las menciones de "CHEQUEALO.AR" por "CHEQUEALO.NET" en el texto legal del modal
+- Agregar el mismo fallback de autenticacion (`supabase.auth.getUser()`)
+- Verificar que `is_express: true` se inserte correctamente
+- Mejorar feedback de exito con animacion
+
+### 4. Verificar dominio
+
+- Buscar cualquier referencia a `.ar` en los componentes de contacto/presupuesto
+- Los componentes ya usan `supabase` client directamente (no URLs hardcodeadas), asi que no deberia haber bloqueo por dominio
 
 ---
 
 ## Detalle Tecnico
 
-### Deteccion de rol en Messages.tsx
+### ProfessionalProfile.tsx - Express integrado
 
-```typescript
-const [isProfessional, setIsProfessional] = useState(false);
+```tsx
+// Estado separado para Express
+const [showExpressQuote, setShowExpressQuote] = useState(false);
 
-useEffect(() => {
-  if (!user?.id) return;
-  supabase
-    .from('professionals')
-    .select('id')
-    .eq('user_id', user.id)
-    .maybeSingle()
-    .then(({ data }) => setIsProfessional(!!data));
-}, [user?.id]);
+// En el JSX, reemplazar el link express:
+{professional.is_verified && (
+  <p className="text-center text-xs text-muted-foreground">
+    <button 
+      onClick={() => setShowExpressQuote(true)} 
+      className="text-amber-600 font-semibold hover:underline"
+    >
+      Presupuesto Express disponible
+    </button>
+  </p>
+)}
+
+// Agregar ExpressQuoteButton como dialog controlado
+// (necesita refactorizar para aceptar open/onOpenChange como props)
 ```
 
-### Funcion de color determinista para avatars
+### ContactRequestDialog.tsx - Auth fallback
 
-```typescript
-const avatarColors = [
-  'bg-blue-500', 'bg-green-500', 'bg-purple-500',
-  'bg-orange-500', 'bg-pink-500', 'bg-teal-500',
-  'bg-red-500', 'bg-indigo-500', 'bg-amber-500', 'bg-cyan-500'
-];
-
-const getAvatarColor = (name: string): string => {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return avatarColors[Math.abs(hash) % avatarColors.length];
-};
+```tsx
+// Antes de insertar, verificar auth con fallback
+let userId = user?.id;
+if (!userId) {
+  const { data: { user: freshUser } } = await supabase.auth.getUser();
+  userId = freshUser?.id;
+}
+if (!userId) {
+  toast.error('Tu sesion expiro. Por favor inicia sesion nuevamente.');
+  return;
+}
 ```
 
-### WhatsAppChatView - Logica de identidad
+### Feedback visual de exito
 
-```typescript
-// Nuevo: recibir isProfessional como prop
-const clientProfile = conversation?.profiles;
-const name = isProfessional
-  ? (clientProfile?.full_name || `Cliente de ${professional?.profession || 'consulta'}`)
-  : (professional?.full_name || 'Usuario');
-const avatar = isProfessional
-  ? clientProfile?.avatar_url
-  : professional?.image_url;
+```tsx
+const [showSuccess, setShowSuccess] = useState(false);
+
+// En el flujo exitoso:
+setShowSuccess(true);
+setTimeout(() => {
+  setOpen(false);
+  setShowSuccess(false);
+  navigate(`/user-dashboard?tab=messages&conversation=${conversationId}`);
+}, 2000);
+
+// En el JSX del dialog, mostrar estado de exito:
+{showSuccess ? (
+  <div className="text-center py-8 space-y-4">
+    <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+      <CheckCircle className="w-10 h-10 text-green-600" />
+    </div>
+    <h3>¡Solicitud Enviada!</h3>
+    <p>El profesional te contactara pronto.</p>
+  </div>
+) : (
+  <form>...</form>
+)}
 ```
 
 ---
@@ -114,9 +122,15 @@ const avatar = isProfessional
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/Messages.tsx` | Detectar rol, pasar isProfessional, fix filtro busqueda |
-| `src/components/chat/WhatsAppChatView.tsx` | Header dinamico con isProfessional |
-| `src/components/chat/WhatsAppChatList.tsx` | Avatars con color determinista |
-| `src/components/chat/MessagesDesktopLayout.tsx` | Avatars con color determinista |
-| `src/pages/Register.tsx` | Rebranding CHEQUEALO.AR a CHEQUEALO.NET |
+| `src/pages/ProfessionalProfile.tsx` | Separar Express del dialog estandar, agregar estado `showExpressQuote` |
+| `src/components/ContactRequestDialog.tsx` | Auth fallback, feedback visual de exito, mejor logging de errores |
+| `src/components/ExpressQuoteButton.tsx` | Auth fallback, mejorar feedback, aceptar open/onOpenChange como props controladas |
+
+---
+
+## Notas
+
+- No hay referencias a `.ar` en los componentes de contacto; usan el cliente Supabase directamente
+- El problema de "marca error" probablemente es un race condition de autenticacion (AuthContext no esta listo) o un error de RLS silencioso
+- La notificacion ya esta implementada en `ContactRequestDialog` y `ExpressQuoteButton`; solo falta que el Express use su componente correcto
 
