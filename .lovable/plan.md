@@ -1,51 +1,63 @@
 
 
-# Plan: Corregir EditMyServices - Rubros personalizados y guardado
+# Plan: Mejoras de UI en el Dashboard Profesional
 
-## Problema actual
+## 4 cambios puntuales
 
-1. Cuando el usuario escribe un rubro que no existe en la lista (ej: "Lobbista"), solo aparece un link "Sugerirlo aqui" que requiere pasos extra innecesarios
-2. No hay invalidacion del cache de React Query despues de guardar, por lo que el perfil publico no refleja los cambios inmediatamente
+### 1. Banner de Suscripcion positivo (SubscriptionAlert.tsx)
 
-## Cambios
-
-### Archivo: `src/components/EditMyServices.tsx`
-
-**A. Opcion "Agregar como nueva profesion" en el dropdown**
-
-Cuando `searchTerm` tiene texto y no hay coincidencia exacta en la lista, mostrar como primera opcion del dropdown:
+Reemplazar los estados `payment_reminder`, `payment_required` y `expired` por un unico mensaje positivo dorado. Eliminar el banner rojo destructivo y el animate-pulse. Todos los estados ahora muestran la misma caja dorada sutil:
 
 ```
-+ Agregar "Lobbista" como nueva profesion
+"Bienvenido al Programa Pioneros! Tienes acceso premium bonificado por 365 dias"
 ```
 
-Esto reemplaza el flujo actual de "Sugerirlo aqui" + campo de texto separado. Se elimina la seccion de sugerencia manual ya que queda integrada en el dropdown.
+- Fondo: `bg-gradient-to-r from-amber-50 to-yellow-50` con borde `border-amber-200`
+- Icono sparkles en lugar de XCircle/AlertCircle
+- Sin boton de pago, sin urgencia
 
-Logica:
-- Si `searchTerm.length >= 2` y no existe un rubro con ese nombre exacto en `serviceCategories` ni en `rubros`, mostrar la opcion de agregar al inicio del dropdown
-- La opcion aparece incluso si hay resultados parciales (ej: buscar "Lob" muestra resultados de lista + la opcion de agregar "Lob")
-- Solo aparece como opcion unica cuando no hay coincidencias en la lista
+### 2. Icono GPS en ubicacion del header (ActiveUserDashboard.tsx)
 
-**B. Invalidacion de cache React Query**
+En la linea donde se muestra `Activo en ${cityName}`, agregar un icono `Navigation` (GPS) de lucide-react al lado del texto de ubicacion para reforzar la localidad.
 
-Despues del guardado exitoso, invalidar las queries de React Query para que el perfil publico se actualice:
-
-```typescript
-import { useQueryClient } from '@tanstack/react-query';
-
-// En handleSave, despues del insert exitoso:
-queryClient.invalidateQueries({ queryKey: ['professional', professionalData.id] });
+Cambio en linea 147:
+```tsx
+<p className="text-sm text-muted-foreground flex items-center gap-1">
+  <Navigation className="h-3 w-3" />
+  {isActiveInZone ? `Activo en ${cityName}` : 'Estas invisible...'}
+</p>
 ```
 
-**C. Limpieza**
+### 3. Subtexto en tile "Ver mi Perfil Publico" (ActiveUserDashboard.tsx)
 
-- Eliminar los estados `showSuggestion` y `customRubro` ya que no se necesitan
-- Eliminar el bloque JSX de sugerencia manual (lineas 311-342)
-- El feedback visual (toast de exito/error) ya existe y funciona correctamente
+Agregar un subtexto debajo del label del QuickActionTile de "Ver mi Perfil Publico":
 
-## Archivo a modificar
+```tsx
+<QuickActionTile
+  icon={Eye}
+  label="Ver mi Perfil Publico"
+  subtitle="(Haz clic para ver como te encuentran tus clientes)"
+  ...
+/>
+```
+
+Esto requiere agregar soporte para `subtitle` en el componente `QuickActionTile`.
+
+### 4. Limpieza de footer del dashboard (ProfessionalDashboard.tsx)
+
+Actualmente el dashboard no tiene un footer explicito con links sueltos visibles en el codigo. Los links "Solicitudes", "Mensajes", etc. son los TabsTrigger dentro de la TabsList (lineas 593-627). Estos NO se eliminan ya que son la navegacion de tabs necesaria.
+
+El boton "Gestionar mi negocio" (linea 825-831) es el unico elemento inferior. Se mantiene ya que cumple la funcion de mostrar los tabs.
+
+Si hay algun footer heredado del componente Header o layout, no aparece en el dashboard. No hay cambios necesarios aqui.
+
+---
+
+## Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/EditMyServices.tsx` | Agregar opcion inline de rubro custom en dropdown, invalidar cache, limpiar codigo de sugerencia manual |
+| `src/components/SubscriptionAlert.tsx` | Reemplazar banners negativos por mensaje dorado positivo Pioneros |
+| `src/components/dashboard/ActiveUserDashboard.tsx` | Agregar icono GPS + subtexto en tile perfil |
+| `src/components/dashboard/QuickActionTile.tsx` | Agregar prop `subtitle` opcional |
 
