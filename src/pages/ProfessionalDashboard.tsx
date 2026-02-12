@@ -14,11 +14,11 @@ import { SubscriptionAlert } from '@/components/SubscriptionAlert';
 import { ServicesManager } from '@/components/ServicesManager';
 import { WorkPhotosManager } from '@/components/WorkPhotosManager';
 import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
-import { ProfessionManager } from '@/components/ProfessionManager';
+
 import { EditMyServices } from '@/components/EditMyServices';
 import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
-import { ZonaTodayManager } from '@/components/ZonaTodayManager';
+
 import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
 import SlugConfiguration from '@/components/SlugConfiguration';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
@@ -286,23 +286,6 @@ const ProfileTabContent = ({ professional, user, onTabChange, onUpdate }: {
         </CardContent>
       </Card>
 
-      {/* Mis Profesiones */}
-      <ProfessionManager
-        professionalData={professional}
-        onUpdate={() => onUpdate(professional)}
-        isOwner={true}
-      />
-
-      {/* Acceso a Galería */}
-      <Button
-        variant="outline"
-        className="w-full h-14 text-base gap-3"
-        onClick={() => onTabChange('portfolio')}
-      >
-        <ImageIcon className="h-5 w-5" />
-        Galería de Trabajos
-      </Button>
-
       {/* URL Personalizada */}
       <SlugConfiguration 
         professionalId={professional.id} 
@@ -312,12 +295,14 @@ const ProfileTabContent = ({ professional, user, onTabChange, onUpdate }: {
         }}
       />
 
-      {/* Zona Hoy */}
-      <ZonaTodayManager 
-        professionalName={professional?.full_name || ''}
-        profession={professional?.profession || ''}
-        phone={professional?.phone}
-      />
+      {/* Acceso a Galería */}
+      <Button
+        className="w-full h-14 text-base gap-3"
+        onClick={() => onTabChange('portfolio')}
+      >
+        <ImageIcon className="h-5 w-5" />
+        Galería de Trabajos
+      </Button>
     </div>
   );
 };
