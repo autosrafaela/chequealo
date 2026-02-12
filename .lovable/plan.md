@@ -1,84 +1,86 @@
 
 
-# Plan: Rediseño Visual Premium del Homepage
+# Plan: Mejoras Visuales Premium - Fase 2
 
 ## Resumen
 
-Transformar la experiencia visual del homepage aplicando las 5 mejoras solicitadas: Hero con glassmorphism, Bento Grid para profesionales, tipografía display, micro-interacciones, y badge "Pioneros".
+Aplicar 5 mejoras visuales adicionales: tarjetas de categoria con efecto rebote, boton WhatsApp con glow neon, titulos con gradiente de texto, avatares con forma organica, CTA inferior con glassmorphism y blobs, y convertir el sidebar CTA en burbuja de chat.
 
 ---
 
-## Cambio 1: Hero con Glassmorphism - Buscador protagonista
+## Cambio 1: Tarjetas de Categorias con efecto rebote y bordes de color
 
-**Archivo:** `src/components/Hero.tsx`, `src/components/IntelligentSearch.tsx`
+**Archivo:** `src/components/ServiceCategories.tsx`
 
-- Reducir texto de bienvenida (menos "bla bla")
-- Buscador GIGANTE con efecto glassmorphism: `backdrop-filter: blur(12px)`, borde semitransparente, sombra profunda
-- Input mas alto (h-14 mobile, h-16 desktop), border-radius 20px, padding generoso
-- Quitar los USPs inline (redundantes con la seccion de abajo) para dar mas espacio al buscador
-- Titulo mas corto y directo: solo "Encontra al profesional que necesitas" con tipografia impactante
-
-**Clases clave del buscador:**
-```
-bg-white/10 backdrop-blur-[12px] border border-white/20 
-shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-[20px] p-4 sm:p-6
-```
+- Aumentar border-radius a `rounded-3xl` (24px)
+- Transicion con cubic-bezier de rebote: `cubic-bezier(0.175, 0.885, 0.32, 1.275)`
+- Hover: `translateY(-8px)`, sombra de color violeta (`shadow-[0_20px_40px_rgba(78,84,200,0.15)]`), borde que se enciende (`border-primary`)
+- Icono en hover: `scale(1.2) rotate(-5deg)` con drop-shadow
+- Agregar overflow-hidden y pseudo-gradiente sutil de fondo por categoria
 
 ---
 
-## Cambio 2: Bento Grid para Profesionales Destacados
+## Cambio 2: Boton WhatsApp con glow neon
 
-**Archivo:** `src/components/LatestProfessionals.tsx`, `src/components/EnhancedProfessionalCard.tsx`
+**Archivos:** `src/components/WhatsAppContactButton.tsx`, `src/components/EnhancedProfessionalCard.tsx`
 
-- Reemplazar la grilla uniforme por una Bento Grid asimetrica
-- Los primeros 2 profesionales (verificados, mejor rating) ocupan `col-span-2 row-span-2` (tarjeta grande, mas detalle)
-- Los siguientes ocupan 1x1 (tarjeta compacta)
-- CSS Grid con `grid-auto-rows` y clases de span condicionales
-- Las tarjetas grandes muestran descripcion completa, foto mas grande, y boton de contacto visible
-
-**Estructura de la grilla:**
-```
-grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4
-grid-auto-rows: minmax(200px, auto)
-```
+- Fondo con gradiente: `bg-gradient-to-r from-green-500 to-green-700`
+- box-shadow con glow verde permanente: `shadow-[0_4px_15px_rgba(37,211,102,0.4)]`
+- Hover: glow intenso `shadow-[0_0_25px_rgba(37,211,102,0.7)]` + `scale(1.05)`
+- Aplicar tanto en el boton standalone como en las tarjetas de profesional
 
 ---
 
-## Cambio 3: Tipografia Display con clamp()
+## Cambio 3: Titulos con gradiente de texto
 
-**Archivo:** `src/index.css`, `src/components/Hero.tsx`, `src/components/LatestProfessionals.tsx`
+**Archivos:** `src/index.css`, `src/components/Hero.tsx`, `src/components/LatestProfessionals.tsx`, `src/components/ServiceCategories.tsx`
 
-- Importar fuente "Inter" con peso 800-900 para titulos (ya disponible en Google Fonts, muy similar a Clash Display pero sin licencia)
-- Usar `clamp()` para scaling fluido: `font-size: clamp(2rem, 5vw + 1rem, 4rem)`
-- Letter-spacing negativo (-0.02em) para look premium
-- Line-height compacto (0.95) en titulos principales
-- Aplicar a: Hero h1, titulos de seccion, nombre de profesionales en card grande
-
----
-
-## Cambio 4: Micro-interacciones en tarjetas
-
-**Archivo:** `src/components/EnhancedProfessionalCard.tsx`, `src/components/ProfessionalCard.tsx`, `src/components/ServiceCategories.tsx`
-
-- Hover: `translateY(-5px) scale(1.02)` con `cubic-bezier(0.25, 0.8, 0.25, 1)`
-- Sombra que crece en hover: `shadow-[0_20px_40px_rgba(0,0,0,0.15)]`
-- Borde de color accent que aparece en hover: `border-primary/40`
-- Glow sutil en tarjetas de profesionales verificados
-- Categorias de servicio: escala e iluminacion al hover
-- Transicion suave de 300ms en todas las propiedades
+- Agregar clase utilitaria `.text-gradient-brand` en index.css:
+  ```css
+  .text-gradient-brand {
+    background: linear-gradient(90deg, hsl(220 26% 14%) 0%, hsl(220 40% 35%) 50%, hsl(258 90% 66%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  ```
+- Aplicar a titulos de seccion: "Servicios Populares", "Profesionales Destacados"
+- En el Hero, mantener blanco (esta sobre fondo oscuro) pero aplicar gradiente al span "profesional"
+- letter-spacing: -0.03em en titulos principales
 
 ---
 
-## Cambio 5: Badge "Programa Pioneros"
+## Cambio 4: Avatares con forma organica (squircle animado)
 
-**Archivo:** `src/components/Header.tsx` (o nuevo componente `src/components/PioneersBadge.tsx`)
+**Archivo:** `src/index.css`, `src/components/EnhancedProfessionalCard.tsx`
 
-- Badge flotante en el header, estilo VIP con gradiente dorado
-- Texto: "PIONEROS" con gradient text (`background-clip: text`)
-- Borde dorado, border-radius pill, letra spacing amplio
-- Visible en desktop como badge en el header
-- En mobile: integrado discretamente junto al logo
-- Gradiente: `linear-gradient(45deg, #FFD700, #FF8C00)`
+- Agregar keyframes `morph` en index.css para las fotos de perfil featured
+- Solo aplicar la animacion en tarjetas `featured` (las grandes del bento grid) para no saturar
+- Anillo externo con color primary separado via box-shadow
+- En tarjetas compactas: squircle estatico (border-radius organico fijo, sin animacion)
+
+---
+
+## Cambio 5: CTA inferior con glassmorphism, blobs decorativos
+
+**Archivo:** `src/components/ProfessionalCTABanner.tsx` (componente `EnhancedProfessionalCTA`)
+
+- Gradiente de fondo actualizado: `from-[#667eea] to-[#764ba2]`
+- Agregar 3 blobs decorativos (divs absolutos con blur, border-radius 50%, bg-white/10)
+- Contenido principal con z-10 relativo
+- Botones con efecto glass sutil
+
+---
+
+## Cambio 6: Sidebar CTA convertido en burbuja de chat
+
+**Archivo:** `src/components/ProfessionalCTABanner.tsx` (componente `DesktopSidebarCTA`)
+
+- Reemplazar el panel lateral grande por una burbuja compacta tipo FAB (Floating Action Button)
+- Posicion: fixed bottom-6 right-6 (en vez de centrado verticalmente)
+- Estado colapsado: circulo con icono de Briefcase + badge "Registrate"
+- Click: expande a mini-card con texto + boton (misma info actual pero mas chico)
+- Asi no compite con el contenido principal
 
 ---
 
@@ -86,20 +88,11 @@ grid-auto-rows: minmax(200px, auto)
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/index.css` | Agregar font import, clases glassmorphism, animaciones hover |
-| `src/components/Hero.tsx` | Redisenar con glassmorphism, menos texto, buscador protagonista |
-| `src/components/IntelligentSearch.tsx` | Estilos glassmorphism, input mas grande |
-| `src/components/LatestProfessionals.tsx` | Bento Grid layout |
-| `src/components/EnhancedProfessionalCard.tsx` | Variante "featured" grande + micro-interacciones |
-| `src/components/ProfessionalCard.tsx` | Micro-interacciones hover |
-| `src/components/ServiceCategories.tsx` | Micro-interacciones en categorias |
-| `src/components/Header.tsx` | Badge Pioneros |
-
-## Resultado esperado
-
-- Homepage que se siente "cara" y moderna, no generica
-- Buscador como elemento central que invita a la accion
-- Tarjetas de profesionales con jerarquia visual (destacados vs normales)
-- Interacciones que dan vida a cada elemento
-- Identidad de marca reforzada con el badge Pioneros
+| `src/index.css` | Clases: `.text-gradient-brand`, keyframes `morph`, `.avatar-organic` |
+| `src/components/ServiceCategories.tsx` | Efecto rebote, bordes de color, icono animado |
+| `src/components/WhatsAppContactButton.tsx` | Gradiente + glow neon |
+| `src/components/EnhancedProfessionalCard.tsx` | Glow en WhatsApp btn, avatar organico en featured |
+| `src/components/Hero.tsx` | Gradiente en span "profesional" |
+| `src/components/LatestProfessionals.tsx` | Gradiente en titulo de seccion |
+| `src/components/ProfessionalCTABanner.tsx` | CTA con blobs + sidebar como burbuja |
 
