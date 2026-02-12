@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Heart, MessageCircle, Clock, User, Shield, Eye } from "lucide-react";
+import { Star, MapPin, Heart, Clock, User, Shield, Eye, MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +37,6 @@ const ProfessionalCard = ({
   const [isVerified, setIsVerified] = useState(verifiedProp || false);
 
   useEffect(() => {
-    // Check if professional is verified in database (when id is a UUID)
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!isUUID.test(id)) {
       setIsVerified(verifiedProp || false);
@@ -73,14 +72,9 @@ const ProfessionalCard = ({
     navigate(`/professional/${id}`);
   };
 
-  // Function to get initials from name
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const handleWhatsAppClick = () => {
+    // Navigate to profile with contact section focus
+    navigate(`/professional/${id}?contact=whatsapp`);
   };
 
   const isCurrentlyFavorite = isFavorite(id);
@@ -94,8 +88,8 @@ const ProfessionalCard = ({
             {/* Avatar */}
             <Avatar className="w-16 h-16">
               <AvatarImage src={image} alt={name.toUpperCase()} />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
-                {getInitials(name) || <User className="h-8 w-8" />}
+              <AvatarFallback className="bg-muted text-muted-foreground">
+                <User className="h-8 w-8" />
               </AvatarFallback>
             </Avatar>
             
@@ -103,7 +97,9 @@ const ProfessionalCard = ({
               <div className="flex items-center space-x-2">
                 <h3 className="text-lg font-semibold text-foreground uppercase">{name}</h3>
                 {isVerified && (
-                  <Shield className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                  <div className="bg-emerald-500 rounded-full p-0.5 flex-shrink-0">
+                    <Shield className="h-3.5 w-3.5 text-white" />
+                  </div>
                 )}
               </div>
               <p className="text-primary font-medium">{profession}</p>
@@ -153,8 +149,8 @@ const ProfessionalCard = ({
           </div>
           
           {isVerified && (
-            <div className="bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 text-xs px-3 py-1 rounded-full border border-green-500">
-              Verificado
+            <div className="bg-emerald-500 text-white text-xs px-3 py-1 rounded-full font-medium">
+              ✓ Verificado
             </div>
           )}
         </div>
@@ -170,6 +166,13 @@ const ProfessionalCard = ({
           >
             <Eye className="h-4 w-4 mr-1" />
             Ver Perfil
+          </Button>
+          <Button
+            className="bg-green-600 hover:bg-green-700 text-white text-sm px-3"
+            onClick={handleWhatsAppClick}
+          >
+            <MessageCircle className="h-4 w-4 mr-1" />
+            WhatsApp
           </Button>
           <ContactRequestDialog 
             professionalId={id}
