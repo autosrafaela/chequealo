@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CreditCard, Clock, XCircle } from "lucide-react";
 import { useSubscription } from '@/hooks/useSubscription';
 import { Link } from 'react-router-dom';
@@ -14,7 +15,27 @@ export const SubscriptionAlert = () => {
   const daysRemaining = getDaysRemaining();
 
   // Don't show alert for active subscriptions
-  if (status === 'active' || status === 'trial') return null;
+  if (status === 'active') return null;
+
+  // Show golden Pioneros banner for trial
+  if (status === 'trial') {
+    return (
+      <div className="mb-6 flex items-center gap-3 p-4 rounded-xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50">
+        <span className="text-2xl">👑</span>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-amber-900">Programa Pioneros Activo</span>
+            <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 text-black text-xs font-bold border-0">
+              PIONERO
+            </Badge>
+          </div>
+          <p className="text-sm text-amber-800 mt-0.5">
+            Tenés {daysRemaining} días de acceso gratuito a todas las funciones
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const getAlertContent = () => {
     switch (status) {

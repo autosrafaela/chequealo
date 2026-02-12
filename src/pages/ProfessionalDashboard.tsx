@@ -485,7 +485,7 @@ const ProfessionalDashboard = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Button asChild>
-                  <Link to="/register">Crear Perfil Profesional</Link>
+                  <Link to="/user-dashboard?activate=professional">Activar Perfil Profesional</Link>
                 </Button>
                 <Button asChild variant="outline">
                   <Link to="/">Continuar como Usuario</Link>
