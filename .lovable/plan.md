@@ -1,120 +1,141 @@
 
+# Plan: Rediseno del Dashboard de Usuario (Cliente)
 
-# Plan: Reparar Formularios de Presupuesto y Express
+## Resumen
 
-## Problema Detectado
-
-Hay dos problemas principales:
-
-1. **"Solicitar Presupuesto" (ContactRequestDialog)**: El codigo parece correcto (inserta contact_request, crea conversacion, envia mensaje, notifica). El error podria estar relacionado con el estado de autenticacion del usuario o un problema de RLS. Necesitamos agregar mejor manejo de errores y feedback visual.
-
-2. **"Presupuesto Express disponible"**: El link en la linea 356 de ProfessionalProfile.tsx abre el mismo `ContactRequestDialog` estandar en vez del componente `ExpressQuoteButton`. Esto significa que NO se marca como `is_express`, NO se envia la notificacion urgente con sonido express, y NO se usa el formato de mensaje prioritario.
+Simplificar el UserDashboard eliminando la pestana de Favoritos, agregando una Card de favoritos en la vista principal, un buscador prominente, y un acceso directo a mensajes. Limpiar bloques innecesarios.
 
 ---
 
-## Cambios a Realizar
+## Cambios en `src/pages/UserDashboard.tsx`
 
-### 1. `src/pages/ProfessionalProfile.tsx` - Integrar Express real
+### 1. Eliminar pestana "Favoritos" del TabsList
 
-**Problema**: El link "Presupuesto Express disponible" (linea 356) abre `setShowContactDialog(true)` que muestra el formulario estandar.
+- Reducir de 7 columnas (`grid-cols-7`) a 6 (`grid-cols-6`)
+- Eliminar el `TabsTrigger value="favorites"` y su `TabsContent value="favorites"` correspondiente
 
-**Solucion**:
-- Agregar estado `showExpressQuote` separado
-- Importar `ExpressQuoteButton` (actualmente comentado en linea 12)
-- Reemplazar el link express para que abra el `ExpressQuoteButton` con su dialog propio
-- Alternativa: usar el `ExpressQuoteButton` directamente como componente inline
+### 2. Redisenar la vista principal (tab "profile")
 
-### 2. `src/components/ContactRequestDialog.tsx` - Mejorar manejo de errores y feedback
+Reemplazar el contenido actual del `TabsContent value="profile"` con una estructura limpia:
 
-**Problema**: El error generico "Error al enviar la solicitud" no da informacion util al usuario.
+**a) Buscador protagonista (arriba de todo)**
+```
+Barra de busqueda grande con icono Search
+Placeholder: "Que servicio buscas hoy en Rafaela?"
+Al hacer clic o escribir, navega a /search?q={query}
+```
 
-**Solucion**:
-- Agregar validacion de autenticacion con fallback a `supabase.auth.getUser()` (patron ya usado en useChat para evitar race conditions de AuthContext)
-- Agregar feedback visual de exito: animacion con checkmark antes de redirigir
-- Agregar manejo especifico de errores de RLS vs errores de red
-- Log detallado del error para diagnostico
+**b) Card "Mis Profesionales Favoritos"**
+- Usa el hook `useFavorites` para obtener IDs
+- Consulta `professionals_public` para obtener datos (nombre, profesion, imagen)
+- Muestra un grid horizontal scrollable con items circulares: foto + nombre + rubro
+- Click en un favorito navega a `/professional/{id}`
+- Estado vacio: icono Heart + "Aun no tienes favoritos guardados"
 
-### 3. `src/components/ExpressQuoteButton.tsx` - Verificar y corregir
+**c) Card "Mis Consultas" (acceso directo a mensajes)**
+- Icono MessageSquare + titulo "Mis Consultas"
+- Muestra cantidad de conversaciones activas
+- Boton que cambia a `setActiveTab('messages')`
 
-**Problema**: Puede tener el mismo problema de autenticacion.
+**d) Mantener la Card de "Crear Cuenta Profesional"** (si no es profesional) como CTA al final
 
-**Solucion**:
-- Agregar el mismo fallback de autenticacion (`supabase.auth.getUser()`)
-- Verificar que `is_express: true` se inserte correctamente
-- Mejorar feedback de exito con animacion
+### 3. Eliminar bloques de la vista principal
 
-### 4. Verificar dominio
+- Eliminar los 4 Stats Cards actuales (Solicitudes Enviadas, Solicitudes Activas, Favoritos Guardados, Crear Cuenta)
+- Eliminar TransactionConfirmationCard y ReadyToRateTransactions del tab profile (mover a solicitudes si es necesario)
+- Eliminar ProfileCompletionChecklist si existe en la vista
 
-- Buscar cualquier referencia a `.ar` en los componentes de contacto/presupuesto
-- Los componentes ya usan `supabase` client directamente (no URLs hardcodeadas), asi que no deberia haber bloqueo por dominio
+### 4. Mover formulario de perfil
+
+- El formulario de "Informacion Personal" pasa a la pestana "Configuracion" o se mantiene como tab separado pero NO es la vista principal
+- La vista principal ahora muestra: Buscador + Favoritos + Mis Consultas
 
 ---
 
-## Detalle Tecnico
+## Detalle tecnico
 
-### ProfessionalProfile.tsx - Express integrado
-
-```tsx
-// Estado separado para Express
-const [showExpressQuote, setShowExpressQuote] = useState(false);
-
-// En el JSX, reemplazar el link express:
-{professional.is_verified && (
-  <p className="text-center text-xs text-muted-foreground">
-    <button 
-      onClick={() => setShowExpressQuote(true)} 
-      className="text-amber-600 font-semibold hover:underline"
-    >
-      Presupuesto Express disponible
-    </button>
-  </p>
-)}
-
-// Agregar ExpressQuoteButton como dialog controlado
-// (necesita refactorizar para aceptar open/onOpenChange como props)
-```
-
-### ContactRequestDialog.tsx - Auth fallback
+### Estructura del nuevo tab principal ("home")
 
 ```tsx
-// Antes de insertar, verificar auth con fallback
-let userId = user?.id;
-if (!userId) {
-  const { data: { user: freshUser } } = await supabase.auth.getUser();
-  userId = freshUser?.id;
-}
-if (!userId) {
-  toast.error('Tu sesion expiro. Por favor inicia sesion nuevamente.');
-  return;
-}
-```
-
-### Feedback visual de exito
-
-```tsx
-const [showSuccess, setShowSuccess] = useState(false);
-
-// En el flujo exitoso:
-setShowSuccess(true);
-setTimeout(() => {
-  setOpen(false);
-  setShowSuccess(false);
-  navigate(`/user-dashboard?tab=messages&conversation=${conversationId}`);
-}, 2000);
-
-// En el JSX del dialog, mostrar estado de exito:
-{showSuccess ? (
-  <div className="text-center py-8 space-y-4">
-    <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-      <CheckCircle className="w-10 h-10 text-green-600" />
+// Renombrar tab "profile" a "home" como vista principal
+<TabsContent value="home">
+  {/* Buscador */}
+  <div className="mb-6">
+    <div className="relative">
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <Input
+        placeholder="Que servicio buscas hoy en Rafaela?"
+        className="pl-12 h-14 text-lg rounded-2xl shadow-sm"
+        onKeyDown={(e) => e.key === 'Enter' && navigate(`/search?q=${searchQuery}`)}
+      />
     </div>
-    <h3>¡Solicitud Enviada!</h3>
-    <p>El profesional te contactara pronto.</p>
   </div>
-) : (
-  <form>...</form>
-)}
+
+  {/* Card Favoritos */}
+  <Card className="rounded-2xl shadow-sm mb-6">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <Heart className="h-5 w-5 text-red-500" />
+        Mis Profesionales Favoritos
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      {/* Grid horizontal scrollable */}
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {favoriteProfessionals.map(prof => (
+          <button onClick={() => navigate(`/professional/${prof.id}`)}>
+            <Avatar className="h-16 w-16" />
+            <p className="text-xs font-semibold">{prof.full_name}</p>
+            <p className="text-xs text-muted-foreground">{prof.profession}</p>
+          </button>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+
+  {/* Card Mis Consultas */}
+  <Card className="rounded-2xl shadow-sm mb-6 cursor-pointer"
+        onClick={() => setActiveTab('messages')}>
+    <CardContent className="p-6 flex items-center gap-4">
+      <MessageSquare className="h-8 w-8 text-primary" />
+      <div>
+        <p className="font-semibold">Mis Consultas</p>
+        <p className="text-sm text-muted-foreground">Ver conversaciones con profesionales</p>
+      </div>
+    </CardContent>
+  </Card>
+
+  {/* CTA Crear cuenta profesional */}
+  {!isProfessional && <Card>...</Card>}
+</TabsContent>
 ```
+
+### Fetch de favoritos con detalles
+
+```tsx
+const [favoriteProfessionals, setFavoriteProfessionals] = useState([]);
+
+useEffect(() => {
+  if (favoriteIds.length === 0) return;
+  supabase
+    .from('professionals_public')
+    .select('id, full_name, profession, image_url')
+    .in('id', favoriteIds)
+    .then(({ data }) => setFavoriteProfessionals(data || []));
+}, [favoriteIds]);
+```
+
+### Tabs actualizados
+
+| Antes (7 tabs) | Despues (6 tabs) |
+|---|---|
+| Mi Perfil | Inicio |
+| Favoritos | ~~eliminado~~ |
+| Mensajes | Mensajes |
+| Solicitudes | Solicitudes |
+| Resenas | Resenas |
+| App Movil | App Movil |
+| Configuracion | Configuracion (incluye perfil personal) |
 
 ---
 
@@ -122,15 +143,11 @@ setTimeout(() => {
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/ProfessionalProfile.tsx` | Separar Express del dialog estandar, agregar estado `showExpressQuote` |
-| `src/components/ContactRequestDialog.tsx` | Auth fallback, feedback visual de exito, mejor logging de errores |
-| `src/components/ExpressQuoteButton.tsx` | Auth fallback, mejorar feedback, aceptar open/onOpenChange como props controladas |
+| `src/pages/UserDashboard.tsx` | Rediseno completo de la vista principal, eliminar tab Favoritos, mover perfil a Configuracion, agregar buscador + card favoritos + card mensajes |
 
----
+## Estetica
 
-## Notas
-
-- No hay referencias a `.ar` en los componentes de contacto; usan el cliente Supabase directamente
-- El problema de "marca error" probablemente es un race condition de autenticacion (AuthContext no esta listo) o un error de RLS silencioso
-- La notificacion ya esta implementada en `ContactRequestDialog` y `ExpressQuoteButton`; solo falta que el Express use su componente correcto
-
+- Cards con `rounded-2xl shadow-sm` para estilo limpio
+- Bordes suaves, sin bordes duros
+- Avatares circulares con foto o iniciales en color determinista (usa `getAvatarColor`)
+- Espaciado generoso entre secciones
