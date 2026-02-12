@@ -1,55 +1,111 @@
 
 
-# Plan: Mejoras de UI en el Dashboard Profesional
+# Plan: Motor de Busqueda Inteligente con Sinonimos, Fuzzy Match y Cards Mejoradas
 
-## 4 cambios puntuales
+## Resumen
 
-### 1. Banner de Suscripcion positivo (SubscriptionAlert.tsx)
+Optimizar el hook `useAdvancedSearch` para incluir un diccionario de sinonimos, busqueda difusa (fuzzy match), busqueda en rubros multiples (`professional_professions`), y priorizacion geografica. Ademas, actualizar las cards de resultados para mostrar foto, badge verificado y boton directo de WhatsApp.
 
-Reemplazar los estados `payment_reminder`, `payment_required` y `expired` por un unico mensaje positivo dorado. Eliminar el banner rojo destructivo y el animate-pulse. Todos los estados ahora muestran la misma caja dorada sutil:
+---
 
+## 1. Diccionario de Sinonimos
+
+**Archivo:** `src/hooks/useAdvancedSearch.ts`
+
+Crear un mapa de sinonimos al inicio del archivo que asocie terminos coloquiales con profesiones:
+
+```text
+'agua', 'cano', 'canilla', 'griferia', 'perdida de agua' -> 'Plomero'
+'luz', 'corriente', 'termica', 'enchufe', 'cortocircuito' -> 'Electricista'
+'defensa', 'juicio', 'legal', 'demanda', 'contrato' -> 'Abogado'
+'aire', 'split', 'frio calor' -> 'Tecnico de Aire Acondicionado'
+'pintar', 'pintura', 'paredes' -> 'Pintor'
+'cerraduras', 'llave', 'puerta trabada' -> 'Cerrajero'
+'piso', 'ceramico', 'porcelanato' -> 'Colocador de Pisos'
+'plagas', 'cucarachas', 'ratas', 'fumigacion' -> 'Fumigador / Control de Plagas'
+'auto', 'motor', 'frenos', 'aceite' -> 'Mecanico'
+'muebles', 'madera', 'estantes' -> 'Carpintero / Ebanista'
+'techo', 'gotera', 'membrana' -> 'Techista'
+'alarma', 'seguridad', 'camaras' -> 'Instalador de Alarmas'
+'internet', 'wifi', 'red' -> 'Instalador de Internet'
+'celular', 'pantalla rota', 'telefono' -> 'Reparacion de Celulares'
+'pc', 'computadora', 'notebook' -> 'Reparacion de Computadoras'
+'limpieza', 'limpiar', 'hogar' -> 'Empleada Domestica / Servicio de Limpieza'
+'mudanza', 'flete', 'transporte' -> 'Fletero / Mudanzas'
+'ninera', 'cuidar ninos', 'babysitter' -> 'Cuidador/a de Ninos (Ninera)'
+'mascotas', 'perro', 'gato', 'veterinaria' -> 'Veterinario'
+'yoga', 'ejercicio', 'gym', 'entrenamiento' -> 'Entrenador Personal'
+'foto', 'sesion', 'fotografia' -> 'Fotografo'
+'diseno', 'logo', 'marca' -> 'Disenador Grafico'
+'web', 'pagina', 'sitio', 'app' -> 'Desarrollador Web'
+'contabilidad', 'impuestos', 'monotributo' -> 'Contador'
 ```
-"Bienvenido al Programa Pioneros! Tienes acceso premium bonificado por 365 dias"
+
+Logica: antes de ejecutar la query en Supabase, cada keyword del usuario se pasa por el mapa de sinonimos. Si un termino coincide, se expande la busqueda agregando el nombre de la profesion correspondiente como keyword adicional.
+
+---
+
+## 2. Fuzzy Match (Busqueda Difusa)
+
+**Archivo:** `src/hooks/useAdvancedSearch.ts`
+
+Implementar una funcion `fuzzyMatch` simple basada en distancia de Levenshtein simplificada que:
+
+1. Compara cada keyword del usuario contra las profesiones conocidas
+2. Si la distancia es menor o igual a 2 caracteres, agrega esa profesion como keyword
+3. Ejemplo: "electrisista" (error) -> encuentra "Electricista" (distancia 1)
+
+La funcion sera liviana (puro frontend, sin dependencias externas) y se ejecutara solo para keywords que no tuvieron coincidencia directa ni por sinonimos.
+
+---
+
+## 3. Busqueda en Rubros Multiples (professional_professions)
+
+**Archivo:** `src/hooks/useAdvancedSearch.ts`
+
+Agregar una tercera query paralela a la busqueda existente:
+
+```typescript
+const professionsQuery = supabase
+  .from('professional_professions')
+  .select('professional_id, profession')
+  .or(keywords.map(k => `profession.ilike.%${k}%`).join(','));
 ```
 
-- Fondo: `bg-gradient-to-r from-amber-50 to-yellow-50` con borde `border-amber-200`
-- Icono sparkles en lugar de XCircle/AlertCircle
-- Sin boton de pago, sin urgencia
+Los `professional_id` resultantes se combinan con los de `professional_services` y `professionals_public_safe` para ampliar los resultados. Esto permite encontrar profesionales que registraron rubros personalizados (ej: "Lobbista") que no estan en el campo legacy `profession`.
 
-### 2. Icono GPS en ubicacion del header (ActiveUserDashboard.tsx)
+---
 
-En la linea donde se muestra `Activo en ${cityName}`, agregar un icono `Navigation` (GPS) de lucide-react al lado del texto de ubicacion para reforzar la localidad.
+## 4. Filtro Geografico - Priorizar "En Linea" en Rafaela
 
-Cambio en linea 147:
-```tsx
-<p className="text-sm text-muted-foreground flex items-center gap-1">
-  <Navigation className="h-3 w-3" />
-  {isActiveInZone ? `Activo en ${cityName}` : 'Estas invisible...'}
-</p>
-```
+**Archivo:** `src/hooks/useAdvancedSearch.ts`
 
-### 3. Subtexto en tile "Ver mi Perfil Publico" (ActiveUserDashboard.tsx)
+En el sistema de scoring (Paso 8), agregar:
 
-Agregar un subtexto debajo del label del QuickActionTile de "Ver mi Perfil Publico":
+- +15 puntos si `availability === 'available'` (En Linea)
+- +10 puntos si `location` contiene "Rafaela"
+- Combinados: +25 puntos extra para profesionales En Linea en Rafaela
 
-```tsx
-<QuickActionTile
-  icon={Eye}
-  label="Ver mi Perfil Publico"
-  subtitle="(Haz clic para ver como te encuentran tus clientes)"
-  ...
-/>
-```
+Esto prioriza a los profesionales activos localmente sin excluir a los demas.
 
-Esto requiere agregar soporte para `subtitle` en el componente `QuickActionTile`.
+---
 
-### 4. Limpieza de footer del dashboard (ProfessionalDashboard.tsx)
+## 5. Cards de Resultados con WhatsApp
 
-Actualmente el dashboard no tiene un footer explicito con links sueltos visibles en el codigo. Los links "Solicitudes", "Mensajes", etc. son los TabsTrigger dentro de la TabsList (lineas 593-627). Estos NO se eliminan ya que son la navegacion de tabs necesaria.
+**Archivo:** `src/components/ProfessionalCard.tsx`
 
-El boton "Gestionar mi negocio" (linea 825-831) es el unico elemento inferior. Se mantiene ya que cumple la funcion de mostrar los tabs.
+Modificar el card existente para:
 
-Si hay algun footer heredado del componente Header o layout, no aparece en el dashboard. No hay cambios necesarios aqui.
+- Agregar un boton verde de WhatsApp en la seccion de acciones (junto a "Ver Perfil" y "Pedir Presupuesto")
+- El boton abre WhatsApp con un mensaje predeterminado usando `wa.me`
+- Para obtener el telefono, se necesita una consulta adicional (o pasar phone como prop opcional)
+
+Dado que las cards de busqueda usan la vista `professionals_public_safe` que NO incluye el telefono por seguridad, el boton de WhatsApp en la card redirigira al perfil publico del profesional donde si esta disponible el contacto. El boton dira "WhatsApp" y hara `navigate(/professional/${id})` con un scroll al area de contacto.
+
+Cambios visuales adicionales:
+- Asegurar que la foto del profesional sea prominente (ya lo es con w-16 h-16)
+- Badge "Verificado" ya esta implementado con el icono Shield
+- Agregar un fallback de silueta User cuando no hay foto (ya existe en AvatarFallback pero usar icono en lugar de iniciales)
 
 ---
 
@@ -57,7 +113,6 @@ Si hay algun footer heredado del componente Header o layout, no aparece en el da
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/SubscriptionAlert.tsx` | Reemplazar banners negativos por mensaje dorado positivo Pioneros |
-| `src/components/dashboard/ActiveUserDashboard.tsx` | Agregar icono GPS + subtexto en tile perfil |
-| `src/components/dashboard/QuickActionTile.tsx` | Agregar prop `subtitle` opcional |
+| `src/hooks/useAdvancedSearch.ts` | Diccionario de sinonimos, fuzzy match, query a professional_professions, scoring geografico |
+| `src/components/ProfessionalCard.tsx` | Agregar boton WhatsApp, mejorar fallback de avatar |
 
