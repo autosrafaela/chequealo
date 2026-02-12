@@ -82,20 +82,34 @@ export function MetricCard({
           {label}
         </p>
 
-        {/* Value */}
-        <div className="flex items-baseline gap-1">
-          <span className="text-3xl font-bold text-foreground">
-            {value}
-          </span>
-          {suffix && (
-            <span className="text-lg text-muted-foreground">
-              {suffix}
+        {/* Value or Empty State */}
+        {(value === 0 || value === '0.0') ? (
+          <div className="mt-1">
+            <svg width="60" height="40" viewBox="0 0 60 40" className="opacity-15">
+              <rect x="2" y="24" width="10" height="16" rx="2" fill="currentColor" />
+              <rect x="16" y="14" width="10" height="26" rx="2" fill="currentColor" />
+              <rect x="30" y="20" width="10" height="20" rx="2" fill="currentColor" />
+              <rect x="44" y="8" width="10" height="32" rx="2" fill="currentColor" />
+            </svg>
+            <p className="text-xs text-muted-foreground italic mt-1">
+              Próximamente verás aquí tus estadísticas
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-baseline gap-1">
+            <span className="text-3xl font-bold text-foreground">
+              {value}
             </span>
-          )}
-        </div>
+            {suffix && (
+              <span className="text-lg text-muted-foreground">
+                {suffix}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Context */}
-        {context && (
+        {context && value !== 0 && value !== '0.0' && (
           <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
             {context}
           </p>

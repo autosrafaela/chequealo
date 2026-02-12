@@ -177,10 +177,14 @@ const UserDashboard = () => {
   useEffect(() => {
     const tab = searchParams.get('tab');
     const conversation = searchParams.get('conversation');
+    const activate = searchParams.get('activate');
     
     if (tab) setActiveTab(tab);
     if (conversation) setConversationId(conversation);
-  }, [searchParams]);
+    if (activate === 'professional' && !isProfessional && user) {
+      openProfessionalForm();
+    }
+  }, [searchParams, isProfessional, user]);
 
   // Cerrar dropdown de profesiones al hacer clic fuera
   useEffect(() => {

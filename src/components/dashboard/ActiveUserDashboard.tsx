@@ -118,21 +118,34 @@ export function ActiveUserDashboard({
           icon={MapPin}
           title="¿Estás trabajando en la zona hoy?"
           subtitle="Activá tu visibilidad para aparecer primero en búsquedas cercanas"
+          className={isActiveInZone 
+            ? 'border-2 border-green-400 shadow-[0_0_15px_rgba(74,222,128,0.3)] transition-all duration-500' 
+            : 'transition-all duration-500'}
         >
           {/* Toggle grande */}
           <div className="flex items-center justify-between p-4 bg-background/50 rounded-xl border">
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">Estoy en la zona hoy</p>
-              <p className="text-sm text-muted-foreground">
-                {isActiveInZone 
-                  ? '✅ Tu perfil está destacado' 
-                  : '⏸️ Estás invisible en búsquedas'}
-              </p>
+            <div className="flex items-center gap-3 flex-1">
+              {isActiveInZone && (
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
+                </span>
+              )}
+              <div>
+                <p className="font-bold text-base text-foreground">
+                  {isActiveInZone ? 'EN LÍNEA' : 'FUERA DE LÍNEA'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {isActiveInZone 
+                    ? '✅ Tu perfil está destacado en búsquedas' 
+                    : '⏸️ No aparecés en búsquedas cercanas'}
+                </p>
+              </div>
             </div>
             <Switch
               checked={isActiveInZone}
               onCheckedChange={onToggleZone}
-              className="scale-125"
+              className="scale-150"
             />
           </div>
           
@@ -196,35 +209,41 @@ export function ActiveUserDashboard({
       <div>
         <h3 className="text-lg font-semibold mb-4">Acciones rápidas</h3>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <QuickActionTile
             icon={Eye}
             label="Ver Perfil"
+            iconColor="text-blue-500"
             onClick={() => navigate(`/professional/${professional.id}`)}
           />
           <QuickActionTile
             icon={Package}
             label="Servicios"
+            iconColor="text-green-500"
             onClick={() => onTabChange('services')}
           />
           <QuickActionTile
             icon={Camera}
             label="Portfolio"
+            iconColor="text-purple-500"
             onClick={() => onTabChange('portfolio')}
           />
           <QuickActionTile
             icon={MessageCircle}
             label="Mensajes"
+            iconColor="text-orange-500"
             onClick={() => onTabChange('messages')}
           />
           <QuickActionTile
             icon={Settings}
             label="Configuración"
+            iconColor="text-gray-500"
             onClick={() => onTabChange('settings')}
           />
           <QuickActionTile
             icon={Briefcase}
             label="Mi Profesión"
+            iconColor="text-amber-500"
             description={getProfessionsDisplay()}
             onClick={() => setShowProfessionModal(true)}
           />
