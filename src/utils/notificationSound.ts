@@ -56,7 +56,7 @@ export type NotificationSoundType =
   | 'achievement'
   | 'badge_unlocked';
 
-export type VibrationPattern = 'short' | 'medium' | 'long' | 'urgent' | 'success';
+export type VibrationPattern = 'short' | 'medium' | 'long' | 'urgent' | 'success' | 'chat_message';
 
 /**
  * Trigger device vibration if supported
@@ -91,6 +91,9 @@ export const triggerVibration = (pattern: VibrationPattern = 'short') => {
         break;
       case 'success':
         vibrationMs = [150, 100, 200];
+        break;
+      case 'chat_message':
+        vibrationMs = [200, 100, 200];
         break;
       default:
         vibrationMs = 100;

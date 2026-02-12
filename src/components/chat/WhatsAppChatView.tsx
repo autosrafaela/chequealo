@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Phone, Send, MoreVertical, Paperclip, Mic, Image as ImageIcon, X } from "lucide-react";
+import { ArrowLeft, Phone, Send, MoreVertical, Paperclip, Mic, Image as ImageIcon, X, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -63,6 +63,9 @@ export const WhatsAppChatView = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [showWhatsAppFallback, setShowWhatsAppFallback] = useState(false);
+  const [lastOwnMessage, setLastOwnMessage] = useState<string>("");
+
   const professional = conversation?.professionals;
   const name = professional?.full_name || 'Usuario';
   const avatar = professional?.image_url;
@@ -72,6 +75,31 @@ export const WhatsAppChatView = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // WhatsApp fallback: detect 5 min without response
+  useEffect(() => {
+    if (!messages.length || !professional?.phone) {
+      setShowWhatsAppFallback(false);
+      return;
+    }
+
+    const checkFallback = () => {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg.sender_id === currentUserId) {
+        const elapsed = Date.now() - new Date(lastMsg.created_at).getTime();
+        if (elapsed > 5 * 60 * 1000) {
+          setShowWhatsAppFallback(true);
+          setLastOwnMessage(lastMsg.content);
+          return;
+        }
+      }
+      setShowWhatsAppFallback(false);
+    };
+
+    checkFallback();
+    const interval = setInterval(checkFallback, 30000);
+    return () => clearInterval(interval);
+  }, [messages, currentUserId, professional?.phone]);
 
   // Focus input on mount
   useEffect(() => {
@@ -266,6 +294,26 @@ export const WhatsAppChatView = ({
           </>
         )}
       </div>
+
+      {/* WhatsApp fallback banner */}
+      {showWhatsAppFallback && professional?.phone && (
+        <div className="shrink-0 px-4 py-3 border-t bg-muted/50 flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Sin respuesta aún...</p>
+          <Button
+            size="sm"
+            className="bg-green-600 hover:bg-green-700 text-white shrink-0"
+            onClick={() => {
+              const cleanPhone = professional.phone!.replace(/\D/g, '');
+              const whatsappNumber = cleanPhone.startsWith('54') ? cleanPhone : `54${cleanPhone}`;
+              const text = encodeURIComponent(lastOwnMessage || 'Hola, te escribí por Chequealo');
+              window.open(`https://wa.me/${whatsappNumber}?text=${text}`, '_blank');
+            }}
+          >
+            <MessageCircle className="h-4 w-4 mr-1" />
+            Reenviar por WhatsApp
+          </Button>
+        </div>
+      )}
 
       {/* File preview */}
       {selectedFile && (
