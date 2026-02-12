@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, MessageCircle, Heart, Shield, Clock } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Heart, Shield, Clock, User, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFavorites } from '@/hooks/useFavorites';
 import { ZonaTodayBadge } from '@/components/ZonaTodayBadge';
@@ -79,10 +79,10 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
 
   return (
     <Card 
-      className={`group cursor-pointer card-hover-premium border ${
+      className={`group cursor-pointer card-hover-premium border shadow-sm ${
         featured 
           ? 'border-primary/20 shadow-md h-full' 
-          : 'hover:border-primary/30'
+          : 'hover:border-primary/30 hover:shadow-lg'
       } ${professional.is_verified ? 'hover:shadow-[0_20px_40px_rgba(var(--primary),0.1)]' : ''}`}
       onClick={handleCardClick}
     >
@@ -92,8 +92,8 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
           <div className="relative flex-shrink-0">
             <Avatar className={`${featured ? "h-16 w-16 sm:h-20 sm:w-20 avatar-organic-animated" : compact ? "h-10 w-10 sm:h-12 sm:w-12 avatar-organic-static" : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 avatar-organic-static"} transition-all duration-500 group-hover:-translate-y-1 group-hover:rotate-[10deg] group-hover:scale-110`}>
               <AvatarImage src={professional.image_url} alt={professional.full_name.toUpperCase()} />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs sm:text-sm">
-                {professional.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              <AvatarFallback className="bg-gray-100 dark:bg-gray-800">
+                <User className={`text-gray-400 ${featured ? 'h-8 w-8 sm:h-10 sm:w-10' : compact ? 'h-5 w-5' : 'h-6 w-6 sm:h-7 sm:w-7'}`} />
               </AvatarFallback>
             </Avatar>
             
@@ -108,7 +108,7 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
             <div className="flex items-start justify-between gap-1 sm:gap-2">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
-                  <h3 className={`font-semibold text-foreground truncate uppercase ${compact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'}`}>
+                  <h3 className={`text-foreground truncate uppercase ${compact ? 'text-xs sm:text-sm font-bold' : featured ? 'text-sm sm:text-base font-extrabold' : 'text-sm sm:text-base font-bold'}`}>
                     {professional.full_name}
                   </h3>
                   {professional.is_verified && (
@@ -186,9 +186,9 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
                 </Badge>
                 
                 {professional.is_verified && (
-                  <Badge variant="outline" className="text-[10px] sm:text-xs border-green-500 text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 px-1.5 sm:px-2 py-0.5">
-                    <span className="hidden sm:inline">Verificado</span>
-                    <span className="sm:hidden">✓</span>
+                  <Badge className="text-[10px] sm:text-xs bg-emerald-500 text-white hover:bg-emerald-600 px-1.5 sm:px-2 py-0.5 border-0">
+                    <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                    Verificado
                   </Badge>
                 )}
               </div>
