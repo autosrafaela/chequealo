@@ -463,7 +463,7 @@ const Auth = () => {
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
-                          Cliente
+                          Busco un Profesional
                         </button>
                         <button
                           type="button"
