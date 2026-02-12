@@ -93,10 +93,10 @@ const ServiceCategories = () => {
     <section className="py-8 sm:py-12 md:py-16 bg-muted/50">
       <div className="container mx-auto px-3 sm:px-4">
         <div className="text-center mb-6 sm:mb-8 md:mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-4">
+          <h2 className="text-display text-foreground mb-2 sm:mb-3" style={{ fontSize: 'clamp(1.5rem, 3vw + 0.5rem, 2.5rem)' }}>
             Servicios Populares
           </h2>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             Encontrá el profesional que necesitás
           </p>
         </div>
@@ -108,7 +108,7 @@ const ServiceCategories = () => {
               <Link
                 key={index}
                 to={`/search?q=${encodeURIComponent(category.searchTerm)}`}
-                className="group p-3 sm:p-4 lg:p-6 bg-card rounded-xl sm:rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border hover:border-primary/20 text-left block"
+                className="group p-3 sm:p-4 lg:p-6 bg-card rounded-xl sm:rounded-2xl shadow-sm card-hover-premium border hover:border-primary/30 text-left block"
               >
                 <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3">
                   <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${category.color} group-hover:scale-110 transition-transform duration-300`}>
