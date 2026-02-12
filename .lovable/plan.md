@@ -1,74 +1,53 @@
 
 
-# Plan: Completar Sistema de Notificaciones PWA
+# Plan: Limpieza Final del Dashboard Profesional
 
 ## Resumen
 
-Solo 3 cambios puntuales son necesarios. El resto del sistema ya esta funcionando correctamente.
+Reorganizar las acciones rapidas del dashboard activo a solo 3 botones grandes y elegantes, eliminar tabs innecesarias del menu inferior, y mejorar el espaciado general.
 
 ---
 
-## 1. Vibracion [200, 100, 200] para mensajes de chat
+## Cambios
 
-**Archivo:** `src/utils/notificationSound.ts`
+### 1. ActiveUserDashboard.tsx - Acciones Rapidas de 3 botones
 
-Cambiar el patron de vibracion `'short'` (100ms) por un nuevo patron `'chat_message'` con el patron exacto `[200, 100, 200]` para mensajes de chat.
+**ZONA 4 (lineas 228-279):** Reemplazar completamente la seccion actual (tile grande de Mensajes + grid de 3 iconos pequenos) por un grid de 3 botones grandes y elegantes en una sola fila:
 
-Agregar un nuevo patron en la funcion `triggerVibration`:
-```
-case 'chat_message':
-  vibrationMs = [200, 100, 200];
-```
+- **Ver mi Perfil Publico** (icono Eye) - navega a `/professional/{id}`
+- **Editar Mis Servicios** (icono Package) - `onTabChange('services')`
+- **Mis Mensajes** (icono MessageCircle con badge de pendientes) - `onTabChange('messages')`
 
-**Archivo:** `src/components/RealtimeNotifications.tsx`
+Cada boton sera un card redondeado con icono grande, label, y efecto hover. Grid `grid-cols-3` con gap uniforme.
 
-Cambiar la vibracion del listener de mensajes de `'short'` a `'chat_message'`.
+**Espaciado:** Cambiar `space-y-4` del contenedor principal a `space-y-6` para dar mas "aire" al widget EN LINEA y Consultas Recientes.
 
-**Archivo:** `src/contexts/NotificationContext.tsx`
+### 2. ProfessionalDashboard.tsx - Eliminar tabs "Trabajos" y "Config"
 
-Actualizar el mapping de sonido para mensajes para usar el patron `'chat_message'` en lugar de `'short'`.
+**TabsList (lineas 593-624):** Eliminar:
+- `TabsTrigger value="transactions"` (Trabajos)
+- `TabsTrigger value="settings"` (Config)
 
----
+Reducir grid de `grid-cols-8` a `grid-cols-6`.
 
-## 2. Badge en icono de la PWA (navigator.setAppBadge)
+**TabsContent:** Eliminar:
+- `TabsContent value="transactions"` (lineas 683-685)
+- `TabsContent value="settings"` (lineas 769-815)
 
-**Archivo:** `src/contexts/NotificationContext.tsx`
+Mover el contenido esencial de "Config" (SlugConfiguration, ZonaTodayManager) al tab "Mi Perfil" para no perder funcionalidad.
 
-Cada vez que `unreadCount` cambie, llamar a `navigator.setAppBadge(count)` si la API esta disponible. Cuando sea 0, llamar a `navigator.clearAppBadge()`.
+Renombrar tab "Portfolio" a "Galeria" para consistencia.
 
-Agregar un `useEffect` que observe `unreadCount`:
-```
-useEffect(() => {
-  if ('setAppBadge' in navigator) {
-    if (unreadCount > 0) {
-      navigator.setAppBadge(unreadCount);
-    } else {
-      navigator.clearAppBadge();
-    }
-  }
-}, [unreadCount]);
-```
+### 3. Tabs finales resultantes (6 tabs)
 
-Esto muestra el numero rojo sobre el icono de la app en Android (Chrome PWA) y iOS (Safari 16.4+ PWA).
-
----
-
-## 3. Fallback de WhatsApp tras 5 minutos sin respuesta
-
-**Archivo:** `src/components/chat/WhatsAppChatView.tsx`
-
-Agregar logica que detecte si el ultimo mensaje fue enviado por el usuario actual hace mas de 5 minutos y el profesional no ha respondido. En ese caso, mostrar un banner con boton "Reenviar por WhatsApp".
-
-Logica:
-- Verificar que los mensajes existan y el ultimo sea del usuario actual
-- Calcular si pasaron mas de 5 minutos desde ese mensaje
-- Usar un `setInterval` cada 30 segundos para actualizar el estado
-- Si se cumple la condicion, mostrar un banner encima del input con:
-  - Texto: "Sin respuesta aun..."
-  - Boton verde: "Reenviar por WhatsApp"
-  - El boton abre `wa.me/{phone}` con el mensaje original como texto
-
-Solo se muestra si el profesional tiene telefono registrado (`professional?.phone`).
+| Tab | Nombre |
+|-----|--------|
+| messages | Mensajes |
+| reviews | Resenas |
+| services | Servicios |
+| portfolio | Galeria |
+| subscription | Suscripcion |
+| profile | Mi Perfil |
 
 ---
 
@@ -76,14 +55,6 @@ Solo se muestra si el profesional tiene telefono registrado (`professional?.phon
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/utils/notificationSound.ts` | Agregar patron de vibracion `'chat_message'` con [200, 100, 200] |
-| `src/components/RealtimeNotifications.tsx` | Usar patron `'chat_message'` para mensajes |
-| `src/contexts/NotificationContext.tsx` | Usar `'chat_message'` para mensajes + agregar `setAppBadge` |
-| `src/components/chat/WhatsAppChatView.tsx` | Banner de fallback WhatsApp tras 5 min sin respuesta |
-
-## Notas
-
-- No se requieren migraciones de base de datos
-- No se requieren cambios en el Service Worker (ya usa [200, 100, 200])
-- `navigator.setAppBadge` es una API progresiva: si el navegador no la soporta, simplemente no hace nada
+| `src/components/dashboard/ActiveUserDashboard.tsx` | Reemplazar ZONA 4 con grid de 3 botones grandes, aumentar espaciado |
+| `src/pages/ProfessionalDashboard.tsx` | Eliminar tabs Trabajos y Config, mover contenido Config a Mi Perfil, renombrar Portfolio a Galeria |
 
