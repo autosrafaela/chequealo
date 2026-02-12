@@ -281,7 +281,7 @@ const ProfessionalProfile = () => {
           <Button 
             variant="ghost" 
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
             className="hover:bg-muted"
           >
             <ArrowLeft className="w-5 h-5" />
