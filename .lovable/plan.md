@@ -1,95 +1,89 @@
 
-# Plan: Rediseno de Comunicacion en el Dashboard Profesional
+
+# Plan: Completar Sistema de Notificaciones PWA
 
 ## Resumen
 
-Fusionar la pestana "Solicitudes" con "Mensajes", transformar la seccion de mensajes en una interfaz de chat moderno a pantalla completa dentro del dashboard, y simplificar las acciones rapidas para destacar unicamente el boton de Mensajes con contador en tiempo real.
+Solo 3 cambios puntuales son necesarios. El resto del sistema ya esta funcionando correctamente.
 
 ---
 
-## Cambios Detallados
+## 1. Vibracion [200, 100, 200] para mensajes de chat
 
-### 1. Fusionar Solicitudes en Mensajes (ProfessionalDashboard.tsx)
+**Archivo:** `src/utils/notificationSound.ts`
 
-**Que cambia:**
-- Eliminar el `TabsTrigger` de "Solicitudes" (value="requests") de la lista de tabs
-- Eliminar el `TabsContent value="requests"` completo (lineas 629-659)
-- En el `TabsContent value="messages"`, integrar las solicitudes pendientes (TransactionConfirmationCard, ReadyToRateTransactions, ContactRequestsPanel) como una seccion colapsable ARRIBA del chat
-- Reducir las tabs de 9 a 8: Mensajes, Resenas, Servicios, Portfolio, Trabajos, Suscripcion, Mi Perfil, Config
+Cambiar el patron de vibracion `'short'` (100ms) por un nuevo patron `'chat_message'` con el patron exacto `[200, 100, 200]` para mensajes de chat.
 
-**Logica de integracion:**
-- Las solicitudes de contacto (ContactRequestsPanel) se muestran como un banner/acordeon dentro de la tab de Mensajes
-- Cada solicitud pendiente incluye un boton "Responder" que abre el chat directamente
-- Las confirmaciones pendientes (TransactionConfirmationCard) tambien se muestran arriba del chat
-
-### 2. Interfaz de Chat Moderno a Pantalla Completa (MessagesDesktopLayout.tsx)
-
-**Que cambia:**
-- Cambiar la altura fija de `h-[600px]` a `h-[calc(100vh-300px)] min-h-[500px]` para ocupar mas pantalla
-- En la columna izquierda (lista de chats):
-  - Mantener foto circular (Avatar), nombre, ultimo mensaje y fecha (ya existe)
-  - Mejorar el empty state del avatar con icono User en lugar de iniciales
-- En la columna derecha (area de chat):
-  - Mantener las burbujas existentes del MessageBubble (ya usa colores tematicos via CSS variables)
-  - El color de burbujas se controla via `--chat-bubble-sent` y `--chat-bubble-received` en el tema
-
-**Header del chat (ChatHeader + WhatsAppChatView):**
-- Ya muestra nombre y profesion del contacto
-- Agregar etiqueta contextual: "Interesado en: [profesion]" cuando el chat viene de un contact_request con service_type
-- Para esto, al cargar la conversacion, buscar si tiene `contact_request_id` y mostrar el `service_type` del contact_request asociado
-
-**Input de mensaje:**
-- Ya existe con boton de enviar (Send icon) y adjuntar archivos (Paperclip)
-- Sin cambios necesarios, la funcionalidad esta completa
-
-### 3. Etiqueta "Interesado en" en el Header del Chat
-
-**Archivo:** `src/components/chat/MessagesDesktopLayout.tsx`
-
-En el ChatPanel, cuando se selecciona una conversacion que tiene `contact_request_id`, consultar el `service_type` del contact_request asociado y mostrarlo como badge debajo del nombre:
-
-```text
-Juan Perez
-Interesado en: Lobbista
+Agregar un nuevo patron en la funcion `triggerVibration`:
+```
+case 'chat_message':
+  vibrationMs = [200, 100, 200];
 ```
 
-Esto requiere expandir la query de conversaciones para incluir el service_type del contact_request relacionado, o hacer una query adicional al seleccionar la conversacion.
+**Archivo:** `src/components/RealtimeNotifications.tsx`
 
-Enfoque elegido: agregar el campo `service_type` a la relacion de conversacion, consultando `contact_requests(service_type, type)` en la query de fetchConversations del useChat hook.
+Cambiar la vibracion del listener de mensajes de `'short'` a `'chat_message'`.
 
-### 4. Acciones Rapidas - Solo Mensajes con Contador (ActiveUserDashboard.tsx)
+**Archivo:** `src/contexts/NotificationContext.tsx`
 
-**Que cambia:**
-- Reducir la grilla de 4 tiles a una sola accion prominente: "Mensajes"
-- Mostrar un contador de notificaciones pendientes (unread messages + pending requests) en tiempo real
-- El tile de Mensajes sera mas grande, ocupando el ancho completo
-- Mantener los otros 3 tiles (Perfil Publico, Servicios, Galeria) pero como links secundarios mas pequenos debajo
-
-**Implementacion del contador:**
-- Usar `useNotification` context para obtener el unread count de mensajes
-- Sumar `stats.pendingRequests` para las solicitudes pendientes
-- Mostrar como badge rojo sobre el icono de Mensajes
-
-### 5. Redireccion de "Ver solicitudes ahora" (ActiveUserDashboard.tsx)
-
-**Que cambia:**
-- El boton urgente "Ver solicitudes ahora" (ZONA 1) cambia de `onTabChange('requests')` a `onTabChange('messages')`
-- Los links de "Consultas Recientes" tambien redirigen a `onTabChange('messages')` en lugar de `onTabChange('requests')`
+Actualizar el mapping de sonido para mensajes para usar el patron `'chat_message'` en lugar de `'short'`.
 
 ---
 
-## Archivos a Modificar
+## 2. Badge en icono de la PWA (navigator.setAppBadge)
+
+**Archivo:** `src/contexts/NotificationContext.tsx`
+
+Cada vez que `unreadCount` cambie, llamar a `navigator.setAppBadge(count)` si la API esta disponible. Cuando sea 0, llamar a `navigator.clearAppBadge()`.
+
+Agregar un `useEffect` que observe `unreadCount`:
+```
+useEffect(() => {
+  if ('setAppBadge' in navigator) {
+    if (unreadCount > 0) {
+      navigator.setAppBadge(unreadCount);
+    } else {
+      navigator.clearAppBadge();
+    }
+  }
+}, [unreadCount]);
+```
+
+Esto muestra el numero rojo sobre el icono de la app en Android (Chrome PWA) y iOS (Safari 16.4+ PWA).
+
+---
+
+## 3. Fallback de WhatsApp tras 5 minutos sin respuesta
+
+**Archivo:** `src/components/chat/WhatsAppChatView.tsx`
+
+Agregar logica que detecte si el ultimo mensaje fue enviado por el usuario actual hace mas de 5 minutos y el profesional no ha respondido. En ese caso, mostrar un banner con boton "Reenviar por WhatsApp".
+
+Logica:
+- Verificar que los mensajes existan y el ultimo sea del usuario actual
+- Calcular si pasaron mas de 5 minutos desde ese mensaje
+- Usar un `setInterval` cada 30 segundos para actualizar el estado
+- Si se cumple la condicion, mostrar un banner encima del input con:
+  - Texto: "Sin respuesta aun..."
+  - Boton verde: "Reenviar por WhatsApp"
+  - El boton abre `wa.me/{phone}` con el mensaje original como texto
+
+Solo se muestra si el profesional tiene telefono registrado (`professional?.phone`).
+
+---
+
+## Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/ProfessionalDashboard.tsx` | Eliminar tab "Solicitudes", mover su contenido a tab "Mensajes", reordenar tabs |
-| `src/components/chat/MessagesDesktopLayout.tsx` | Aumentar altura, agregar seccion de solicitudes pendientes arriba del chat, mostrar etiqueta "Interesado en" |
-| `src/components/dashboard/ActiveUserDashboard.tsx` | Hacer "Mensajes" la accion principal con contador, cambiar redirects de 'requests' a 'messages' |
-| `src/hooks/useChat.ts` | Expandir query de conversaciones para incluir `contact_requests(service_type)` |
+| `src/utils/notificationSound.ts` | Agregar patron de vibracion `'chat_message'` con [200, 100, 200] |
+| `src/components/RealtimeNotifications.tsx` | Usar patron `'chat_message'` para mensajes |
+| `src/contexts/NotificationContext.tsx` | Usar `'chat_message'` para mensajes + agregar `setAppBadge` |
+| `src/components/chat/WhatsAppChatView.tsx` | Banner de fallback WhatsApp tras 5 min sin respuesta |
 
-## Notas Tecnicas
+## Notas
 
 - No se requieren migraciones de base de datos
-- La tabla `contact_requests` ya tiene el campo `service_type` que se usara para la etiqueta "Interesado en"
-- La tabla `conversations` ya tiene `contact_request_id` como FK opcional
-- El NotificationContext ya provee contadores de mensajes no leidos en tiempo real
+- No se requieren cambios en el Service Worker (ya usa [200, 100, 200])
+- `navigator.setAppBadge` es una API progresiva: si el navegador no la soporta, simplemente no hace nada
+
