@@ -11,6 +11,7 @@ interface QuickActionTileProps {
   badge?: number | string;
   badgeVariant?: 'default' | 'destructive' | 'secondary';
   iconColor?: string;
+  iconBg?: string;
   onClick: () => void;
   className?: string;
 }
@@ -22,13 +23,14 @@ export function QuickActionTile({
   badge,
   badgeVariant = 'default',
   iconColor,
+  iconBg,
   onClick,
   className,
 }: QuickActionTileProps) {
   return (
     <Card 
       className={cn(
-        'cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200 border hover:border-primary/30 relative overflow-hidden group',
+        'cursor-pointer border-0 shadow-sm rounded-2xl hover:shadow-md hover:scale-[1.02] transition-all duration-200 relative overflow-hidden group',
         className
       )}
       onClick={onClick}
@@ -44,14 +46,14 @@ export function QuickActionTile({
       
       <CardContent className="p-4 flex flex-col items-center text-center gap-2.5">
         <div className={cn(
-          'p-2.5 rounded-xl transition-colors',
-          iconColor ? `${iconColor.replace('text-', 'bg-').replace('500', '100')} bg-opacity-50` : 'bg-muted group-hover:bg-primary/10'
+          'p-3 rounded-full transition-colors',
+          iconBg || 'bg-muted group-hover:bg-primary/10'
         )}>
-          <Icon className={cn('h-5 w-5 transition-colors', iconColor || 'text-foreground group-hover:text-primary')} />
+          <Icon className={cn('h-6 w-6 transition-colors', iconColor || 'text-foreground group-hover:text-primary')} />
         </div>
         
         <div>
-          <p className="font-semibold text-sm text-foreground">
+          <p className="font-semibold text-sm text-foreground leading-tight">
             {label}
           </p>
           {description && (

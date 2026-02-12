@@ -512,7 +512,7 @@ const ProfessionalDashboard = () => {
         {/* Header minimalista */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold text-foreground">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
               Hola, {professional.full_name?.split(' ')[0]} 👋
             </h1>
             
