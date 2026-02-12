@@ -1,42 +1,55 @@
 
-# Plan: Limpieza Final del Perfil Profesional
 
-## Resumen
+# Plan: Correccion de Errores Criticos en el Sistema de Mensajeria
 
-Eliminar las secciones duplicadas (Zona Hoy y Mis Profesiones) del tab "Mi Perfil", dejando solo: Informacion Basica, URL Personalizada y acceso a Galeria. Ajustar botones a la paleta violeta de marca.
+## Diagnostico
+
+Se identificaron 3 causas raiz que generan los 5 problemas reportados:
+
+### Causa 1: Componentes definidos dentro del render (afecta problemas 3 y 5)
+`ConversationList` y `ChatPanel` estan definidos como funciones dentro del componente `MessagesDesktopLayout`. Cada vez que cambia cualquier estado (incluyendo cada tecla presionada en el input), React los trata como componentes nuevos y los **remonta desde cero**, destruyendo el foco del input y cualquier estado temporal.
+
+### Causa 2: Header siempre muestra datos del profesional (afecta problemas 1 y 4)
+`ChatHeader` y `getConversationWithRelations` solo obtienen y muestran `professionals.full_name`. Cuando un profesional ve sus chats, deberia mostrar el nombre del **cliente**, no su propio nombre.
+
+### Causa 3: Busqueda solo filtra por nombre del profesional (afecta problema 1)
+El filtro de busqueda en la lista solo compara contra `professionals.full_name`, ignorando el nombre del cliente.
 
 ---
 
-## Cambios en `src/pages/ProfessionalDashboard.tsx`
+## Cambios
 
-### Dentro de `ProfileTabContent` (lineas 289-320):
+### 1. `src/components/chat/MessagesDesktopLayout.tsx` - Eliminar componentes internos
 
-**Eliminar:**
-- `ProfessionManager` (lineas 289-294) - gestion de rubros ya centralizada en otro modulo
-- `ZonaTodayManager` (lineas 315-320) - ya reside en el Dashboard principal
+**Problema critico**: `ConversationList` y `ChatPanel` son funciones definidas dentro del render. Esto causa remontaje en cada keystroke.
 
-**Reordenar lo que queda:**
-1. Card principal (foto, nombre, datos editables) - sin cambios
-2. URL Personalizada (`SlugConfiguration`) - se mantiene
-3. Boton de acceso a Galeria de Trabajos - se mantiene
+**Solucion**: Convertir el JSX de `ConversationList` y `ChatPanel` en JSX inline directamente en el return del componente principal. Esto elimina la recreacion de componentes y mantiene el foco del input estable.
 
-**Resultado final del return en ProfileTabContent:**
-```
-<div className="space-y-8">
-  <Card> ... foto + datos editables ... </Card>
-  <SlugConfiguration ... />
-  <Button ... > Galeria de Trabajos </Button>
-</div>
-```
+Cambios especificos:
+- Reemplazar `<ConversationList />` y `<ChatPanel />` por su JSX directo
+- Eliminar las funciones `ConversationList` y `ChatPanel`
+- Corregir el filtro de busqueda para incluir `profiles?.full_name` del cliente cuando `isProfessional=true`
 
-### Eliminar imports no usados:
-- `ProfessionManager` (linea ~22)
-- `ZonaTodayManager` (linea ~24)
+### 2. `src/components/chat/ChatHeader.tsx` - Header dinamico segun rol
 
-### Estetica de botones - paleta violeta:
-- Boton "Guardar URL" en `SlugConfiguration.tsx` (linea 269): ya usa `className="w-full"` con variant default (que es `bg-primary` = violeta de marca). No requiere cambio, ya es violeta.
-- Boton "Galeria de Trabajos" (linea 297-304): cambiar de `variant="outline"` a `variant="default"` o agregar clase `bg-primary text-primary-foreground hover:bg-primary/90` para que sea violeta.
-- Boton "Guardar Cambios" del formulario de edicion (linea 255): ya usa variant default = violeta. OK.
+**Problema**: Siempre muestra `professional.full_name` independientemente de quien esta viendo el chat.
+
+**Solucion**: Agregar props `isProfessional` y `profiles` (datos del cliente). Cuando `isProfessional=true`, mostrar el nombre y avatar del cliente en lugar del profesional.
+
+Cambios:
+- Agregar `isProfessional?: boolean` y `profiles?: { full_name: string; avatar_url?: string }` a la interfaz
+- Usar logica condicional para decidir que nombre/avatar mostrar
+- Fallback: "Cliente de [profesion]" si el cliente no tiene nombre
+
+### 3. `src/hooks/useChat.ts` - Enriquecer `getConversationWithRelations`
+
+**Problema**: La funcion `getConversationWithRelations` (linea 577-584) no obtiene los datos del perfil del cliente, por lo que el header no tiene acceso al nombre real.
+
+**Solucion**: Agregar una consulta adicional a `profiles` para obtener `full_name` y `avatar_url` del `user_id` de la conversacion, similar a como se hace en `fetchConversations`.
+
+### 4. `src/components/chat/MessagesDesktopLayout.tsx` - Pasar isProfessional al ChatHeader
+
+Pasar la prop `isProfessional` y los datos del perfil del cliente al `ChatHeader` para que pueda mostrar el nombre correcto.
 
 ---
 
@@ -44,10 +57,15 @@ Eliminar las secciones duplicadas (Zona Hoy y Mis Profesiones) del tab "Mi Perfi
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/ProfessionalDashboard.tsx` | Eliminar ProfessionManager y ZonaTodayManager del ProfileTabContent, ajustar boton Galeria a violeta, eliminar imports no usados |
+| `src/components/chat/MessagesDesktopLayout.tsx` | Inlinear JSX, pasar isProfessional a ChatHeader |
+| `src/components/chat/ChatHeader.tsx` | Soporte para mostrar nombre del cliente |
+| `src/hooks/useChat.ts` | Enriquecer getConversationWithRelations con datos del cliente |
 
-## Notas
+## Resultado esperado
 
-- Los componentes no se eliminan del proyecto, solo dejan de usarse en esta vista
-- SlugConfiguration ya usa el variant default (violeta) por defecto
-- El boton de Galeria es el unico que necesita cambio visual (de outline a default)
+- El input de chat mantiene el foco al escribir
+- El header muestra el nombre correcto segun el rol
+- La lista muestra nombres de clientes reales para profesionales
+- Los mensajes se envian y aparecen al instante
+- El campo de texto se limpia correctamente tras enviar
+
