@@ -16,7 +16,8 @@ import {
   Bell,
   Clock,
   User,
-  Crown
+  Crown,
+  Navigation
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -142,7 +143,8 @@ export function ActiveUserDashboard({
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              {isActiveInZone && <Navigation className="h-3 w-3" />}
               {isActiveInZone 
                 ? `Activo en ${cityName}` 
                 : 'Estás invisible para los clientes'}
@@ -232,6 +234,7 @@ export function ActiveUserDashboard({
             <QuickActionTile
               icon={Eye}
               label="Ver mi Perfil Público"
+              subtitle="(Haz clic para ver cómo te encuentran tus clientes)"
               iconColor="text-blue-500"
               iconBg="bg-blue-50"
               onClick={() => navigate(`/professional/${professional.id}`)}
