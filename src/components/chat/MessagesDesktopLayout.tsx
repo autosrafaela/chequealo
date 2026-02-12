@@ -15,6 +15,7 @@ import { DateSeparator } from './DateSeparator';
 import { ChatHeader } from './ChatHeader';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { getAvatarColor } from '@/utils/avatarColors';
 
 interface MessagesDesktopLayoutProps {
   initialConversationId?: string;
@@ -252,9 +253,9 @@ export const MessagesDesktopLayout = ({
                     isSelected ? "bg-primary/10" : "hover:bg-muted/50"
                   )}
                 >
-                  <Avatar className={`h-12 w-12 ${getCategoryColor(profession)}`}>
+                  <Avatar className={`h-12 w-12 ${!imageUrl ? getAvatarColor(name) : ''}`}>
                     <AvatarImage src={imageUrl || undefined} alt={name} />
-                    <AvatarFallback className="text-white font-medium">
+                    <AvatarFallback className={`${getAvatarColor(name)} text-white font-medium`}>
                       {getInitials(name)}
                     </AvatarFallback>
                   </Avatar>

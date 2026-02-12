@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import type { Message, Conversation } from "@/types/chat";
+import { getAvatarColor, getAvatarTextColor } from "@/utils/avatarColors";
 
 interface WhatsAppChatViewProps {
   conversation: Conversation | null;
@@ -27,6 +28,7 @@ interface WhatsAppChatViewProps {
   onCall?: () => void;
   onArchive?: () => void;
   onBlock?: () => void;
+  isProfessional?: boolean;
 }
 
 const getInitials = (name: string): string => {
@@ -54,7 +56,8 @@ export const WhatsAppChatView = ({
   onSendMessage,
   onCall,
   onArchive,
-  onBlock
+  onBlock,
+  isProfessional = false
 }: WhatsAppChatViewProps) => {
   const [messageText, setMessageText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -67,8 +70,13 @@ export const WhatsAppChatView = ({
   const [lastOwnMessage, setLastOwnMessage] = useState<string>("");
 
   const professional = conversation?.professionals;
-  const name = professional?.full_name || 'Usuario';
-  const avatar = professional?.image_url;
+  const clientProfile = conversation?.profiles;
+  const name = isProfessional
+    ? (clientProfile?.full_name || `Cliente de ${professional?.profession || 'consulta'}`)
+    : (professional?.full_name || 'Usuario');
+  const avatar = isProfessional
+    ? clientProfile?.avatar_url
+    : professional?.image_url;
   const profession = professional?.profession;
 
   // Auto-scroll to bottom on new messages
@@ -200,9 +208,9 @@ export const WhatsAppChatView = ({
           <ArrowLeft className="h-5 w-5" />
         </Button>
 
-        <Avatar className="h-10 w-10 border-2 border-primary-foreground/20">
+        <Avatar className={`h-10 w-10 border-2 border-primary-foreground/20 ${!avatar ? getAvatarColor(name) : ''}`}>
           <AvatarImage src={avatar || undefined} alt={name} />
-          <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground">
+          <AvatarFallback className={`${getAvatarColor(name)} text-white font-medium`}>
             {getInitials(name)}
           </AvatarFallback>
         </Avatar>

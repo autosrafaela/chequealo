@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Conversation, MessageStatus } from "@/types/chat";
+import { getAvatarColor } from "@/utils/avatarColors";
 
 interface WhatsAppChatListProps {
   conversations: Conversation[];
@@ -147,7 +148,7 @@ export const WhatsAppChatList = ({
               <div className="relative shrink-0">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={avatar || undefined} alt={name} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                  <AvatarFallback className={`${getAvatarColor(name)} text-white font-medium`}>
                     {getInitials(name)}
                   </AvatarFallback>
                 </Avatar>
