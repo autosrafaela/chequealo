@@ -12,7 +12,7 @@ export function ProfileLocationCard({ location, availability }: ProfileLocationC
                     availability?.toLowerCase().includes('abierto');
 
   return (
-    <Card className="rounded-2xl border-border shadow-sm">
+    <Card className="rounded-2xl border-0 shadow-sm">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg font-bold">
           <MapPin className="w-5 h-5 text-primary" />

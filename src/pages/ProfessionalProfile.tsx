@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ProfessionalProfileEdit } from "@/components/ProfessionalProfileEdit";
 import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
@@ -37,7 +38,8 @@ import {
   Instagram,
   Mail,
   Star,
-  Send
+  Send,
+  Briefcase
 } from "lucide-react";
 import { ProfessionalSEO } from "@/components/SEO/ProfessionalSEO";
 import { getProfessionalShareUrl } from "@/utils/utmHelpers";
@@ -62,6 +64,8 @@ const ProfessionalProfile = () => {
   const [showAllServices, setShowAllServices] = useState(false);
   const [activeTab, setActiveTab] = useState("about");
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [showContactDialog, setShowContactDialog] = useState(false);
   const { getContactInfo, loading: contactLoading } = useProfessionalContact();
   const { combos } = useCombos(id);
   const { createConversation } = useChat();
@@ -89,7 +93,6 @@ const ProfessionalProfile = () => {
         email: professional.email || null
       });
       
-      // SEO: Actualizar URL a slug personalizado si existe
       const professionalWithSlug = professional as typeof professional & { slug?: string | null };
       if (professionalWithSlug.slug && !window.location.pathname.includes(`/${professionalWithSlug.slug}`)) {
         window.history.replaceState(null, '', `/${professionalWithSlug.slug}`);
@@ -145,7 +148,6 @@ const ProfessionalProfile = () => {
     }
   };
 
-  // Share functions
   const handleShare = async () => {
     const shareUrl = window.location.href;
     if (navigator.share) {
@@ -196,7 +198,6 @@ const ProfessionalProfile = () => {
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
-  // Quick actions
   const handleCall = () => {
     if (contactInfo?.phone) {
       window.location.href = `tel:${contactInfo.phone}`;
@@ -231,7 +232,6 @@ const ProfessionalProfile = () => {
       return;
     }
     
-    // Navigate with professional ID - Messages page handles find-or-create
     navigate(`/mensajes?chat=${id}`);
   };
 
@@ -264,7 +264,6 @@ const ProfessionalProfile = () => {
     );
   }
 
-  // Processed data
   const displayedServices = showAllServices ? services : services.slice(0, 3);
   const hasMoreServices = services.length > 3;
   const displayedReviews = reviews.slice(0, 2);
@@ -274,7 +273,7 @@ const ProfessionalProfile = () => {
     : `${professional.description?.substring(0, 150)}...`;
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen bg-gray-50/50 pb-28">
       <ProfessionalSEO professional={professional} />
       
       {/* ===== 1. TOP APP BAR (Sticky) ===== */}
@@ -301,7 +300,7 @@ const ProfessionalProfile = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={shareToWhatsApp}>
-                <MessageCircle className="h-4 w-4 mr-2 text-success" />
+                <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
                 WhatsApp
               </DropdownMenuItem>
               <DropdownMenuItem onClick={shareToFacebook}>
@@ -331,29 +330,27 @@ const ProfessionalProfile = () => {
       </header>
 
       {/* ===== SCROLLABLE CONTENT ===== */}
-      <main className="px-4 py-2 space-y-3 max-w-2xl mx-auto">
+      <main className="px-4 py-2 space-y-6 max-w-2xl mx-auto">
         
         {/* ===== 2. HERO SECTION ===== */}
         <ProfileHeroSection professional={professional} />
 
-        {/* ===== 3. QUICK ACTIONS ===== */}
-        <div className="grid grid-cols-3 gap-2">
-          <ProfileQuickAction
-            icon={Phone}
-            label="Llamar"
-            onClick={handleCall}
-          />
-          <ProfileQuickAction
-            icon={Mail}
-            label="Mensaje"
-            onClick={handleInternalMessage}
-            variant="primary"
-          />
-          <ProfileQuickAction
-            icon={Calendar}
-            label="Reservar"
-            onClick={handleReserve}
-          />
+        {/* ===== 3. CTAs - WhatsApp + Solicitar Presupuesto ===== */}
+        <div className="flex gap-3">
+          <Button 
+            className="flex-1 h-12 text-base font-bold rounded-full bg-green-600 hover:bg-green-700 text-white shadow-md"
+            onClick={handleWhatsApp}
+          >
+            <MessageCircle className="w-5 h-5 mr-2" />
+            WhatsApp
+          </Button>
+          <Button 
+            className="flex-1 h-12 text-base font-bold rounded-full shadow-md"
+            onClick={() => setShowContactDialog(true)}
+          >
+            <Send className="w-5 h-5 mr-2" />
+            Solicitar Presupuesto
+          </Button>
         </div>
 
         {/* ===== Owner Controls ===== */}
@@ -376,91 +373,81 @@ const ProfessionalProfile = () => {
         )}
 
         {/* ===== 4. SOBRE MÍ ===== */}
-        <Card className="rounded-2xl border-border shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg font-bold">
-              <User className="w-5 h-5 text-primary" />
-              Sobre mí
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              {displayDescription || 'No hay descripción disponible.'}
-            </p>
-            {shouldTruncateDescription && (
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <h3 className="flex items-center gap-2 text-lg font-bold text-foreground mb-2">
+            <User className="w-5 h-5 text-primary" />
+            Sobre mí
+          </h3>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {displayDescription || 'No hay descripción disponible.'}
+          </p>
+          {shouldTruncateDescription && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+              className="mt-2 text-primary hover:text-primary/80 p-0 h-auto font-semibold"
+            >
+              {isDescriptionExpanded ? (
+                <>Ver menos <ChevronUp className="w-4 h-4 ml-1" /></>
+              ) : (
+                <>Leer más <ChevronDown className="w-4 h-4 ml-1" /></>
+              )}
+            </Button>
+          )}
+        </div>
+
+        {/* ===== 5. SERVICIOS ===== */}
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+              <Briefcase className="w-5 h-5 text-primary" />
+              Servicios
+            </h3>
+            {hasMoreServices && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                className="mt-2 text-primary hover:text-primary/80 p-0 h-auto font-semibold"
+                onClick={() => setShowAllServices(!showAllServices)}
+                className="text-primary text-sm font-semibold"
               >
-                {isDescriptionExpanded ? (
-                  <>Ver menos <ChevronUp className="w-4 h-4 ml-1" /></>
-                ) : (
-                  <>Leer más <ChevronDown className="w-4 h-4 ml-1" /></>
-                )}
+                {showAllServices ? 'Ver menos' : `Ver todos (${services.length})`}
               </Button>
             )}
-          </CardContent>
-        </Card>
-
-        {/* ===== 5. SERVICIOS ===== */}
-        <Card className="rounded-2xl border-border shadow-sm">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg font-bold">
-                <Calendar className="w-5 h-5 text-primary" />
-                Servicios
-              </CardTitle>
-              {hasMoreServices && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAllServices(!showAllServices)}
-                  className="text-primary text-sm font-semibold"
-                >
-                  {showAllServices ? 'Ver menos' : `Ver todos (${services.length})`}
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {services.length > 0 ? (
-              displayedServices.map((service) => (
-                <div key={service.id} className="relative">
-                  <ProfileServiceCard service={service} />
-                  {isOwner && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteService(service.id)}
-                      className="absolute top-2 right-2 h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-sm text-center py-4">
-                No hay servicios disponibles.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+          </div>
+          {services.length > 0 ? (
+            displayedServices.map((service) => (
+              <div key={service.id} className="relative">
+                <ProfileServiceCard service={service} />
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteService(service.id)}
+                    className="absolute top-2 right-2 h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-muted-foreground text-sm text-center py-4">
+              No hay servicios disponibles.
+            </p>
+          )}
+        </div>
 
         {/* ===== Combos Section ===== */}
         {combos.length > 0 && (
-          <Card className="rounded-2xl border-border shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg font-bold">
-                🔥 Combos Especiales
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Paquetes con precios especiales
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-foreground mb-1">
+              🔥 Combos Especiales
+            </h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              Paquetes con precios especiales
+            </p>
+            <div className="space-y-3">
               {combos.map((combo) => (
                 <ComboCard 
                   key={combo.id} 
@@ -468,8 +455,8 @@ const ProfessionalProfile = () => {
                   professionalName={professional.full_name} 
                 />
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* ===== 6. UBICACIÓN Y HORARIOS ===== */}
@@ -479,91 +466,113 @@ const ProfessionalProfile = () => {
         />
 
         {/* ===== 7. RESEÑAS ===== */}
-        <Card className="rounded-2xl border-border shadow-sm">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg font-bold">
-                <Star className="w-5 h-5 text-primary" />
-                Reseñas
-              </CardTitle>
-              <div className="flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-full">
-                <Star className="w-4 h-4 text-warning fill-current" />
-                <span className="font-bold text-foreground">
-                  {(professional.rating || 0).toFixed(1)}
-                </span>
-              </div>
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+              <Star className="w-5 h-5 text-primary" />
+              Reseñas
+            </h3>
+            <div className="flex items-center gap-1 bg-amber-50 px-3 py-1 rounded-full">
+              <Star className="w-4 h-4 text-amber-400 fill-current" />
+              <span className="font-bold text-foreground">
+                {(professional.rating || 0).toFixed(1)}
+              </span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {reviews.length > 0 ? (
-              <>
-                {displayedReviews.map((review) => (
-                  <ProfileReviewCard key={review.id} review={review as any} />
-                ))}
-                {reviews.length > 2 && (
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-xl"
-                    onClick={() => setActiveTab("reviews")}
-                  >
-                    Ver las {professional.review_count || reviews.length} reseñas
-                  </Button>
-                )}
-              </>
-            ) : (
-              <p className="text-muted-foreground text-sm text-center py-4">
-                Aún no hay reseñas.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ===== Portfolio Preview ===== */}
-        {workPhotos.length > 0 && (
-          <Card className="rounded-2xl border-border shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg font-bold">
-                <Camera className="w-5 h-5 text-primary" />
-                Trabajos Realizados
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-2">
-                {workPhotos.slice(0, 6).map((photo) => (
-                  <div 
-                    key={photo.id} 
-                    className="relative aspect-square rounded-lg overflow-hidden bg-muted"
-                  >
-                    <img 
-                      src={photo.image_url || '/placeholder.svg'} 
-                      alt={photo.caption}
-                      className="w-full h-full object-cover"
-                    />
-                    {isOwner && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteWorkPhoto(photo.id)}
-                        className="absolute top-1 right-1 h-6 w-6 bg-background/80 hover:bg-background text-destructive"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {workPhotos.length > 6 && (
+          </div>
+          {reviews.length > 0 ? (
+            <div className="space-y-3">
+              {displayedReviews.map((review) => (
+                <ProfileReviewCard key={review.id} review={review as any} />
+              ))}
+              {reviews.length > 2 && (
                 <Button
-                  variant="ghost"
-                  className="w-full mt-3 text-primary"
-                  onClick={() => setActiveTab("portfolio")}
+                  variant="outline"
+                  className="w-full rounded-xl"
+                  onClick={() => setActiveTab("reviews")}
                 >
-                  Ver todas las fotos ({workPhotos.length})
+                  Ver las {professional.review_count || reviews.length} reseñas
                 </Button>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          ) : (
+            /* Pioneros empty state */
+            <div className="bg-amber-50/50 rounded-2xl p-6 text-center">
+              <div className="flex justify-center gap-1 mb-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="w-6 h-6 text-amber-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-base font-medium text-foreground">
+                ¡{professional.full_name.split(' ')[0]} es nuevo en el Programa Pioneros!
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Dejá tu reseña y ganá descuentos
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ===== Portfolio Preview with Lightbox ===== */}
+        {workPhotos.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-foreground mb-3">
+              <Camera className="w-5 h-5 text-primary" />
+              Trabajos Realizados
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {workPhotos.slice(0, 6).map((photo) => (
+                <div 
+                  key={photo.id} 
+                  className="relative cursor-pointer group"
+                  onClick={() => setSelectedPhoto(photo.image_url)}
+                >
+                  <div className="aspect-square rounded-xl overflow-hidden bg-muted">
+                    <img 
+                      src={photo.image_url || '/placeholder.svg'} 
+                      alt={photo.caption || 'Trabajo Realizado'}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 truncate">
+                    {photo.caption || 'Trabajo Realizado'}
+                  </p>
+                  {isOwner && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => { e.stopPropagation(); deleteWorkPhoto(photo.id); }}
+                      className="absolute top-1 right-1 h-6 w-6 bg-background/80 hover:bg-background text-destructive"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {workPhotos.length > 6 && (
+              <Button
+                variant="ghost"
+                className="w-full mt-3 text-primary"
+                onClick={() => setActiveTab("portfolio")}
+              >
+                Ver todas las fotos ({workPhotos.length})
+              </Button>
+            )}
+          </div>
         )}
+
+        {/* ===== Lightbox Dialog ===== */}
+        <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
+          <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-0">
+            {selectedPhoto && (
+              <img 
+                src={selectedPhoto} 
+                alt="Trabajo realizado" 
+                className="max-h-[80vh] w-full object-contain rounded-lg"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* ===== Contact Actions (for verified professionals) ===== */}
         {professional.is_verified && (
@@ -572,11 +581,6 @@ const ProfessionalProfile = () => {
               professionalId={professional.id}
               professionalName={professional.full_name}
               isVerified={professional.is_verified}
-            />
-            <ContactRequestDialog 
-              professionalId={professional.id}
-              professionalName={professional.full_name}
-              type="quote"
             />
           </div>
         )}
@@ -593,7 +597,7 @@ const ProfessionalProfile = () => {
           <TabsContent value="reviews" className="mt-4 space-y-4">
             {reviews.length > 0 ? (
               reviews.map((review) => (
-                <Card key={review.id} className="rounded-2xl">
+                <Card key={review.id} className="rounded-2xl border-0 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -613,7 +617,7 @@ const ProfessionalProfile = () => {
                         {[...Array(5)].map((_, i) => (
                           <Star 
                             key={i} 
-                            className={`h-3.5 w-3.5 ${i < review.rating ? 'text-warning fill-current' : 'text-muted-foreground/30'}`} 
+                            className={`h-3.5 w-3.5 ${i < review.rating ? 'text-amber-400 fill-current' : 'text-muted-foreground/30'}`} 
                           />
                         ))}
                       </div>
@@ -641,7 +645,7 @@ const ProfessionalProfile = () => {
                 </Card>
               ))
             ) : (
-              <Card className="rounded-2xl">
+              <Card className="rounded-2xl border-0 shadow-sm">
                 <CardContent className="p-6 text-center">
                   <p className="text-muted-foreground text-sm">Aún no hay opiniones.</p>
                 </CardContent>
@@ -650,45 +654,43 @@ const ProfessionalProfile = () => {
           </TabsContent>
 
           <TabsContent value="portfolio" className="mt-4">
-            <Card className="rounded-2xl">
-              <CardContent className="p-4">
-                {workPhotos.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {workPhotos.map((photo) => (
-                      <div key={photo.id} className="space-y-2">
-                        <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
-                          <img 
-                            src={photo.image_url || '/placeholder.svg'} 
-                            alt={photo.caption}
-                            className="w-full h-full object-cover"
-                          />
-                          {isOwner && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteWorkPhoto(photo.id)}
-                              className="absolute top-2 right-2 bg-background/80 hover:bg-background text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium truncate">{photo.caption}</p>
-                          {photo.work_type && (
-                            <p className="text-xs text-muted-foreground">{photo.work_type}</p>
-                          )}
-                        </div>
+            <div className="bg-white rounded-2xl shadow-sm p-4">
+              {workPhotos.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {workPhotos.map((photo) => (
+                    <div key={photo.id} className="space-y-1">
+                      <div 
+                        className="relative aspect-square rounded-xl overflow-hidden bg-muted cursor-pointer"
+                        onClick={() => setSelectedPhoto(photo.image_url)}
+                      >
+                        <img 
+                          src={photo.image_url || '/placeholder.svg'} 
+                          alt={photo.caption}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                        {isOwner && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => { e.stopPropagation(); deleteWorkPhoto(photo.id); }}
+                            className="absolute top-2 right-2 bg-background/80 hover:bg-background text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-sm text-center py-8">
-                    No hay fotos disponibles.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {photo.caption || 'Trabajo Realizado'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No hay fotos disponibles.
+                </p>
+              )}
+            </div>
           </TabsContent>
 
           {isOwner && (
@@ -728,10 +730,10 @@ const ProfessionalProfile = () => {
           </Button>
           <Button 
             className="flex-1 h-14 text-base font-bold rounded-xl shadow-md"
-            onClick={handleReserve}
+            onClick={() => setShowContactDialog(true)}
           >
-            <Calendar className="w-5 h-5 mr-2" />
-            Reservar Turno
+            <Send className="w-5 h-5 mr-2" />
+            Solicitar Presupuesto
           </Button>
         </div>
       </div>
@@ -744,6 +746,13 @@ const ProfessionalProfile = () => {
         professionalName={professional.full_name}
         professionalAvatar={professional.image_url || undefined}
         services={services}
+      />
+
+      {/* ===== CONTACT REQUEST DIALOG ===== */}
+      <ContactRequestDialog 
+        professionalId={professional.id}
+        professionalName={professional.full_name}
+        type="quote"
       />
 
       {/* ===== SHARE MODAL (hidden trigger) ===== */}
