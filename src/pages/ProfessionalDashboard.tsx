@@ -18,6 +18,7 @@ import { BankingInfoForm } from '@/components/BankingInfoForm';
 
 import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
 import { ProfessionManager } from '@/components/ProfessionManager';
+import { EditMyServices } from '@/components/EditMyServices';
 import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
 import { ProfileCompletionProgress } from '@/components/ProfileCompletionProgress';
@@ -664,7 +665,23 @@ const ProfessionalDashboard = () => {
                 />
               </TabsContent>
 
+              <TabsContent value="reviews">
+                <ReviewManagementPanel />
+              </TabsContent>
 
+              <TabsContent value="services">
+                <div className="space-y-6">
+                  <EditMyServices 
+                    professionalData={professional}
+                    onUpdate={fetchDashboardData}
+                  />
+                  <ServicesManager />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="portfolio">
+                <WorkPhotosManager />
+              </TabsContent>
 
 
               <TabsContent value="transactions">
