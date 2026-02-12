@@ -433,7 +433,7 @@ export const MessagesDesktopLayout = ({
   // Mobile: Show list or chat
   // Desktop: Show both side by side
   return (
-    <div className="h-[600px] border rounded-lg overflow-hidden bg-background">
+    <div className="h-[calc(100vh-300px)] min-h-[500px] border rounded-lg overflow-hidden bg-background">
       {/* Desktop Layout */}
       <div className="hidden md:flex h-full">
         {/* Left: Conversation List */}
