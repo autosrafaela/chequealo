@@ -90,7 +90,7 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
         <div className="flex gap-3 sm:gap-4">
           {/* Avatar and Status - Responsive */}
           <div className="relative flex-shrink-0">
-            <Avatar className={`avatar-organic-static ${featured ? "h-16 w-16 sm:h-20 sm:w-20 avatar-organic-animated" : compact ? "h-10 w-10 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16"} transition-transform duration-300 group-hover:-translate-y-1`}>
+            <Avatar className={`${featured ? "h-16 w-16 sm:h-20 sm:w-20 avatar-organic-animated" : compact ? "h-10 w-10 sm:h-12 sm:w-12 avatar-organic-static" : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 avatar-organic-static"} transition-all duration-500 group-hover:-translate-y-1 group-hover:rotate-[10deg] group-hover:scale-110`}>
               <AvatarImage src={professional.image_url} alt={professional.full_name.toUpperCase()} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs sm:text-sm">
                 {professional.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
