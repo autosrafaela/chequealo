@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ProfessionalProfileEdit } from "@/components/ProfessionalProfileEdit";
 import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
 import { ContactRequestDialog } from "@/components/ContactRequestDialog";
-import { ExpressQuoteButton } from "@/components/ExpressQuoteButton";
+// ExpressQuoteButton removed - integrated as subtle link
 import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { TransactionManager } from "@/components/TransactionManager";
@@ -46,7 +46,6 @@ import { getProfessionalShareUrl } from "@/utils/utmHelpers";
 import {
   ProfileHeroSection,
   ProfileQuickAction,
-  ProfileServiceCard,
   ProfileReviewCard,
   ProfileLocationCard
 } from "@/components/profile";
@@ -352,6 +351,13 @@ const ProfessionalProfile = () => {
             Solicitar Presupuesto
           </Button>
         </div>
+        {professional.is_verified && (
+          <p className="text-center text-xs text-muted-foreground">
+            <button onClick={() => setShowContactDialog(true)} className="text-amber-600 font-semibold hover:underline">
+              ⚡ Presupuesto Express disponible
+            </button>
+          </p>
+        )}
 
         {/* ===== Owner Controls ===== */}
         {isOwner && (
@@ -417,18 +423,39 @@ const ProfessionalProfile = () => {
           </div>
           {services.length > 0 ? (
             displayedServices.map((service) => (
-              <div key={service.id} className="relative">
-                <ProfileServiceCard service={service} />
-                {isOwner && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteService(service.id)}
-                    className="absolute top-2 right-2 h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
+              <div key={service.id} className="flex items-center justify-between py-3 border-b border-border/30 last:border-b-0">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                    <Briefcase className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground truncate">{service.service_name}</p>
+                    {service.description && (
+                      <p className="text-xs text-muted-foreground truncate">{service.description}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 ml-4 shrink-0">
+                  <span className="text-primary font-bold text-sm whitespace-nowrap">
+                    {service.price_from && service.price_to
+                      ? `$${service.price_from.toLocaleString()} - $${service.price_to.toLocaleString()}`
+                      : service.price_from
+                        ? `Desde $${service.price_from.toLocaleString()}`
+                        : service.price_to
+                          ? `Hasta $${service.price_to.toLocaleString()}`
+                          : 'Consultar'}
+                  </span>
+                  {isOwner && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteService(service.id)}
+                      className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             ))
           ) : (
@@ -574,19 +601,10 @@ const ProfessionalProfile = () => {
           </DialogContent>
         </Dialog>
 
-        {/* ===== Contact Actions (for verified professionals) ===== */}
-        {professional.is_verified && (
-          <div className="space-y-2">
-            <ExpressQuoteButton 
-              professionalId={professional.id}
-              professionalName={professional.full_name}
-              isVerified={professional.is_verified}
-            />
-          </div>
-        )}
+        {/* Express Quote removed - integrated as subtle link above CTAs */}
 
         {/* ===== Tabs for detailed content ===== */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
           <TabsList className={`grid w-full ${isOwner ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="reviews" className="text-xs">Opiniones</TabsTrigger>
             <TabsTrigger value="portfolio" className="text-xs">Trabajos</TabsTrigger>
@@ -708,7 +726,7 @@ const ProfessionalProfile = () => {
 
         {/* Public Agenda */}
         {professional && (
-          <div className="mt-6">
+          <div className="mt-4">
             <PublicAgendaGrid 
               professionalId={professional.id}
               professionalName={professional.full_name}
