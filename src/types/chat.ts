@@ -45,6 +45,10 @@ export interface Conversation {
     profession?: string;
     phone?: string;
   };
+  profiles?: {
+    full_name: string;
+    avatar_url?: string;
+  };
 }
 
 export interface Chat {
