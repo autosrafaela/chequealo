@@ -101,46 +101,19 @@ const ServiceCategories = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6" style={{ gridAutoRows: 'minmax(0, auto)' }}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {categories.map((category, index) => {
             const Icon = category.icon;
-            const isHero = index === 0;
-            const isWide = index === 3;
-            const isLarge = isHero || isWide;
             return (
               <Link
                 key={index}
                 to={`/search?q=${encodeURIComponent(category.searchTerm)}`}
-                className={`group rounded-3xl shadow-sm border overflow-hidden relative text-left block transition-all hover:-translate-y-2 hover:scale-[1.02] hover:shadow-[0_20px_40px_rgba(78,84,200,0.15)] ${
-                  isHero
-                    ? 'col-span-2 row-span-2 p-6 sm:p-8 lg:p-10 text-white border-transparent'
-                    : isWide
-                    ? 'col-span-2 p-5 sm:p-6 bg-card border-border/50 hover:border-primary/60'
-                    : 'p-3 sm:p-4 lg:p-6 bg-card border-border/50 hover:border-primary/60'
-                }`}
-                style={{ 
-                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                  ...(isHero ? { background: 'linear-gradient(135deg, hsl(var(--navy)) 0%, hsl(220 40% 30%) 100%)' } : {})
-                }}
+                className="group flex flex-col items-center text-center gap-3 p-5 bg-card border border-border/50 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-md"
               >
-                <div className={`flex ${isHero ? 'flex-col items-start gap-4 sm:gap-5 h-full justify-end' : isWide ? 'flex-row items-center gap-4 sm:gap-5' : 'flex-col items-center text-center space-y-2 sm:space-y-3'}`}>
-                  <div 
-                    className={`${isHero ? 'p-3 sm:p-4 bg-white/15 backdrop-blur-sm' : isWide ? 'p-3 sm:p-4' : 'p-2 sm:p-3'} rounded-lg sm:rounded-xl ${!isHero ? category.color : ''} transition-all duration-300 group-hover:drop-shadow-lg flex-shrink-0`}
-                    style={{ transition: 'transform 0.3s ease, filter 0.3s ease' }}
-                  >
-                    <Icon className={`${isHero ? 'h-8 w-8 sm:h-10 sm:w-10 text-white' : isWide ? 'h-6 w-6 sm:h-8 sm:w-8' : 'h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6'} transition-transform duration-300 group-hover:scale-[1.2] group-hover:-rotate-[5deg]`} />
-                  </div>
-                  <div>
-                    <h3 className={`font-semibold leading-tight line-clamp-2 ${isHero ? 'text-lg sm:text-xl lg:text-2xl text-white' : isWide ? 'text-sm sm:text-base lg:text-lg text-foreground' : 'text-xs sm:text-sm lg:text-base text-foreground'}`}>
-                      {category.name}
-                    </h3>
-                    {(isHero || isWide) && (
-                      <p className={`text-xs sm:text-sm mt-1 hidden sm:block ${isHero ? 'text-white/70' : 'text-muted-foreground'}`}>
-                        Encontrá los mejores profesionales
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <Icon className="h-7 w-7 text-muted-foreground transition-colors duration-300 group-hover:text-primary" />
+                <h3 className="font-bold text-sm text-foreground leading-tight line-clamp-2">
+                  {category.name}
+                </h3>
               </Link>
             );
           })}
