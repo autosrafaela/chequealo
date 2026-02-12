@@ -4,28 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import Header from '@/components/Header';
 import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
-import { ProfessionalProfileEdit } from '@/components/ProfessionalProfileEdit';
-import { EnhancedTransactionManager } from '@/components/EnhancedTransactionManager';
-
 import { SubscriptionPanel } from '@/components/SubscriptionPanel';
 import { SubscriptionAlert } from '@/components/SubscriptionAlert';
 import { ServicesManager } from '@/components/ServicesManager';
 import { WorkPhotosManager } from '@/components/WorkPhotosManager';
-
-import { BankingInfoForm } from '@/components/BankingInfoForm';
-
 import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
 import { ProfessionManager } from '@/components/ProfessionManager';
 import { EditMyServices } from '@/components/EditMyServices';
 import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
-import { ProfileCompletionProgress } from '@/components/ProfileCompletionProgress';
-import { AchievementsBadges } from '@/components/AchievementsBadges';
-
 import { ZonaTodayManager } from '@/components/ZonaTodayManager';
-
 import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
 import SlugConfiguration from '@/components/SlugConfiguration';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
@@ -42,14 +35,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { 
   MessageCircle, 
-  Star, 
   Users, 
-  Calendar,
-  Settings,
-  
   Eye,
-  Edit3,
-  AlertCircle
+  AlertCircle,
+  Camera,
+  Save,
+  Pencil,
+  ImageIcon,
+  MapPin
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -69,6 +62,265 @@ interface ProfileCounts {
   workPhotosCount: number;
   availabilityCount: number;
 }
+
+// ── Inline Profile Tab Component ──
+const ProfileTabContent = ({ professional, user, onTabChange, onUpdate }: {
+  professional: any;
+  user: any;
+  onTabChange: (tab: string) => void;
+  onUpdate: (updated: any) => void;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: professional?.full_name || '',
+    phone: professional?.phone || '',
+    location: professional?.location || '',
+    description: professional?.description || '',
+  });
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setFormData({
+      full_name: professional?.full_name || '',
+      phone: professional?.phone || '',
+      location: professional?.location || '',
+      description: professional?.description || '',
+    });
+  }, [professional]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('professionals')
+        .update({
+          full_name: formData.full_name,
+          phone: formData.phone,
+          location: formData.location,
+          description: formData.description,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', professional.id);
+
+      if (error) throw error;
+      toast.success('Datos actualizados');
+      onUpdate({ ...professional, ...formData });
+      setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+      toast.error('Error al guardar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${professional.id}/avatar.${fileExt}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('professional-photos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('professional-photos')
+        .getPublicUrl(filePath);
+
+      const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('professionals')
+        .update({ image_url: imageUrl })
+        .eq('id', professional.id);
+
+      if (updateError) throw updateError;
+
+      onUpdate({ ...professional, image_url: imageUrl });
+      toast.success('Foto actualizada');
+    } catch (err) {
+      console.error(err);
+      toast.error('Error al subir la foto');
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Main Profile Card */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-8">
+          {/* Photo + Name Header */}
+          <div className="flex flex-col items-center text-center mb-8">
+            <div className="relative group mb-4">
+              <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-background shadow-lg">
+                {professional.image_url ? (
+                  <img
+                    src={professional.image_url}
+                    alt={professional.full_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <Camera className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors"
+              >
+                <Camera className="h-4 w-4" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+            </div>
+
+            {!isEditing && (
+              <>
+                <h2 className="text-2xl font-bold text-foreground">{professional.full_name}</h2>
+                <p className="text-muted-foreground mt-1">{professional.profession}</p>
+                {professional.is_verified && (
+                  <Badge className="mt-2 bg-emerald-500 text-white">✓ Verificado</Badge>
+                )}
+              </>
+            )}
+
+            <div className="flex gap-3 mt-4">
+              <Button asChild variant="outline" size="sm">
+                <Link to={professional.slug ? `/${professional.slug}` : `/professional/${professional.id}`}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Ver Perfil Público
+                </Link>
+              </Button>
+              {!isEditing && (
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Editable Fields */}
+          {isEditing ? (
+            <div className="space-y-5 max-w-md mx-auto">
+              <div className="space-y-2">
+                <Label htmlFor="full_name" className="text-sm font-medium">Nombre completo</Label>
+                <Input
+                  id="full_name"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-medium">WhatsApp / Teléfono</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="+54 11 1234-5678"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location" className="text-sm font-medium">Ubicación</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="Ciudad, Provincia"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">Descripción profesional</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Contá brevemente sobre vos y tu trabajo..."
+                  rows={4}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button onClick={handleSave} disabled={saving} className="flex-1">
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? 'Guardando...' : 'Guardar Cambios'}
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-md mx-auto space-y-4">
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-muted-foreground w-24">WhatsApp</span>
+                <span className="font-medium">{professional.phone || '—'}</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-muted-foreground w-24">Ubicación</span>
+                <span className="font-medium flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {professional.location || '—'}
+                </span>
+              </div>
+              {professional.description && (
+                <div className="pt-2">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {professional.description}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Mis Profesiones */}
+      <ProfessionManager
+        professionalData={professional}
+        onUpdate={() => onUpdate(professional)}
+        isOwner={true}
+      />
+
+      {/* Acceso a Galería */}
+      <Button
+        variant="outline"
+        className="w-full h-14 text-base gap-3"
+        onClick={() => onTabChange('portfolio')}
+      >
+        <ImageIcon className="h-5 w-5" />
+        Galería de Trabajos
+      </Button>
+
+      {/* URL Personalizada */}
+      <SlugConfiguration 
+        professionalId={professional.id} 
+        currentSlug={professional.slug || null}
+        onSlugUpdated={(newSlug) => {
+          onUpdate({ ...professional, slug: newSlug });
+        }}
+      />
+
+      {/* Zona Hoy */}
+      <ZonaTodayManager 
+        professionalName={professional?.full_name || ''}
+        profession={professional?.profession || ''}
+        phone={professional?.phone}
+      />
+    </div>
+  );
+};
 
 const ProfessionalDashboard = () => {
   const { user } = useAuth();
@@ -682,104 +934,15 @@ const ProfessionalDashboard = () => {
               </TabsContent>
 
               <TabsContent value="profile">
-                <div className="space-y-6">
-                  <ProfileCompletionProgress 
-                    professionalId={professional?.id}
-                    onTabChange={handleTabChange}
-                  />
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        Información del Perfil
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={professional.slug ? `/${professional.slug}` : `/professional/${professional.id}`}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver Perfil Público
-                          </Link>
-                        </Button>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="font-semibold mb-2">Información Básica</h4>
-                          <div className="space-y-2 text-sm">
-                            <p><strong>Nombre:</strong> {professional.full_name}</p>
-                            <p><strong>Profesión:</strong> {professional.profession}</p>
-                            <p><strong>Email:</strong> {professional.email}</p>
-                            <p><strong>Teléfono:</strong> {professional.phone || 'No especificado'}</p>
-                            <p><strong>Ubicación:</strong> {professional.location}</p>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-semibold mb-2">Estado de Verificación</h4>
-                          <div className="space-y-2">
-                            <Badge variant={professional.is_verified ? 'default' : 'secondary'}>
-                              {professional.is_verified ? 'Verificado' : 'Sin verificar'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold mb-2">Descripción</h4>
-                        <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
-                          {professional.description || 'No hay descripción disponible'}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <ProfessionManager
-                    professionalData={professional}
-                    onUpdate={fetchDashboardData}
-                    isOwner={true}
-                  />
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Edit3 className="h-5 w-5" />
-                        Editar Información
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ProfessionalProfileEdit
-                        professionalData={professional}
-                        onUpdate={fetchDashboardData}
-                        isOwner={true}
-                      />
-                    </CardContent>
-                  </Card>
-
-                  <AchievementsBadges userId={user?.id} />
-                  <BankingInfoForm professionalId={professional.id} />
-
-                  {/* URL Personalizada (moved from Config) */}
-                  <SlugConfiguration 
-                    professionalId={professional.id} 
-                    currentSlug={professional.slug || null}
-                    onSlugUpdated={(newSlug) => {
-                      setProfessional((prev: any) => ({ ...prev, slug: newSlug }));
-                    }}
-                  />
-
-                  {/* Zona Hoy (moved from Config) */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Zona Hoy</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ZonaTodayManager 
-                        professionalName={professional?.full_name || ''}
-                        profession={professional?.profession || ''}
-                        phone={professional?.phone}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
+                <ProfileTabContent 
+                  professional={professional}
+                  user={user}
+                  onTabChange={handleTabChange}
+                  onUpdate={(updated: any) => {
+                    setProfessional(updated);
+                    fetchDashboardData();
+                  }}
+                />
               </TabsContent>
             </Tabs>
           )}
