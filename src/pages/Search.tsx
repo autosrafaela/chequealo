@@ -5,7 +5,9 @@ import ProfessionalCard from '@/components/ProfessionalCard';
 import { ProfessionalCardSkeleton } from '@/components/ProfessionalCardSkeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIcon, Grid, List, SlidersHorizontal } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Search as SearchIcon, Grid, List, SlidersHorizontal, SearchX, Bell } from 'lucide-react';
+import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import { SEOHead } from '@/components/SEO/SEOHead';
@@ -15,6 +17,7 @@ const Search = () => {
   const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState('');
   
   const {
     professionals,
@@ -165,16 +168,50 @@ const Search = () => {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">
-                    No se encontraron profesionales
+              <Card className="border-dashed">
+                <CardContent className="text-center py-12 space-y-4">
+                  <SearchX className="h-14 w-14 text-muted-foreground mx-auto" />
+                  <h3 className="text-xl font-semibold text-foreground">
+                    No encontramos lo que buscás...
                   </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Intenta con otros términos de búsqueda o ajusta los filtros
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    {searchQuery
+                      ? `No hay profesionales para "${searchQuery}" todavía.`
+                      : 'Intenta con otros términos de búsqueda o ajusta los filtros.'}
                   </p>
-                  <Button onClick={clearFilters} variant="outline">
+
+                  {searchQuery && (
+                    <div className="max-w-sm mx-auto pt-2 space-y-3">
+                      <p className="text-sm font-medium text-foreground">
+                        ¿No lo encontraste? Dejanos tu email y te avisamos:
+                      </p>
+                      <form
+                        className="flex gap-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          toast.success(
+                            `¡Listo! Te avisaremos cuando haya profesionales de "${searchQuery}".`
+                          );
+                          setNotifyEmail('');
+                        }}
+                      >
+                        <Input
+                          type="email"
+                          placeholder="tu@email.com"
+                          value={notifyEmail}
+                          onChange={(e) => setNotifyEmail(e.target.value)}
+                          required
+                          className="flex-1"
+                        />
+                        <Button type="submit" size="sm" className="gap-1.5">
+                          <Bell className="h-4 w-4" />
+                          Avisarme
+                        </Button>
+                      </form>
+                    </div>
+                  )}
+
+                  <Button onClick={clearFilters} variant="outline" className="mt-2">
                     Limpiar filtros
                   </Button>
                 </CardContent>
