@@ -21,7 +21,6 @@ interface MessagesDesktopLayoutProps {
   isProfessional?: boolean;
 }
 
-// Color mapping for professional categories
 const categoryColors: Record<string, string> = {
   'Salud': 'bg-emerald-500',
   'Hogar': 'bg-blue-500',
@@ -39,89 +38,42 @@ const categoryColors: Record<string, string> = {
 
 const getCategoryColor = (profession: string | undefined): string => {
   if (!profession) return 'bg-primary';
-  
   const lowerProfession = profession.toLowerCase();
-  
-  if (lowerProfession.includes('médic') || lowerProfession.includes('doctor') || lowerProfession.includes('enferm') || lowerProfession.includes('salud')) {
-    return categoryColors['Salud'];
-  }
-  if (lowerProfession.includes('plomer') || lowerProfession.includes('electric') || lowerProfession.includes('carpint') || lowerProfession.includes('pintor')) {
-    return categoryColors['Hogar'];
-  }
-  if (lowerProfession.includes('abogad') || lowerProfession.includes('legal') || lowerProfession.includes('notari')) {
-    return categoryColors['Legal'];
-  }
-  if (lowerProfession.includes('programad') || lowerProfession.includes('técnic') || lowerProfession.includes('reparaci') || lowerProfession.includes('tecnolog')) {
-    return categoryColors['Tecnología'];
-  }
-  if (lowerProfession.includes('profeso') || lowerProfession.includes('tutor') || lowerProfession.includes('clase') || lowerProfession.includes('educac')) {
-    return categoryColors['Educación'];
-  }
-  if (lowerProfession.includes('estilis') || lowerProfession.includes('peluqu') || lowerProfession.includes('manicur') || lowerProfession.includes('belleza')) {
-    return categoryColors['Belleza'];
-  }
-  if (lowerProfession.includes('contador') || lowerProfession.includes('financ') || lowerProfession.includes('banco')) {
-    return categoryColors['Finanzas'];
-  }
-  
+  if (lowerProfession.includes('médic') || lowerProfession.includes('doctor') || lowerProfession.includes('enferm') || lowerProfession.includes('salud')) return categoryColors['Salud'];
+  if (lowerProfession.includes('plomer') || lowerProfession.includes('electric') || lowerProfession.includes('carpint') || lowerProfession.includes('pintor')) return categoryColors['Hogar'];
+  if (lowerProfession.includes('abogad') || lowerProfession.includes('legal') || lowerProfession.includes('notari')) return categoryColors['Legal'];
+  if (lowerProfession.includes('programad') || lowerProfession.includes('técnic') || lowerProfession.includes('reparaci') || lowerProfession.includes('tecnolog')) return categoryColors['Tecnología'];
+  if (lowerProfession.includes('profeso') || lowerProfession.includes('tutor') || lowerProfession.includes('clase') || lowerProfession.includes('educac')) return categoryColors['Educación'];
+  if (lowerProfession.includes('estilis') || lowerProfession.includes('peluqu') || lowerProfession.includes('manicur') || lowerProfession.includes('belleza')) return categoryColors['Belleza'];
+  if (lowerProfession.includes('contador') || lowerProfession.includes('financ') || lowerProfession.includes('banco')) return categoryColors['Finanzas'];
   return 'bg-primary';
 };
 
 const getCategoryLabel = (profession: string | undefined): string => {
   if (!profession) return 'General';
-  
   const lowerProfession = profession.toLowerCase();
-  
-  if (lowerProfession.includes('médic') || lowerProfession.includes('doctor') || lowerProfession.includes('enferm') || lowerProfession.includes('salud')) {
-    return 'Salud';
-  }
-  if (lowerProfession.includes('plomer') || lowerProfession.includes('electric') || lowerProfession.includes('carpint') || lowerProfession.includes('pintor')) {
-    return 'Hogar';
-  }
-  if (lowerProfession.includes('abogad') || lowerProfession.includes('legal') || lowerProfession.includes('notari')) {
-    return 'Legal';
-  }
-  if (lowerProfession.includes('programad') || lowerProfession.includes('técnic') || lowerProfession.includes('reparaci') || lowerProfession.includes('tecnolog')) {
-    return 'Tecnología';
-  }
-  if (lowerProfession.includes('profeso') || lowerProfession.includes('tutor') || lowerProfession.includes('clase') || lowerProfession.includes('educac')) {
-    return 'Educación';
-  }
-  if (lowerProfession.includes('estilis') || lowerProfession.includes('peluqu') || lowerProfession.includes('manicur') || lowerProfession.includes('belleza')) {
-    return 'Belleza';
-  }
-  if (lowerProfession.includes('contador') || lowerProfession.includes('financ') || lowerProfession.includes('banco')) {
-    return 'Finanzas';
-  }
-  
+  if (lowerProfession.includes('médic') || lowerProfession.includes('doctor') || lowerProfession.includes('enferm') || lowerProfession.includes('salud')) return 'Salud';
+  if (lowerProfession.includes('plomer') || lowerProfession.includes('electric') || lowerProfession.includes('carpint') || lowerProfession.includes('pintor')) return 'Hogar';
+  if (lowerProfession.includes('abogad') || lowerProfession.includes('legal') || lowerProfession.includes('notari')) return 'Legal';
+  if (lowerProfession.includes('programad') || lowerProfession.includes('técnic') || lowerProfession.includes('reparaci') || lowerProfession.includes('tecnolog')) return 'Tecnología';
+  if (lowerProfession.includes('profeso') || lowerProfession.includes('tutor') || lowerProfession.includes('clase') || lowerProfession.includes('educac')) return 'Educación';
+  if (lowerProfession.includes('estilis') || lowerProfession.includes('peluqu') || lowerProfession.includes('manicur') || lowerProfession.includes('belleza')) return 'Belleza';
+  if (lowerProfession.includes('contador') || lowerProfession.includes('financ') || lowerProfession.includes('banco')) return 'Finanzas';
   return 'General';
 };
 
 const formatTimestamp = (dateString: string | null): string => {
   if (!dateString) return '';
-  
   const date = new Date(dateString);
-  
-  if (isToday(date)) {
-    return format(date, 'h:mm a');
-  }
-  if (isYesterday(date)) {
-    return 'Ayer';
-  }
-  if (isThisWeek(date)) {
-    return format(date, 'EEE', { locale: es });
-  }
+  if (isToday(date)) return format(date, 'h:mm a');
+  if (isYesterday(date)) return 'Ayer';
+  if (isThisWeek(date)) return format(date, 'EEE', { locale: es });
   return format(date, 'd MMM', { locale: es });
 };
 
 const getInitials = (name: string | undefined): string => {
   if (!name) return '?';
-  return name
-    .split(' ')
-    .map(word => word[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
 };
 
 export const MessagesDesktopLayout = ({ 
@@ -151,7 +103,6 @@ export const MessagesDesktopLayout = ({
   const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize with initial conversation
   useEffect(() => {
     if (initialConversationId) {
       setSelectedConversationId(initialConversationId);
@@ -159,7 +110,6 @@ export const MessagesDesktopLayout = ({
     }
   }, [initialConversationId]);
 
-  // Load conversation details and messages when selected
   useEffect(() => {
     if (selectedConversationId) {
       fetchMessages(selectedConversationId);
@@ -167,19 +117,20 @@ export const MessagesDesktopLayout = ({
     }
   }, [selectedConversationId]);
 
-  // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages[selectedConversationId || '']]);
 
   const filteredConversations = useMemo(() => {
     if (!searchQuery.trim()) return conversations;
-    
     const query = searchQuery.toLowerCase();
     return conversations.filter(conv => {
-      const name = conv.professionals?.full_name || '';
+      const profName = conv.professionals?.full_name || '';
       const profession = conv.professionals?.profession || '';
-      return name.toLowerCase().includes(query) || profession.toLowerCase().includes(query);
+      const clientName = (conv as any).profiles?.full_name || '';
+      return profName.toLowerCase().includes(query) || 
+             profession.toLowerCase().includes(query) ||
+             clientName.toLowerCase().includes(query);
     });
   }, [conversations, searchQuery]);
 
@@ -190,9 +141,9 @@ export const MessagesDesktopLayout = ({
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversationId) return;
-    
-    await sendMessage(selectedConversationId, newMessage.trim());
+    const messageToSend = newMessage.trim();
     setNewMessage('');
+    await sendMessage(selectedConversationId, messageToSend);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -214,11 +165,9 @@ export const MessagesDesktopLayout = ({
 
   const currentMessages = selectedConversationId ? messages[selectedConversationId] || [] : [];
 
-  // Group messages by date
   const groupedMessages = useMemo(() => {
     const groups: { date: string; messages: typeof currentMessages }[] = [];
     let currentDate = '';
-    
     currentMessages.forEach(msg => {
       const msgDate = format(new Date(msg.created_at), 'yyyy-MM-dd');
       if (msgDate !== currentDate) {
@@ -227,14 +176,12 @@ export const MessagesDesktopLayout = ({
       }
       groups[groups.length - 1].messages.push(msg);
     });
-    
     return groups;
   }, [currentMessages]);
 
-  // Conversation list component
-  const ConversationList = () => (
+  // Inline conversation list JSX
+  const conversationListContent = (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold">Mensajes</h2>
@@ -246,8 +193,6 @@ export const MessagesDesktopLayout = ({
             <SquarePen className="h-5 w-5" />
           </button>
         </div>
-        
-        {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -260,7 +205,6 @@ export const MessagesDesktopLayout = ({
         </div>
       </div>
 
-      {/* Conversations List */}
       <ScrollArea className="flex-1">
         <div className="divide-y divide-border">
           {loading ? (
@@ -355,14 +299,14 @@ export const MessagesDesktopLayout = ({
     </div>
   );
 
-  // Chat panel component
-  const ChatPanel = () => (
+  // Inline chat panel JSX
+  const chatPanelContent = (
     <div className="flex flex-col h-full bg-background">
       {selectedConversationId && selectedConversation ? (
         <>
-          {/* Chat Header */}
           <ChatHeader
             conversation={selectedConversation}
+            isProfessional={isProfessional}
             onBack={handleBack}
             onClose={handleClose}
             onArchive={() => deleteConversation(selectedConversationId)}
@@ -370,7 +314,6 @@ export const MessagesDesktopLayout = ({
             showBackButton={showMobileChat}
           />
 
-          {/* Messages Area */}
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
               {groupedMessages.map((group, groupIndex) => (
@@ -383,15 +326,16 @@ export const MessagesDesktopLayout = ({
                         message={message}
                         isOwn={message.sender_id === user?.id}
                       />
-                    ))}
+                    ))
+                    }
                   </div>
                 </div>
-              ))}
+              ))
+              }
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
 
-          {/* Message Input */}
           <div className="p-3 border-t bg-background">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="shrink-0">
@@ -431,30 +375,19 @@ export const MessagesDesktopLayout = ({
     </div>
   );
 
-  // Mobile: Show list or chat
-  // Desktop: Show both side by side
   return (
     <div className="h-[calc(100vh-200px)] min-h-[600px] border rounded-lg overflow-hidden bg-background">
-      {/* Desktop Layout */}
       <div className="hidden md:flex h-full">
-        {/* Left: Conversation List */}
         <div className="w-96 lg:w-[400px] border-r">
-          <ConversationList />
+          {conversationListContent}
         </div>
-        
-        {/* Right: Chat */}
         <div className="flex-1">
-          <ChatPanel />
+          {chatPanelContent}
         </div>
       </div>
 
-      {/* Mobile Layout */}
       <div className="md:hidden h-full">
-        {showMobileChat ? (
-          <ChatPanel />
-        ) : (
-          <ConversationList />
-        )}
+        {showMobileChat ? chatPanelContent : conversationListContent}
       </div>
     </div>
   );

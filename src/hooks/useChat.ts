@@ -580,6 +580,20 @@ export const useChat = () => {
         .select(`*, professionals!professional_id(full_name, image_url, profession, phone), contact_requests(service_type, type)`) 
         .eq('id', conversationId)
         .single();
+      
+      if (data) {
+        // Enrich with client profile data
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('user_id', data.user_id)
+          .maybeSingle();
+        
+        if (profile) {
+          (data as any).profiles = profile;
+        }
+      }
+      
       return data;
     }
   };
