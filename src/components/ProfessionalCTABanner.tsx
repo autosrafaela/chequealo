@@ -3,97 +3,14 @@ import { Link } from "react-router-dom";
 import { Briefcase, ArrowRight, Users, Gift, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Mobile sticky top banner
+// Mobile sticky top banner - HIDDEN per design decision
 export const MobileCTABanner = () => {
-  const [isVisible, setIsVisible] = useState(() => {
-    return localStorage.getItem('hide-mobile-pro-cta') !== 'true';
-  });
-
-  const handleClose = () => {
-    setIsVisible(false);
-    localStorage.setItem('hide-mobile-pro-cta', 'true');
-  };
-
-  if (!isVisible) return null;
-
-  return (
-    <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-primary/95 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between">
-      <span className="text-white text-sm font-medium">¿Sos profesional?</span>
-      <div className="flex items-center gap-2">
-        <Link to="/register">
-          <Button 
-            size="sm" 
-            className="bg-white text-primary hover:bg-white/90 h-8 px-3 text-xs font-bold"
-          >
-            Registrate gratis
-            <ArrowRight className="w-3.5 h-3.5 ml-1" />
-          </Button>
-        </Link>
-        <button
-          onClick={handleClose}
-          className="p-1 hover:bg-white/20 rounded-full transition-colors"
-          aria-label="Cerrar"
-        >
-          <X className="w-4 h-4 text-white" />
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 };
 
-// Desktop FAB bubble CTA
+// Desktop FAB bubble CTA - HIDDEN per design decision
 export const DesktopSidebarCTA = () => {
-  const [isVisible, setIsVisible] = useState(() => {
-    return localStorage.getItem('hide-desktop-pro-cta') !== 'true';
-  });
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    localStorage.setItem('hide-desktop-pro-cta', 'true');
-  };
-
-  if (!isVisible) return null;
-
-  return (
-    <div className="hidden lg:block fixed bottom-6 right-6 z-50">
-      {isExpanded ? (
-        <div className="bg-card rounded-2xl shadow-xl border border-border p-4 w-52 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <button
-            onClick={handleClose}
-            className="absolute top-2 right-2 p-1 hover:bg-muted rounded-full transition-colors"
-            aria-label="Cerrar"
-          >
-            <X className="w-3.5 h-3.5 text-muted-foreground" />
-          </button>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Briefcase className="w-4 h-4 text-primary" />
-            </div>
-            <h3 className="text-foreground font-bold text-sm">¿Sos profesional?</h3>
-          </div>
-          <p className="text-muted-foreground text-xs mb-3">
-            Conseguí más clientes en Chequealo
-          </p>
-          <Link to="/register" className="w-full">
-            <Button className="w-full font-bold text-xs h-8">
-              Registrate gratis
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="relative w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center group"
-        >
-          <Briefcase className="w-6 h-6" />
-          <span className="absolute -top-1 -right-1 bg-white text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-primary/20 whitespace-nowrap">
-            Registrate
-          </span>
-        </button>
-      )}
-    </div>
-  );
+  return null;
 };
 
 // Enhanced bottom CTA section with blobs

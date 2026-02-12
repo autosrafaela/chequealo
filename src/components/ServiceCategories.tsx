@@ -101,26 +101,36 @@ const ServiceCategories = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
           {categories.map((category, index) => {
             const Icon = category.icon;
+            const isLarge = index < 2;
             return (
               <Link
                 key={index}
                 to={`/search?q=${encodeURIComponent(category.searchTerm)}`}
-                className="group p-3 sm:p-4 lg:p-6 bg-card rounded-3xl shadow-sm border border-border/50 overflow-hidden relative text-left block transition-all duration-400 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(78,84,200,0.15)] hover:border-primary/60"
+                className={`group bg-card rounded-3xl shadow-sm border border-border/50 overflow-hidden relative text-left block transition-all hover:-translate-y-2 hover:scale-[1.02] hover:shadow-[0_20px_40px_rgba(78,84,200,0.15)] hover:border-primary/60 ${
+                  isLarge ? 'col-span-2 p-5 sm:p-6 lg:p-8' : 'p-3 sm:p-4 lg:p-6'
+                }`}
                 style={{ transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
               >
-                <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3">
+                <div className={`flex ${isLarge ? 'flex-row items-center gap-4 sm:gap-5' : 'flex-col items-center text-center'} space-y-0 ${!isLarge ? 'space-y-2 sm:space-y-3' : ''}`}>
                   <div 
-                    className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${category.color} transition-all duration-300 group-hover:drop-shadow-lg`}
+                    className={`${isLarge ? 'p-3 sm:p-4' : 'p-2 sm:p-3'} rounded-lg sm:rounded-xl ${category.color} transition-all duration-300 group-hover:drop-shadow-lg flex-shrink-0`}
                     style={{ transition: 'transform 0.3s ease, filter 0.3s ease' }}
                   >
-                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 transition-transform duration-300 group-hover:scale-[1.2] group-hover:-rotate-[5deg]" />
+                    <Icon className={`${isLarge ? 'h-6 w-6 sm:h-8 sm:w-8' : 'h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6'} transition-transform duration-300 group-hover:scale-[1.2] group-hover:-rotate-[5deg]`} />
                   </div>
-                  <h3 className="font-medium text-xs sm:text-sm lg:text-base text-foreground leading-tight line-clamp-2">
-                    {category.name}
-                  </h3>
+                  <div>
+                    <h3 className={`font-semibold text-foreground leading-tight line-clamp-2 ${isLarge ? 'text-sm sm:text-base lg:text-lg' : 'text-xs sm:text-sm lg:text-base'}`}>
+                      {category.name}
+                    </h3>
+                    {isLarge && (
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 hidden sm:block">
+                        Encontrá los mejores profesionales
+                      </p>
+                    )}
+                  </div>
                 </div>
               </Link>
             );
