@@ -15,12 +15,18 @@ interface ExpressQuoteButtonProps {
   professionalId: string;
   professionalName: string;
   isVerified?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-export const ExpressQuoteButton = ({ professionalId, professionalName, isVerified }: ExpressQuoteButtonProps) => {
+export const ExpressQuoteButton = ({ professionalId, professionalName, isVerified, open: controlledOpen, onOpenChange: controlledOnOpenChange, hideTrigger }: ExpressQuoteButtonProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = controlledOnOpenChange ?? setInternalOpen;
+  const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -33,8 +39,14 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast.error('Debes iniciar sesión para solicitar presupuesto express');
+    // Auth fallback
+    let userId = user?.id;
+    if (!userId) {
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      userId = freshUser?.id;
+    }
+    if (!userId) {
+      toast.error('Tu sesión expiró. Por favor iniciá sesión nuevamente.');
       return;
     }
 
@@ -51,7 +63,7 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
         .from('contact_requests')
         .insert({
           professional_id: professionalId,
-          user_id: user.id,
+          user_id: userId,
           type: 'quote',
           name: formData.name.trim(),
           email: formData.email.trim() || user.email,
@@ -69,7 +81,7 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
       const { data: existingConversation } = await supabase
         .from('conversations')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('professional_id', professionalId)
         .eq('status', 'active')
         .single();
@@ -81,7 +93,7 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
         const { data: newConversation, error: convError } = await supabase
           .from('conversations')
           .insert({
-            user_id: user.id,
+            user_id: userId,
             professional_id: professionalId,
             contact_request_id: contactRequest.id,
             status: 'active'
@@ -106,7 +118,7 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
         .from('messages')
         .insert({
           conversation_id: conversationId,
-          sender_id: user.id,
+          sender_id: userId,
           sender_type: 'user',
           message_type: 'text',
           content: messageContent
@@ -122,12 +134,13 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
         console.error('Error sending notification:', notifError);
       }
 
-      toast.success('⚡ ¡Presupuesto Express enviado! El profesional responderá pronto.');
-      setOpen(false);
+      setShowSuccess(true);
       
       setTimeout(() => {
+        setOpen(false);
+        setShowSuccess(false);
         navigate(`/user-dashboard?tab=messages&conversation=${conversationId}`);
-      }, 500);
+      }, 2000);
 
       setFormData({
         name: '',
@@ -136,9 +149,13 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
         message: '',
         service_type: ''
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending express request:', error);
-      toast.error('Error al enviar la solicitud');
+      if (error?.code === '42501' || error?.message?.includes('row-level security')) {
+        toast.error('Error de permisos. Intentá cerrar sesión y volver a entrar.');
+      } else {
+        toast.error('Error al enviar la solicitud express. Intentá de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
@@ -158,18 +175,20 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-lg shadow-amber-500/25 relative overflow-hidden group"
-        >
-          <span className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-orange-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-          <Zap className="h-4 w-4 mr-2" />
-          Presupuesto Express
-          <Badge variant="secondary" className="ml-2 bg-white/20 text-white text-xs">
-            RÁPIDO
-          </Badge>
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button 
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-lg shadow-amber-500/25 relative overflow-hidden group"
+          >
+            <span className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-orange-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
+            <Zap className="h-4 w-4 mr-2" />
+            Presupuesto Express
+            <Badge variant="secondary" className="ml-2 bg-white/20 text-white text-xs">
+              RÁPIDO
+            </Badge>
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -206,6 +225,16 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
           </div>
         </div>
 
+        {showSuccess ? (
+          <div className="text-center py-8 space-y-4">
+            <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+              <CheckCircle className="w-10 h-10 text-amber-600" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">⚡ ¡Express Enviado!</h3>
+            <p className="text-muted-foreground">El profesional recibirá una notificación prioritaria.</p>
+            <p className="text-xs text-muted-foreground">Redirigiendo al chat...</p>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -270,6 +299,7 @@ export const ExpressQuoteButton = ({ professionalId, professionalName, isVerifie
             </Button>
           </div>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );
