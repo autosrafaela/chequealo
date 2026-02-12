@@ -1,55 +1,87 @@
 
 
-# Plan: Correccion de Errores Criticos en el Sistema de Mensajeria
+# Plan: Rediseno de la Pestana de Suscripcion
 
-## Diagnostico
+## Resumen
 
-Se identificaron 3 causas raiz que generan los 5 problemas reportados:
-
-### Causa 1: Componentes definidos dentro del render (afecta problemas 3 y 5)
-`ConversationList` y `ChatPanel` estan definidos como funciones dentro del componente `MessagesDesktopLayout`. Cada vez que cambia cualquier estado (incluyendo cada tecla presionada en el input), React los trata como componentes nuevos y los **remonta desde cero**, destruyendo el foco del input y cualquier estado temporal.
-
-### Causa 2: Header siempre muestra datos del profesional (afecta problemas 1 y 4)
-`ChatHeader` y `getConversationWithRelations` solo obtienen y muestran `professionals.full_name`. Cuando un profesional ve sus chats, deberia mostrar el nombre del **cliente**, no su propio nombre.
-
-### Causa 3: Busqueda solo filtra por nombre del profesional (afecta problema 1)
-El filtro de busqueda en la lista solo compara contra `professionals.full_name`, ignorando el nombre del cliente.
+Reemplazar el contenido actual de `SubscriptionPanel` con un diseno que replica las 3 tarjetas de la pagina de Pricing, agrega un badge "TU PLAN ACTUAL", informacion del Programa Pioneros, y una seccion minimalista de vencimiento.
 
 ---
 
-## Cambios
+## Cambios en `src/components/SubscriptionPanel.tsx`
 
-### 1. `src/components/chat/MessagesDesktopLayout.tsx` - Eliminar componentes internos
+Reescribir el componente completo. El nuevo diseno incluye:
 
-**Problema critico**: `ConversationList` y `ChatPanel` son funciones definidas dentro del render. Esto causa remontaje en cada keystroke.
+### 1. Tarjetas de Planes (clonadas del Index/Pricing)
 
-**Solucion**: Convertir el JSX de `ConversationList` y `ChatPanel` en JSX inline directamente en el return del componente principal. Esto elimina la recreacion de componentes y mantiene el foco del input estable.
+Usar exactamente la misma estructura de 3 tarjetas (Basico, Premium, Pro) definida en `src/pages/Pricing.tsx`:
+- Mismos precios, features, iconografia con checks verdes
+- Misma estetica: bordes redondeados, badge "MAS ELEGIDO" en Premium, escala 1.1x en desktop
+- Grid responsive: `grid-cols-1 lg:grid-cols-3` con Premium centrado y escalado
 
-Cambios especificos:
-- Reemplazar `<ConversationList />` y `<ChatPanel />` por su JSX directo
-- Eliminar las funciones `ConversationList` y `ChatPanel`
-- Corregir el filtro de busqueda para incluir `profiles?.full_name` del cliente cuando `isProfessional=true`
+### 2. Badge "TU PLAN ACTUAL"
 
-### 2. `src/components/chat/ChatHeader.tsx` - Header dinamico segun rol
+- Agregar un badge violeta (bg-primary) en la parte superior de la tarjeta correspondiente al plan actual del usuario
+- Para el Programa Pioneros (status trial): marcar la tarjeta Premium (o la que corresponda) con:
+  - Precio tachado y "$0" destacado en verde
+  - Leyenda: "Bonificado por ser Miembro Fundador"
 
-**Problema**: Siempre muestra `professional.full_name` independientemente de quien esta viendo el chat.
+### 3. Botones de Cambio
 
-**Solucion**: Agregar props `isProfessional` y `profiles` (datos del cliente). Cuando `isProfessional=true`, mostrar el nombre y avatar del cliente en lugar del profesional.
+- Boton deshabilitado (disabled, variant="default") en el plan actual con texto "Tu Plan Actual"
+- Botones activos (variant="outline") en los demas planes con texto "Elegir [Plan]"
+- Estilo redondeado y color violeta de la marca
 
-Cambios:
-- Agregar `isProfessional?: boolean` y `profiles?: { full_name: string; avatar_url?: string }` a la interfaz
-- Usar logica condicional para decidir que nombre/avatar mostrar
-- Fallback: "Cliente de [profesion]" si el cliente no tiene nombre
+### 4. Seccion de Proximo Vencimiento
 
-### 3. `src/hooks/useChat.ts` - Enriquecer `getConversationWithRelations`
+Debajo de las tarjetas, una seccion minimalista:
+- Card con icono de calendario
+- Texto: "Proximo Vencimiento: [fecha de trial_end_date]"
+- Sub-texto para Pioneros: "Programa Pioneros - Acceso bonificado hasta [fecha]"
+- Sin tablas, sin formularios grises
 
-**Problema**: La funcion `getConversationWithRelations` (linea 577-584) no obtiene los datos del perfil del cliente, por lo que el header no tiene acceso al nombre real.
+### 5. Eliminaciones
 
-**Solucion**: Agregar una consulta adicional a `profiles` para obtener `full_name` y `avatar_url` del `user_id` de la conversacion, similar a como se hace en `fetchConversations`.
+- Eliminar toda la UI anterior: status cards, alerts, PlanSelector inline, PlanSelectionModal, formularios de pago
+- Eliminar imports no usados: `PlanSelectionModal`, `PlanSelector`, `Alert`, `AlertDescription`, `Settings`, `CreditCard`, `XCircle`
 
-### 4. `src/components/chat/MessagesDesktopLayout.tsx` - Pasar isProfessional al ChatHeader
+---
 
-Pasar la prop `isProfessional` y los datos del perfil del cliente al `ChatHeader` para que pueda mostrar el nombre correcto.
+## Estructura del nuevo componente
+
+```
+<div className="space-y-8">
+  {/* Titulo */}
+  <div className="text-center">
+    <h2>Planes y Precios</h2>
+    <p>Tu plan actual y opciones disponibles</p>
+  </div>
+
+  {/* Grid de 3 tarjetas (mismo estilo Pricing.tsx) */}
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {plans.map(plan => (
+      <Card>
+        {isPionero && plan.id === currentPlan && <Badge>TU PLAN ACTUAL</Badge>}
+        {plan.badge && <Badge>MAS ELEGIDO</Badge>}
+        <h2>{plan.name}</h2>
+        <Price strikethrough={isPionero} />
+        {isPionero && <p>$0 - Bonificado por ser Miembro Fundador</p>}
+        <Features with green checks />
+        <Button disabled={isCurrentPlan}>
+          {isCurrentPlan ? 'Tu Plan Actual' : plan.cta}
+        </Button>
+      </Card>
+    ))}
+  </div>
+
+  {/* Seccion Vencimiento */}
+  <Card className="border border-border">
+    <Calendar icon />
+    <p>Proximo Vencimiento: {trialEndDate}</p>
+    <p>Programa Pioneros - Acceso bonificado</p>
+  </Card>
+</div>
+```
 
 ---
 
@@ -57,15 +89,12 @@ Pasar la prop `isProfessional` y los datos del perfil del cliente al `ChatHeader
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/chat/MessagesDesktopLayout.tsx` | Inlinear JSX, pasar isProfessional a ChatHeader |
-| `src/components/chat/ChatHeader.tsx` | Soporte para mostrar nombre del cliente |
-| `src/hooks/useChat.ts` | Enriquecer getConversationWithRelations con datos del cliente |
+| `src/components/SubscriptionPanel.tsx` | Reescritura completa con nuevo diseno |
 
-## Resultado esperado
+## Notas
 
-- El input de chat mantiene el foco al escribir
-- El header muestra el nombre correcto segun el rol
-- La lista muestra nombres de clientes reales para profesionales
-- Los mensajes se envian y aparecen al instante
-- El campo de texto se limpia correctamente tras enviar
+- Los datos de planes se definen estaticamente (igual que en Pricing.tsx) ya que no dependen de la base de datos para el display
+- El estado de suscripcion (trial, active, expired) se sigue obteniendo de `useSubscription`
+- La fecha de vencimiento se calcula desde `subscription.trial_end_date`
+- No se requieren cambios en la base de datos
 
