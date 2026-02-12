@@ -24,9 +24,9 @@ export function ProfileServiceCard({ service }: ProfileServiceCardProps) {
   };
 
   return (
-    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border hover:border-primary/30 transition-all">
+    <div className="flex items-center justify-between py-3 px-0 border-b border-border/30 last:border-b-0">
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+        <div className="p-2 bg-primary/10 rounded-full shrink-0">
           <Briefcase className="w-4 h-4 text-primary" />
         </div>
         <div className="min-w-0">

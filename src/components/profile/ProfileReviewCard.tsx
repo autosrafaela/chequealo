@@ -35,7 +35,7 @@ export function ProfileReviewCard({ review }: ProfileReviewCardProps) {
   };
 
   return (
-    <div className="p-4 bg-muted/30 rounded-xl border border-border">
+    <div className="p-4 bg-gray-50 rounded-xl border-0">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10">
