@@ -44,13 +44,13 @@ const Index = () => {
       
       {/* Notifications Banner - solo para usuarios logueados */}
       {user && (
-        <div className="container mx-auto px-3 sm:px-4 pt-4 md:pt-4 mt-10 md:mt-0">
+        <div className="container mx-auto px-3 sm:px-4 pt-3">
           <EnableNotificationsBanner />
         </div>
       )}
       
       {/* Hero Carousel */}
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 mt-10 md:mt-0">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
         <HeaderCarousel />
       </div>
       

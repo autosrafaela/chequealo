@@ -69,15 +69,22 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-xl border-b border-black/5 sticky top-0 z-50">
+    <header className="bg-white/80 backdrop-blur-xl border-b border-transparent sticky top-0 z-[100]">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 sm:h-[4.5rem]">
-          {/* Logo + Badge */}
-          <Link to="/" className="flex items-center flex-shrink-0 gap-3">
-            <img src={chequealoLogo} alt="Chequealo" className="h-8 sm:h-10 md:h-11 w-auto" />
-            <span className="hidden sm:inline-flex bg-gradient-to-r from-amber-400 to-orange-400 text-black text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full tracking-wide">
-              PIONEROS
-            </span>
+          {/* Logo + Badge + Location (mobile) */}
+          <Link to="/" className="flex flex-col flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <img src={chequealoLogo} alt="Chequealo" className="h-8 sm:h-10 md:h-11 w-auto" />
+              <span className="inline-flex bg-gradient-to-r from-amber-400 to-orange-400 text-black text-[8px] sm:text-[10px] font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full tracking-wide">
+                PIONEROS
+              </span>
+            </div>
+            {/* Location - mobile only (below logo) */}
+            <div className="flex md:hidden items-center gap-1 mt-0.5">
+              <MapPin className="h-3 w-3 text-primary" />
+              <span className="text-[10px] text-muted-foreground font-medium">Rafaela, Santa Fe</span>
+            </div>
           </Link>
 
           {/* Center: Location (desktop only) */}
