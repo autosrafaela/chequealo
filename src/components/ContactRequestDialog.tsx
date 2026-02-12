@@ -15,12 +15,17 @@ interface ContactRequestDialogProps {
   professionalId: string;
   professionalName: string;
   type: 'contact' | 'quote';
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-export const ContactRequestDialog = ({ professionalId, professionalName, type }: ContactRequestDialogProps) => {
+export const ContactRequestDialog = ({ professionalId, professionalName, type, open: controlledOpen, onOpenChange: controlledOnOpenChange, hideTrigger }: ContactRequestDialogProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = controlledOnOpenChange ?? setInternalOpen;
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -186,21 +191,23 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type }:
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant={type === 'contact' ? 'default' : 'outline'} className="flex-1">
-          {type === 'contact' ? (
-            <>
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Contactar Ahora
-            </>
-          ) : (
-            <>
-              <Calculator className="h-4 w-4 mr-2" />
-              Pedir Presupuesto
-            </>
-          )}
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button variant={type === 'contact' ? 'default' : 'outline'} className="flex-1">
+            {type === 'contact' ? (
+              <>
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Contactar Ahora
+              </>
+            ) : (
+              <>
+                <Calculator className="h-4 w-4 mr-2" />
+                Pedir Presupuesto
+              </>
+            )}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
