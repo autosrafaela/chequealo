@@ -285,11 +285,12 @@ export const MessagesDesktopLayout = ({
           ) : (
             filteredConversations.map((conversation) => {
               const professionalInfo = conversation.professionals;
+              const clientProfile = (conversation as any).profiles;
               const name = isProfessional 
-                ? 'Usuario' 
+                ? (clientProfile?.full_name || `Cliente de ${professionalInfo?.profession || 'consulta'}`)
                 : (professionalInfo?.full_name || 'Profesional');
               const imageUrl = isProfessional 
-                ? undefined 
+                ? clientProfile?.avatar_url 
                 : professionalInfo?.image_url;
               const profession = professionalInfo?.profession;
               const unreadCount = isProfessional 
@@ -317,7 +318,7 @@ export const MessagesDesktopLayout = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-semibold truncate">
+                        <span className={cn("truncate", hasUnread ? "font-bold" : "font-semibold")}>
                           {name}
                         </span>
                         <Badge 
@@ -433,7 +434,7 @@ export const MessagesDesktopLayout = ({
   // Mobile: Show list or chat
   // Desktop: Show both side by side
   return (
-    <div className="h-[calc(100vh-300px)] min-h-[500px] border rounded-lg overflow-hidden bg-background">
+    <div className="h-[calc(100vh-200px)] min-h-[600px] border rounded-lg overflow-hidden bg-background">
       {/* Desktop Layout */}
       <div className="hidden md:flex h-full">
         {/* Left: Conversation List */}

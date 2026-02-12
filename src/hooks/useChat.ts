@@ -38,6 +38,10 @@ interface Conversation {
     image_url?: string;
     profession?: string;
   };
+  profiles?: {
+    full_name: string;
+    avatar_url?: string;
+  };
 }
 
 export const useChat = () => {
@@ -105,7 +109,26 @@ export const useChat = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setConversations(data || []);
+
+      // Enrich conversations with client profile data
+      const enrichedData = data || [];
+      if (enrichedData.length > 0) {
+        const userIds = [...new Set(enrichedData.map(c => c.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, avatar_url')
+          .in('user_id', userIds);
+        
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+        enrichedData.forEach((conv: any) => {
+          const profile = profileMap.get(conv.user_id);
+          if (profile) {
+            conv.profiles = { full_name: profile.full_name, avatar_url: profile.avatar_url };
+          }
+        });
+      }
+
+      setConversations(enrichedData as Conversation[]);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast.error('Error al cargar conversaciones');

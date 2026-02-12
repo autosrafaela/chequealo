@@ -15,6 +15,7 @@ interface WhatsAppChatListProps {
   onChatSelect: (conversationId: string) => void;
   currentChatId?: string;
   currentUserId?: string;
+  isProfessional?: boolean;
 }
 
 const getStatusIcon = (isRead: boolean, isFromMe: boolean) => {
@@ -58,7 +59,8 @@ export const WhatsAppChatList = ({
   onSearchChange,
   onChatSelect,
   currentChatId,
-  currentUserId
+  currentUserId,
+  isProfessional = false
 }: WhatsAppChatListProps) => {
 
   if (loading) {
@@ -118,9 +120,16 @@ export const WhatsAppChatList = ({
       <div className="flex-1 overflow-y-auto">
         {conversations.map((conv) => {
           const professional = conv.professionals;
-          const name = professional?.full_name || 'Usuario';
-          const avatar = professional?.image_url;
-          const unreadCount = conv.unread_count_user || 0;
+          const clientProfile = (conv as any).profiles;
+          const name = isProfessional
+            ? (clientProfile?.full_name || `Cliente de ${professional?.profession || 'consulta'}`)
+            : (professional?.full_name || 'Usuario');
+          const avatar = isProfessional
+            ? clientProfile?.avatar_url
+            : professional?.image_url;
+          const unreadCount = isProfessional
+            ? (conv.unread_count_professional || 0)
+            : (conv.unread_count_user || 0);
           const hasUnread = unreadCount > 0;
           const isSelected = currentChatId === conv.id;
           
