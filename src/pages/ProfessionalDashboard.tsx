@@ -8,23 +8,23 @@ import Header from '@/components/Header';
 import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
 import { ProfessionalProfileEdit } from '@/components/ProfessionalProfileEdit';
 import { EnhancedTransactionManager } from '@/components/EnhancedTransactionManager';
-import { FinancialDashboard } from '@/components/FinancialDashboard';
+
 import { SubscriptionPanel } from '@/components/SubscriptionPanel';
 import { SubscriptionAlert } from '@/components/SubscriptionAlert';
 import { ServicesManager } from '@/components/ServicesManager';
 import { WorkPhotosManager } from '@/components/WorkPhotosManager';
-import { CombosManager } from '@/components/CombosManager';
+
 import { BankingInfoForm } from '@/components/BankingInfoForm';
-import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+
 import { ReviewManagementPanel } from '@/components/ReviewManagementPanel';
 import { ProfessionManager } from '@/components/ProfessionManager';
 import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
 import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
 import { ProfileCompletionProgress } from '@/components/ProfileCompletionProgress';
 import { AchievementsBadges } from '@/components/AchievementsBadges';
-import { ProfessionalAnalytics } from '@/components/ProfessionalAnalytics';
+
 import { ZonaTodayManager } from '@/components/ZonaTodayManager';
-import { AgendaManager } from '@/components/AgendaManager';
+
 import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
 import SlugConfiguration from '@/components/SlugConfiguration';
 import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
@@ -45,7 +45,7 @@ import {
   Users, 
   Calendar,
   Settings,
-  BarChart3,
+  
   Eye,
   Edit3,
   AlertCircle
@@ -291,7 +291,7 @@ const ProfessionalDashboard = () => {
     const stepToTab: Record<string, string> = {
       'services': 'services',
       'portfolio': 'portfolio',
-      'availability': 'calendar',
+      'availability': 'settings',
     };
     
     if (stepToTab[stepId]) {
@@ -589,7 +589,7 @@ const ProfessionalDashboard = () => {
         <div ref={tabsRef} className="scroll-mt-4">
           {(showTabs || pendingTransactions.length > 0) && (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-6 md:grid-cols-12 sticky top-4 z-10 bg-background h-auto flex-wrap">
+              <TabsList className="grid w-full grid-cols-5 md:grid-cols-9 sticky top-4 z-10 bg-background h-auto flex-wrap">
                 <TabsTrigger value="requests" className="text-xs">
                   Solicitudes
                   {stats.pendingRequests > 0 && (
@@ -602,27 +602,14 @@ const ProfessionalDashboard = () => {
                   <MessageCircle className="h-3 w-3 mr-1" />
                   Mensajes
                 </TabsTrigger>
-                <TabsTrigger value="analytics" className="text-xs">
-                  <BarChart3 className="h-3 w-3 mr-1" />
-                  Analytics
-                </TabsTrigger>
                 <TabsTrigger value="reviews" className="text-xs">
                   Reseñas
                 </TabsTrigger>
                 <TabsTrigger value="services" className="text-xs">
                   Servicios
                 </TabsTrigger>
-                <TabsTrigger value="combos" className="text-xs">
-                  Combos
-                </TabsTrigger>
                 <TabsTrigger value="portfolio" className="text-xs">
                   Portfolio
-                </TabsTrigger>
-                <TabsTrigger value="calendar" className="text-xs">
-                  Calendario
-                </TabsTrigger>
-                <TabsTrigger value="financial" className="text-xs">
-                  Finanzas
                 </TabsTrigger>
                 <TabsTrigger value="transactions" className="text-xs">
                   Trabajos
@@ -677,36 +664,8 @@ const ProfessionalDashboard = () => {
                 />
               </TabsContent>
 
-              <TabsContent value="analytics">
-                <ProfessionalAnalytics professionalId={professional.id} />
-              </TabsContent>
 
-              <TabsContent value="reviews">
-                <ReviewManagementPanel />
-              </TabsContent>
 
-              <TabsContent value="services">
-                <ServicesManager />
-              </TabsContent>
-
-              <TabsContent value="combos">
-                {professional && <CombosManager professionalId={professional.id} maxCombos={3} />}
-              </TabsContent>
-
-              <TabsContent value="portfolio">
-                <WorkPhotosManager />
-              </TabsContent>
-
-              <TabsContent value="calendar">
-                <div className="space-y-6">
-                  <AvailabilityCalendar />
-                  <AgendaManager />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="financial">
-                <FinancialDashboard />
-              </TabsContent>
 
               <TabsContent value="transactions">
                 <EnhancedTransactionManager />
@@ -851,7 +810,7 @@ const ProfessionalDashboard = () => {
               className="w-full mt-4"
               onClick={() => setShowTabs(true)}
             >
-              Ver todas las opciones de gestión
+              Gestionar mi negocio
             </Button>
           )}
         </div>

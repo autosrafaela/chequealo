@@ -3,28 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { DashboardHero } from './DashboardHero';
-import { MetricCard } from './MetricCard';
 import { QuickActionTile } from './QuickActionTile';
 import { 
   MapPin, 
   MessageCircle, 
   Eye, 
-  Star,
   Camera,
   Package,
-  Settings,
   ChevronRight,
   Bell,
-  Award,
   Clock,
-  User
+  User,
+  Crown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getVisitsContext, getContactsContext } from '@/utils/profileCompletion';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface ActiveUserDashboardProps {
   professional: {
@@ -60,8 +58,10 @@ export function ActiveUserDashboard({
 }: ActiveUserDashboardProps) {
   const navigate = useNavigate();
   const hasPendingContacts = stats.pendingRequests > 0;
-  const weeklyVisits = stats.weeklyVisits || 0;
   const cityName = professional.location?.split(',')[0]?.trim() || 'tu zona';
+  const { getDaysRemaining, getSubscriptionStatus } = useSubscription();
+  const daysRemaining = getDaysRemaining();
+  const subStatus = getSubscriptionStatus();
 
   // Fetch recent contact requests
   const { data: recentRequests } = useQuery({
@@ -81,7 +81,19 @@ export function ActiveUserDashboard({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* ZONA 0: Subscription badge */}
+      {subStatus !== 'none' && subStatus !== 'expired' && (
+        <div className="flex items-center gap-2 px-1">
+          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
+            <Crown className="h-3.5 w-3.5 text-amber-600" />
+            <span className="text-xs font-semibold text-amber-800">
+              Plan Pioneros: Activo — {daysRemaining} días restantes
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ZONA 1: Acción primaria - Contactos pendientes */}
       {hasPendingContacts && (
         <DashboardHero
@@ -105,7 +117,7 @@ export function ActiveUserDashboard({
 
       {/* ZONA 2: Widget de Visibilidad */}
       <div className={cn(
-        'rounded-2xl shadow-sm p-6 transition-all duration-500 bg-card',
+        'rounded-2xl shadow-sm p-4 transition-all duration-500 bg-card',
         isActiveInZone 
           ? 'border border-green-200 shadow-[0_0_20px_rgba(74,222,128,0.15)]' 
           : 'border-0'
@@ -145,7 +157,7 @@ export function ActiveUserDashboard({
         </div>
 
         {!isActiveInZone && (
-          <p className="text-sm text-center text-muted-foreground mt-4 bg-muted/50 p-3 rounded-lg">
+          <p className="text-sm text-center text-muted-foreground mt-3 bg-muted/50 p-2 rounded-lg">
             💡 Los profesionales activos reciben 3x más contactos
           </p>
         )}
@@ -153,19 +165,19 @@ export function ActiveUserDashboard({
 
       {/* Content wrapper with grayscale when offline */}
       <div className={cn(
-        'space-y-6 transition-all duration-500',
+        'space-y-4 transition-all duration-500',
         !isActiveInZone && 'grayscale-[30%] opacity-90'
       )}>
         {/* ZONA 3: Consultas Recientes */}
-        <div className="rounded-2xl shadow-sm p-6 bg-card border-0">
-          <h3 className="text-lg font-semibold mb-4">Consultas Recientes</h3>
+        <div className="rounded-2xl shadow-sm p-4 bg-card border-0">
+          <h3 className="text-base font-semibold mb-3">Consultas Recientes</h3>
           
           {recentRequests && recentRequests.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {recentRequests.map((req) => (
                 <div 
                   key={req.id}
-                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
+                  className="flex items-start gap-3 p-2 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={() => onTabChange('requests')}
                 >
                   <div className="p-2 rounded-full bg-primary/10 shrink-0">
@@ -183,7 +195,7 @@ export function ActiveUserDashboard({
               ))}
               <Button 
                 variant="ghost" 
-                className="w-full text-primary gap-1 mt-2"
+                className="w-full text-primary gap-1 mt-1"
                 onClick={() => onTabChange('requests')}
               >
                 Ver todas las consultas
@@ -191,14 +203,14 @@ export function ActiveUserDashboard({
               </Button>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <div className="mx-auto w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-                <MessageCircle className="h-8 w-8 text-muted-foreground/40" />
+            <div className="text-center py-4">
+              <div className="mx-auto w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                <MessageCircle className="h-6 w-6 text-muted-foreground/40" />
               </div>
               <p className="text-sm text-muted-foreground mb-1">
                 Aún no tenés mensajes.
               </p>
-              <p className="text-xs text-muted-foreground mb-4">
+              <p className="text-xs text-muted-foreground mb-3">
                 ¡Asegurate de tener tu perfil completo para atraer clientes!
               </p>
               <Button 
@@ -212,72 +224,31 @@ export function ActiveUserDashboard({
           )}
         </div>
 
-        {/* ZONA 4: Métricas clave */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MetricCard
-            icon={Eye}
-            iconColor="text-blue-500"
-            label="Visitas esta semana"
-            value={weeklyVisits}
-            trend={weeklyVisits > 0 ? { value: 15 } : undefined}
-            context={getVisitsContext(weeklyVisits)}
-            onClick={() => onTabChange('analytics')}
-          />
-          
-          <MetricCard
-            icon={MessageCircle}
-            iconColor="text-green-500"
-            label="Solicitudes este mes"
-            value={stats.totalRequests}
-            badge={stats.pendingRequests > 0 ? {
-              text: `${stats.pendingRequests} nuevas`,
-              variant: 'destructive'
-            } : undefined}
-            context={getContactsContext(stats.totalRequests, stats.lastMonthContacts || 0)}
-            onClick={() => onTabChange('requests')}
-          />
-          
-          <MetricCard
-            icon={Star}
-            iconColor="text-yellow-500"
-            label="Calificación promedio"
-            value={stats.averageRating.toFixed(1)}
-            suffix="/ 5.0"
-            context={`Basado en ${stats.totalReviews} reseñas`}
-            onClick={() => navigate(`/professional/${professional.id}#reviews`)}
-          />
-        </div>
-
-        {/* Link a estadísticas completas */}
-        <div className="text-center">
-          <Button 
-            variant="link" 
-            className="text-primary gap-1"
-            onClick={() => onTabChange('analytics')}
-          >
-            Ver estadísticas completas
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* ZONA 5: Acciones rápidas 3x2 */}
+        {/* ZONA 4: Acciones rápidas - 4 tiles */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Acciones rápidas</h3>
+          <h3 className="text-base font-semibold mb-3">Acciones rápidas</h3>
           
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <QuickActionTile
               icon={Eye}
-              label="Mi Perfil Público"
+              label="Ver mi Perfil Público"
               iconColor="text-blue-500"
               iconBg="bg-blue-50"
               onClick={() => navigate(`/professional/${professional.id}`)}
             />
             <QuickActionTile
               icon={Package}
-              label="Mis Servicios"
+              label="Editar Mis Servicios"
               iconColor="text-green-500"
               iconBg="bg-green-50"
               onClick={() => onTabChange('services')}
+            />
+            <QuickActionTile
+              icon={MessageCircle}
+              label="Mis Mensajes"
+              iconColor="text-orange-500"
+              iconBg="bg-orange-50"
+              onClick={() => onTabChange('messages')}
             />
             <QuickActionTile
               icon={Camera}
@@ -285,27 +256,6 @@ export function ActiveUserDashboard({
               iconColor="text-purple-500"
               iconBg="bg-purple-50"
               onClick={() => onTabChange('portfolio')}
-            />
-            <QuickActionTile
-              icon={MessageCircle}
-              label="Mensajes"
-              iconColor="text-orange-500"
-              iconBg="bg-orange-50"
-              onClick={() => onTabChange('messages')}
-            />
-            <QuickActionTile
-              icon={Settings}
-              label="Configuración"
-              iconColor="text-gray-500"
-              iconBg="bg-gray-100"
-              onClick={() => onTabChange('settings')}
-            />
-            <QuickActionTile
-              icon={Award}
-              label="Mi Plan Pioneros"
-              iconColor="text-amber-500"
-              iconBg="bg-amber-50"
-              onClick={() => onTabChange('subscription')}
             />
           </div>
         </div>
