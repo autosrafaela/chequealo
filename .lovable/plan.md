@@ -1,129 +1,51 @@
 
 
-# Plan: Pantalla "Editar Mis Servicios" completa
+# Plan: Corregir EditMyServices - Rubros personalizados y guardado
 
-## Resumen
+## Problema actual
 
-Crear una nueva pantalla/componente de edicion de servicios profesionales que unifique la gestion de rubros (profesiones multiples) y servicios en una sola interfaz moderna. Se integrara como contenido del tab "Servicios" en el dashboard profesional, que actualmente esta vacio.
+1. Cuando el usuario escribe un rubro que no existe en la lista (ej: "Lobbista"), solo aparece un link "Sugerirlo aqui" que requiere pasos extra innecesarios
+2. No hay invalidacion del cache de React Query despues de guardar, por lo que el perfil publico no refleja los cambios inmediatamente
 
----
+## Cambios
 
-## 1. Crear componente EditMyServices
+### Archivo: `src/components/EditMyServices.tsx`
 
-**Nuevo archivo:** `src/components/EditMyServices.tsx`
+**A. Opcion "Agregar como nueva profesion" en el dropdown**
 
-Componente principal que incluye:
-
-### Seccion A: Selector de Rubros con Autocompletado
-- Input de busqueda con icono de lupa que filtra la lista existente de 130+ profesiones (reutilizando la lista de `ProfessionManager.tsx`)
-- Al seleccionar un rubro, se agrega como tag/pill
-- Limite de 3 rubros maximo
-
-### Seccion B: Gestion de Etiquetas (Pills)
-- Cada rubro seleccionado aparece como una pill/badge con:
-  - Icono del rubro
-  - Nombre del rubro
-  - Badge "(Principal)" para el primero
-  - Boton "X" para eliminar
-- Debajo de cada pill, un campo `Textarea` colapsable para agregar una descripcion especifica de experiencia en ese rubro
-
-### Seccion C: Sugerir Nuevo Rubro
-- Si la busqueda no encuentra resultados, mostrar un boton "No encuentras tu rubro? Sugerirlo aqui"
-- Al hacer clic, se despliega un `Input` de texto libre para que el profesional escriba su rubro personalizado
-- El rubro sugerido se agrega como pill igual que los demas
-
-### Seccion D: Boton de Guardar
-- Boton destacado en violeta (bg-primary) con texto "Actualizar Perfil Profesional"
-- Al hacer clic: muestra spinner (Loader2 animate-spin) y texto "Actualizando..."
-- Guarda en dos tablas:
-  1. `professionals.profession` = primer rubro seleccionado (compatibilidad legacy)
-  2. `professional_professions` = todos los rubros seleccionados con flag `is_primary`
-
-### Estetica
-- Tarjeta blanca con bordes redondeados (`rounded-xl`)
-- Separadores sutiles entre secciones
-- Tipografia moderna con pesos variados
-- Responsive: una columna en mobile, layout mas amplio en desktop
-
----
-
-## 2. Agregar TabsContent faltantes en ProfessionalDashboard
-
-**Archivo:** `src/pages/ProfessionalDashboard.tsx`
-
-Actualmente faltan los `TabsContent` para "services", "reviews" y "portfolio". Agregar:
+Cuando `searchTerm` tiene texto y no hay coincidencia exacta en la lista, mostrar como primera opcion del dropdown:
 
 ```
-<TabsContent value="reviews">
-  <ReviewManagementPanel />
-</TabsContent>
-
-<TabsContent value="services">
-  <EditMyServices 
-    professionalData={professional}
-    onUpdate={fetchDashboardData}
-  />
-  <ServicesManager />
-</TabsContent>
-
-<TabsContent value="portfolio">
-  <WorkPhotosManager />
-</TabsContent>
++ Agregar "Lobbista" como nueva profesion
 ```
 
-El tab "Servicios" mostrara primero el nuevo `EditMyServices` (rubros/profesiones) y debajo el `ServicesManager` existente (servicios individuales con precios).
+Esto reemplaza el flujo actual de "Sugerirlo aqui" + campo de texto separado. Se elimina la seccion de sugerencia manual ya que queda integrada en el dropdown.
 
----
+Logica:
+- Si `searchTerm.length >= 2` y no existe un rubro con ese nombre exacto en `serviceCategories` ni en `rubros`, mostrar la opcion de agregar al inicio del dropdown
+- La opcion aparece incluso si hay resultados parciales (ej: buscar "Lob" muestra resultados de lista + la opcion de agregar "Lob")
+- Solo aparece como opcion unica cuando no hay coincidencias en la lista
 
-## 3. Logica de guardado
+**B. Invalidacion de cache React Query**
 
-Al presionar "Actualizar Perfil Profesional":
+Despues del guardado exitoso, invalidar las queries de React Query para que el perfil publico se actualice:
 
-1. Actualizar `professionals.profession` con el primer rubro seleccionado
-2. Eliminar todos los registros existentes en `professional_professions` para ese profesional
-3. Insertar los nuevos rubros seleccionados en `professional_professions` con `is_primary` en el primero
-4. Mostrar toast de exito y llamar `onUpdate()`
-
----
-
-## Archivos a modificar/crear
-
-| Archivo | Accion |
-|---------|--------|
-| `src/components/EditMyServices.tsx` | Crear nuevo componente |
-| `src/pages/ProfessionalDashboard.tsx` | Agregar TabsContent para services, reviews, portfolio; importar EditMyServices |
-
-## Detalle tecnico
-
-### Props del nuevo componente
 ```typescript
-interface EditMyServicesProps {
-  professionalData: any;
-  onUpdate: () => void;
-}
+import { useQueryClient } from '@tanstack/react-query';
+
+// En handleSave, despues del insert exitoso:
+queryClient.invalidateQueries({ queryKey: ['professional', professionalData.id] });
 ```
 
-### Estructura visual
-```text
-+------------------------------------------+
-| Mis Rubros Profesionales                  |
-|                                           |
-| [Buscar rubro...]                         |
-|                                           |
-| [Plomero X] [Electricista X]              |
-|                                           |
-| > Plomero                                 |
-|   [Descripcion de experiencia...]         |
-|                                           |
-| > Electricista                            |
-|   [Descripcion de experiencia...]         |
-|                                           |
-| No encuentras tu rubro? Sugerirlo aqui    |
-|                                           |
-| [ Actualizar Perfil Profesional ]         |
-+------------------------------------------+
-```
+**C. Limpieza**
 
-### Lista de rubros
-Se reutiliza la misma lista de `serviceCategories` del `ProfessionManager.tsx`, extraida a una constante compartida o duplicada en el componente nuevo para evitar dependencias circulares.
+- Eliminar los estados `showSuggestion` y `customRubro` ya que no se necesitan
+- Eliminar el bloque JSX de sugerencia manual (lineas 311-342)
+- El feedback visual (toast de exito/error) ya existe y funciona correctamente
+
+## Archivo a modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/EditMyServices.tsx` | Agregar opcion inline de rubro custom en dropdown, invalidar cache, limpiar codigo de sugerencia manual |
 
