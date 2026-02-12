@@ -1,50 +1,63 @@
 
 
-# Plan: Correccion de Diseno en Header y Layout Principal
+# Plan: Corregir Servicios, Express Quote y Botones del Perfil Publico
 
 ## Resumen
 
-Corregir el espacio blanco entre Header y contenido, hacer visible el badge PIONEROS y la ubicacion en mobile, eliminar la sombra visual del borde del header, y asegurar z-index correcto.
+Corregir el layout de servicios para que sea una fila con precio y botones de gestion alineados a la derecha, eliminar el boton flotante de Presupuesto Express y convertirlo en un enlace secundario, asegurar botones simetricos en mobile, y limpiar espacios excesivos.
 
 ---
 
-## 1. Eliminar espacio blanco entre Header y contenido
+## 1. Servicios: Layout de fila correcto
 
-**Archivo:** `src/pages/Index.tsx`
+**Archivo:** `src/pages/ProfessionalProfile.tsx` (lineas 418-433)
 
-El problema principal son los `mt-10 md:mt-0` en las secciones de notificaciones (linea 47) y carousel (linea 53). Estos agregan 40px de margen superior en mobile sin razon.
+Reemplazar el sistema actual de `ProfileServiceCard` + boton `absolute` por un layout inline completo directamente en el map:
 
-- Linea 47: Cambiar `pt-4 md:pt-4 mt-10 md:mt-0` a `pt-3`
-- Linea 53: Cambiar `py-4 sm:py-6 mt-10 md:mt-0` a `py-3 sm:py-4`
-
-## 2. Header mobile: mostrar badge PIONEROS y ubicacion
-
-**Archivo:** `src/components/Header.tsx`
-
-- **Badge PIONEROS** (linea 78): Cambiar `hidden sm:inline-flex` a `inline-flex` para que sea visible en todas las pantallas. Reducir tamano en mobile con `text-[8px] sm:text-[10px] px-2 sm:px-3`.
-- **Ubicacion** (linea 84): Cambiar `hidden md:flex` a `flex`. En mobile, simplificar a solo el icono MapPin con texto reducido. Usar `text-[10px] sm:text-sm` y colocar junto al badge PIONEROS dentro del mismo flex del logo, o como segunda fila compacta debajo del logo.
-- Reorganizar el area izquierda del header: logo + badge en una fila, y debajo en mobile una mini-fila con pin + "Rafaela" (solo en mobile, en desktop queda como esta en el centro).
-
-**Estructura propuesta del header izquierdo:**
 ```
-[Logo] [PIONEROS]
-[Pin Rafaela]        <- solo mobile, debajo del logo
+[Icono] [Nombre + descripcion]  ···  [Precio]  [Editar] [Eliminar]
 ```
 
-En desktop se mantiene la ubicacion centrada como esta.
+- Cada fila: `flex items-center justify-between py-3 border-b border-border/30 last:border-b-0`
+- Izquierda (`flex-1 min-w-0`): icono en circulo pastel + nombre/descripcion truncados
+- Derecha (`flex items-center gap-3 ml-4 shrink-0`): precio en `text-primary font-bold` + iconos de gestion del owner
+- Se elimina el `relative` + `absolute` del boton de eliminar, pasa a ser parte del flex inline
+- Ya no se usa `ProfileServiceCard` en esta pagina (el componente sigue existiendo para reutilizacion)
 
-## 3. Eliminar sombra visual del border-bottom
+## 2. Eliminar boton flotante Express Quote
 
-**Archivo:** `src/components/Header.tsx`
+**Archivo:** `src/pages/ProfessionalProfile.tsx` (lineas 577-586)
 
-- Linea 72: Cambiar `border-b border-black/5` a `border-b border-transparent` o eliminarlo completamente para que no haya linea de sombra visual empujando el contenido. Alternativa: usar `shadow-none` explicitamente.
-- Resultado: el header se funde suavemente con el contenido sin linea divisoria.
+- Eliminar completamente el bloque de `ExpressQuoteButton` flotante
+- Agregar debajo de los CTAs principales (linea 354) un enlace secundario pequeno para profesionales verificados:
 
-## 4. Z-Index del Header
+```tsx
+{professional.is_verified && (
+  <p className="text-center text-xs text-muted-foreground">
+    <button onClick={() => setShowContactDialog(true)} className="text-amber-600 font-semibold hover:underline">
+      Presupuesto Express disponible
+    </button>
+  </p>
+)}
+```
 
-**Archivo:** `src/components/Header.tsx`
+- Eliminar el import de `ExpressQuoteButton` (linea 12)
 
-- Linea 72: Cambiar `z-50` a `z-[100]` para garantizar que el header este siempre por encima de todo el contenido al hacer scroll.
+## 3. Botones principales simetricos en mobile
+
+**Archivo:** `src/pages/ProfessionalProfile.tsx`
+
+- CTAs superiores (lineas 339-354): Ambos ya tienen `flex-1 h-12` -- esta correcto
+- CTAs sticky bottom (lineas 722-738): Ambos ya tienen `flex-1 h-14` -- esta correcto
+- Sin cambios necesarios aqui, ya son simetricos
+
+## 4. Limpiar gaps excesivos
+
+**Archivo:** `src/pages/ProfessionalProfile.tsx`
+
+- Linea 589: Tabs section tiene `className="mt-6"` -- cambiar a `mt-4`
+- Linea 711: PublicAgendaGrid tiene `className="mt-6"` -- cambiar a `mt-4`
+- Estas reducciones eliminan el gap excesivo entre galeria y botones de contacto
 
 ---
 
@@ -52,21 +65,21 @@ En desktop se mantiene la ubicacion centrada como esta.
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/Header.tsx` | Badge PIONEROS visible en mobile, ubicacion visible en mobile, eliminar border-b visual, z-index a z-[100] |
-| `src/pages/Index.tsx` | Eliminar mt-10 de secciones de notificaciones y carousel |
+| `src/pages/ProfessionalProfile.tsx` | Servicios inline con precio+botones a la derecha, eliminar Express flotante, agregar enlace Express sutil, reducir gaps |
 
 ## Detalle tecnico
 
-### Header.tsx - Estructura izquierda reorganizada
+### Servicios - Nuevo layout por fila
 
-El area del logo pasa de un simple flex horizontal a un mini-layout:
-- Fila 1: Logo + Badge PIONEROS (ambos visibles siempre)
-- Fila 2 (solo mobile): icono MapPin mini + "Rafaela, Santa Fe" en texto muy pequeno
-- En desktop (md+): la ubicacion se mantiene centrada como actualmente
+Cada item de servicio pasa de:
+- `<div relative>` + `<ProfileServiceCard>` + `<Button absolute top-2 right-2>`
 
-### Index.tsx - Margins a eliminar
-- `mt-10 md:mt-0` en linea 47 (EnableNotificationsBanner)
-- `mt-10 md:mt-0` en linea 53 (HeaderCarousel)
+A:
+- `<div flex items-center justify-between>` con precio y botones inline a la derecha, todo en una fila
+- El precio va primero, luego los iconos de gestion (solo para owner) con `gap-3` entre ellos
 
-Estos margins eran probablemente residuos de cuando habia un banner sticky que ya fue eliminado (MobileCTABanner retorna null).
+### Express Quote - Integracion sutil
+- Se elimina el boton naranja grande flotante
+- Se agrega un texto link pequeno "Presupuesto Express disponible" en amber debajo de los CTAs, que abre el mismo `ContactRequestDialog`
+- Esto mantiene la funcionalidad sin romper la estetica limpia
 
