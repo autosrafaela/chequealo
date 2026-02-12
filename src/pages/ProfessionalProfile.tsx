@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ProfessionalProfileEdit } from "@/components/ProfessionalProfileEdit";
 import { ReviewResponseComponent } from "@/components/ReviewResponseComponent";
 import { ContactRequestDialog } from "@/components/ContactRequestDialog";
-// ExpressQuoteButton removed - integrated as subtle link
+import { ExpressQuoteButton } from "@/components/ExpressQuoteButton";
 import { ContactRequestsPanel } from "@/components/ContactRequestsPanel";
 import { WhatsAppContactButton } from "@/components/WhatsAppContactButton";
 import { TransactionManager } from "@/components/TransactionManager";
@@ -65,6 +65,7 @@ const ProfessionalProfile = () => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [showContactDialog, setShowContactDialog] = useState(false);
+  const [showExpressQuote, setShowExpressQuote] = useState(false);
   const { getContactInfo, loading: contactLoading } = useProfessionalContact();
   const { combos } = useCombos(id);
   const { createConversation } = useChat();
@@ -353,11 +354,21 @@ const ProfessionalProfile = () => {
         </div>
         {professional.is_verified && (
           <p className="text-center text-xs text-muted-foreground">
-            <button onClick={() => setShowContactDialog(true)} className="text-amber-600 font-semibold hover:underline">
+            <button onClick={() => setShowExpressQuote(true)} className="text-amber-600 font-semibold hover:underline">
               ⚡ Presupuesto Express disponible
             </button>
           </p>
         )}
+        
+        {/* Express Quote Dialog (controlled) */}
+        <ExpressQuoteButton
+          professionalId={professional.id}
+          professionalName={professional.full_name}
+          isVerified={professional.is_verified}
+          open={showExpressQuote}
+          onOpenChange={setShowExpressQuote}
+          hideTrigger
+        />
 
         {/* ===== Owner Controls ===== */}
         {isOwner && (

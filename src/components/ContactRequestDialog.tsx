@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { MessageCircle, Calculator } from "lucide-react";
+import { MessageCircle, Calculator, CheckCircle } from "lucide-react";
 
 interface ContactRequestDialogProps {
   professionalId: string;
@@ -27,6 +27,7 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: user?.email || '',
@@ -39,8 +40,14 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast.error('Debes iniciar sesión para contactar profesionales');
+    // Auth fallback: use supabase.auth.getUser() if AuthContext isn't ready
+    let userId = user?.id;
+    if (!userId) {
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      userId = freshUser?.id;
+    }
+    if (!userId) {
+      toast.error('Tu sesión expiró. Por favor iniciá sesión nuevamente.');
       return;
     }
 
@@ -57,7 +64,7 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
         .from('contact_requests')
         .insert({
           professional_id: professionalId,
-          user_id: user.id,
+          user_id: userId,
           type,
           name: formData.name.trim(),
           email: formData.email.trim(),
@@ -75,7 +82,7 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
       const { data: existingConversation } = await supabase
         .from('conversations')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('professional_id', professionalId)
         .eq('status', 'active')
         .single();
@@ -87,7 +94,7 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
         const { data: newConversation, error: convError } = await supabase
           .from('conversations')
           .insert({
-            user_id: user.id,
+            user_id: userId,
             professional_id: professionalId,
             contact_request_id: contactRequest.id,
             status: 'active'
@@ -120,7 +127,7 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
         .from('messages')
         .insert({
           conversation_id: conversationId,
-          sender_id: user.id,
+          sender_id: userId,
           sender_type: 'user',
           message_type: 'text',
           content: messageContent
@@ -137,19 +144,14 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
         // No bloquear el flujo si falla la notificación
       }
 
-      // 5. Mostrar éxito y redirigir al chat
-      toast.success(
-        type === 'contact' 
-          ? '¡Conversación iniciada! Redirigiendo al chat...' 
-          : '¡Solicitud enviada! Redirigiendo al chat...'
-      );
+      // 5. Mostrar éxito con animación y luego redirigir
+      setShowSuccess(true);
       
-      setOpen(false);
-      
-      // Redirigir al chat después de un breve delay
       setTimeout(() => {
+        setOpen(false);
+        setShowSuccess(false);
         navigate(`/user-dashboard?tab=messages&conversation=${conversationId}`);
-      }, 500);
+      }, 2000);
 
       setFormData({
         name: '',
@@ -159,9 +161,15 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
         service_type: '',
         budget_range: ''
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending request:', error);
-      toast.error('Error al enviar la solicitud');
+      if (error?.code === '42501' || error?.message?.includes('row-level security')) {
+        toast.error('Error de permisos. Intentá cerrar sesión y volver a entrar.');
+      } else if (error?.message?.includes('fetch') || error?.message?.includes('network')) {
+        toast.error('Error de conexión. Verificá tu internet e intentá de nuevo.');
+      } else {
+        toast.error('Error al enviar la solicitud. Intentá de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
@@ -209,6 +217,17 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
         </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-[425px]">
+        {showSuccess ? (
+          <div className="text-center py-8 space-y-4">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">¡Solicitud Enviada!</h3>
+            <p className="text-muted-foreground">El profesional te contactará pronto.</p>
+            <p className="text-xs text-muted-foreground">Redirigiendo al chat...</p>
+          </div>
+        ) : (
+        <>
         <DialogHeader>
           <DialogTitle>
             {type === 'contact' ? 'Contactar a' : 'Pedir Presupuesto a'} {professionalName}
@@ -310,6 +329,8 @@ export const ContactRequestDialog = ({ professionalId, professionalName, type, o
             </Button>
           </div>
         </form>
+        </>
+        )}
       </DialogContent>
     </Dialog>
   );
