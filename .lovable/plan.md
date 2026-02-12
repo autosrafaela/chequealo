@@ -1,86 +1,45 @@
 
-
-# Plan: Mejoras Visuales Premium - Fase 2
+# Plan: Header Minimalista Silicon Valley
 
 ## Resumen
 
-Aplicar 5 mejoras visuales adicionales: tarjetas de categoria con efecto rebote, boton WhatsApp con glow neon, titulos con gradiente de texto, avatares con forma organica, CTA inferior con glassmorphism y blobs, y convertir el sidebar CTA en burbuja de chat.
+Redisenar el Header completo para que sea ultra-limpio y minimalista, eliminando elementos redundantes y agrupando acciones secundarias dentro del menu hamburguesa.
 
 ---
 
-## Cambio 1: Tarjetas de Categorias con efecto rebote y bordes de color
+## Cambios en `src/components/Header.tsx`
 
-**Archivo:** `src/components/ServiceCategories.tsx`
+### 1. Logo + Badge Pioneros separado
+- Mantener logo a la izquierda
+- Badge "PIONEROS" como capsula independiente: fondo dorado solido (`bg-gradient-to-r from-amber-400 to-orange-400`), texto negro (`text-black`), font-weight bold, rounded-full, separado del logo con gap
 
-- Aumentar border-radius a `rounded-3xl` (24px)
-- Transicion con cubic-bezier de rebote: `cubic-bezier(0.175, 0.885, 0.32, 1.275)`
-- Hover: `translateY(-8px)`, sombra de color violeta (`shadow-[0_20px_40px_rgba(78,84,200,0.15)]`), borde que se enciende (`border-primary`)
-- Icono en hover: `scale(1.2) rotate(-5deg)` con drop-shadow
-- Agregar overflow-hidden y pseudo-gradiente sutil de fondo por categoria
+### 2. Eliminar selectores de Provincia/Ciudad
+- Quitar los dos `<select>` de provincia y ciudad del desktop (lineas 182-209)
+- Quitar los selectores de ubicacion del menu desplegable mobile (lineas 330-357)
+- Reemplazar por texto estatico: icono MapPin + "Rafaela, Santa Fe" en texto pequeno, visible solo en desktop (`hidden md:flex`)
 
----
+### 3. Eliminar barra de busqueda del header
+- Eliminar todo el bloque "Desktop Search Section" (lineas 159-231): input, selects, boton buscar, FilterDropdown
+- Eliminar el bloque "Mobile Search Expanded" (lineas 399-425)
+- Mantener solo un icono de lupa en mobile que navega a `/search` (ya existe el boton mobile)
+- En desktop, mostrar un boton icono de lupa discreto que navega a `/search` o hace scroll al Hero
 
-## Cambio 2: Boton WhatsApp con glow neon
+### 4. Mover "Sugerencias" y "Publicaciones" al menu hamburguesa
+- Quitar `FloatingWhatsAppWidget` del header principal
+- Agregar dentro del dropdown menu: boton "Sugerencias" (con icono MessageCircle) que ejecuta la misma logica de WhatsApp
+- Agregar "Publicaciones" (link a filtro "latest") dentro del menu
+- Eliminar FilterDropdown del header y moverlo al menu
 
-**Archivos:** `src/components/WhatsAppContactButton.tsx`, `src/components/EnhancedProfessionalCard.tsx`
+### 5. Estetica general
+- Cambiar fondo del header de `bg-navy` a `bg-white/80 backdrop-blur-xl border-b border-black/5` para efecto glassmorphism sutil sobre blanco
+- Actualizar colores de texto e iconos de `text-navy-foreground` a `text-foreground` (oscuro sobre fondo claro)
+- Aumentar padding interno para dar "aire": altura `h-16 sm:h-18`
+- Menu hamburguesa con icono limpio, sin texto extra visible
 
-- Fondo con gradiente: `bg-gradient-to-r from-green-500 to-green-700`
-- box-shadow con glow verde permanente: `shadow-[0_4px_15px_rgba(37,211,102,0.4)]`
-- Hover: glow intenso `shadow-[0_0_25px_rgba(37,211,102,0.7)]` + `scale(1.05)`
-- Aplicar tanto en el boton standalone como en las tarjetas de profesional
-
----
-
-## Cambio 3: Titulos con gradiente de texto
-
-**Archivos:** `src/index.css`, `src/components/Hero.tsx`, `src/components/LatestProfessionals.tsx`, `src/components/ServiceCategories.tsx`
-
-- Agregar clase utilitaria `.text-gradient-brand` en index.css:
-  ```css
-  .text-gradient-brand {
-    background: linear-gradient(90deg, hsl(220 26% 14%) 0%, hsl(220 40% 35%) 50%, hsl(258 90% 66%) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  ```
-- Aplicar a titulos de seccion: "Servicios Populares", "Profesionales Destacados"
-- En el Hero, mantener blanco (esta sobre fondo oscuro) pero aplicar gradiente al span "profesional"
-- letter-spacing: -0.03em en titulos principales
-
----
-
-## Cambio 4: Avatares con forma organica (squircle animado)
-
-**Archivo:** `src/index.css`, `src/components/EnhancedProfessionalCard.tsx`
-
-- Agregar keyframes `morph` en index.css para las fotos de perfil featured
-- Solo aplicar la animacion en tarjetas `featured` (las grandes del bento grid) para no saturar
-- Anillo externo con color primary separado via box-shadow
-- En tarjetas compactas: squircle estatico (border-radius organico fijo, sin animacion)
-
----
-
-## Cambio 5: CTA inferior con glassmorphism, blobs decorativos
-
-**Archivo:** `src/components/ProfessionalCTABanner.tsx` (componente `EnhancedProfessionalCTA`)
-
-- Gradiente de fondo actualizado: `from-[#667eea] to-[#764ba2]`
-- Agregar 3 blobs decorativos (divs absolutos con blur, border-radius 50%, bg-white/10)
-- Contenido principal con z-10 relativo
-- Botones con efecto glass sutil
-
----
-
-## Cambio 6: Sidebar CTA convertido en burbuja de chat
-
-**Archivo:** `src/components/ProfessionalCTABanner.tsx` (componente `DesktopSidebarCTA`)
-
-- Reemplazar el panel lateral grande por una burbuja compacta tipo FAB (Floating Action Button)
-- Posicion: fixed bottom-6 right-6 (en vez de centrado verticalmente)
-- Estado colapsado: circulo con icono de Briefcase + badge "Registrate"
-- Click: expande a mini-card con texto + boton (misma info actual pero mas chico)
-- Asi no compite con el contenido principal
+### 6. Menu desplegable rediseñado
+- Fondo blanco puro con sombra elegante y border-radius mayor (`rounded-2xl`)
+- Items con padding generoso y tipografia limpia
+- Incluir: Sugerencias (WhatsApp), Favoritos, Ordenar por (FilterDropdown), Instalar App, auth actions
 
 ---
 
@@ -88,11 +47,8 @@ Aplicar 5 mejoras visuales adicionales: tarjetas de categoria con efecto rebote,
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/index.css` | Clases: `.text-gradient-brand`, keyframes `morph`, `.avatar-organic` |
-| `src/components/ServiceCategories.tsx` | Efecto rebote, bordes de color, icono animado |
-| `src/components/WhatsAppContactButton.tsx` | Gradiente + glow neon |
-| `src/components/EnhancedProfessionalCard.tsx` | Glow en WhatsApp btn, avatar organico en featured |
-| `src/components/Hero.tsx` | Gradiente en span "profesional" |
-| `src/components/LatestProfessionals.tsx` | Gradiente en titulo de seccion |
-| `src/components/ProfessionalCTABanner.tsx` | CTA con blobs + sidebar como burbuja |
+| `src/components/Header.tsx` | Rediseno completo: eliminar search bar, selectores, mover items al menu, glassmorphism blanco |
 
+## Resultado esperado
+
+Header ultra-limpio con solo: Logo | Badge Pioneros | Ubicacion (texto) | Lupa (icono) | Notificaciones | Menu hamburguesa. Todo lo demas dentro del menu. Fondo blanco con blur sutil.
