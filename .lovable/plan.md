@@ -1,81 +1,105 @@
 
-# Plan: Corregir carga de conversaciones para usuarios profesionales
 
-## Problema Identificado
+# Plan: Rediseño Visual Premium del Homepage
 
-Cuando un usuario que **también es profesional** quiere chatear con **otro profesional** como cliente:
+## Resumen
 
-1. Se crea correctamente la conversación con:
-   - `professional_id` = ID del profesional objetivo (el que ofrece servicio)
-   - `user_id` = ID del usuario actual (aunque sea profesional, actúa como cliente)
+Transformar la experiencia visual del homepage aplicando las 5 mejoras solicitadas: Hero con glassmorphism, Bento Grid para profesionales, tipografía display, micro-interacciones, y badge "Pioneros".
 
-2. Pero `fetchConversations()` en `useChat.ts` tiene esta lógica defectuosa:
-   ```typescript
-   if (professional) {
-     query = query.eq('professional_id', professional.id);  // ← SOLO busca donde ÉL es el profesional
-   } else {
-     query = query.eq('user_id', user?.id);
-   }
-   ```
+---
 
-3. Como el usuario actual ES profesional, el sistema solo busca conversaciones donde `professional_id = su ID`, ignorando las conversaciones donde actúa como cliente (`user_id`).
+## Cambio 1: Hero con Glassmorphism - Buscador protagonista
 
-**Resultado:** La conversación existe en la BD pero no aparece en la lista → no se puede abrir.
+**Archivo:** `src/components/Hero.tsx`, `src/components/IntelligentSearch.tsx`
 
-## Solución
+- Reducir texto de bienvenida (menos "bla bla")
+- Buscador GIGANTE con efecto glassmorphism: `backdrop-filter: blur(12px)`, borde semitransparente, sombra profunda
+- Input mas alto (h-14 mobile, h-16 desktop), border-radius 20px, padding generoso
+- Quitar los USPs inline (redundantes con la seccion de abajo) para dar mas espacio al buscador
+- Titulo mas corto y directo: solo "Encontra al profesional que necesitas" con tipografia impactante
 
-Modificar la query en `fetchConversations()` para que usuarios profesionales vean **ambos tipos** de conversaciones:
-- Donde son el `professional_id` (reciben consultas de clientes)
-- Donde son el `user_id` (consultan a otros profesionales)
-
-## Cambios Necesarios
-
-### Archivo: `src/hooks/useChat.ts`
-
-**Función `fetchConversations()` (líneas ~75-110)**
-
-Cambiar la lógica de:
-```typescript
-if (professional) {
-  query = query.eq('professional_id', professional.id);
-} else {
-  query = query.eq('user_id', user?.id);
-}
+**Clases clave del buscador:**
+```
+bg-white/10 backdrop-blur-[12px] border border-white/20 
+shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-[20px] p-4 sm:p-6
 ```
 
-A:
-```typescript
-if (professional) {
-  // Profesional puede tener conversaciones en ambos roles:
-  // - Como profesional que recibe consultas (professional_id = su ID)
-  // - Como usuario que consulta a otros profesionales (user_id = su auth ID)
-  query = query.or(`professional_id.eq.${professional.id},user_id.eq.${user?.id}`);
-} else {
-  // Usuario normal solo tiene conversaciones como user_id
-  query = query.eq('user_id', user?.id);
-}
+---
+
+## Cambio 2: Bento Grid para Profesionales Destacados
+
+**Archivo:** `src/components/LatestProfessionals.tsx`, `src/components/EnhancedProfessionalCard.tsx`
+
+- Reemplazar la grilla uniforme por una Bento Grid asimetrica
+- Los primeros 2 profesionales (verificados, mejor rating) ocupan `col-span-2 row-span-2` (tarjeta grande, mas detalle)
+- Los siguientes ocupan 1x1 (tarjeta compacta)
+- CSS Grid con `grid-auto-rows` y clases de span condicionales
+- Las tarjetas grandes muestran descripcion completa, foto mas grande, y boton de contacto visible
+
+**Estructura de la grilla:**
+```
+grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4
+grid-auto-rows: minmax(200px, auto)
 ```
 
-### Ajuste adicional en RLS (verificación)
+---
 
-Revisar que la política RLS de `conversations` para SELECT incluya ambos casos. Según el esquema actual:
-```sql
-USING ((user_id = auth.uid()) OR (professional_id IN (
-  SELECT professionals.id FROM professionals WHERE professionals.user_id = auth.uid()
-)))
-```
-Esta política **ya está correcta** - permite ver conversaciones donde eres el `user_id` O donde tu perfil profesional es el `professional_id`.
+## Cambio 3: Tipografia Display con clamp()
 
-## Resumen de Archivos a Modificar
+**Archivo:** `src/index.css`, `src/components/Hero.tsx`, `src/components/LatestProfessionals.tsx`
+
+- Importar fuente "Inter" con peso 800-900 para titulos (ya disponible en Google Fonts, muy similar a Clash Display pero sin licencia)
+- Usar `clamp()` para scaling fluido: `font-size: clamp(2rem, 5vw + 1rem, 4rem)`
+- Letter-spacing negativo (-0.02em) para look premium
+- Line-height compacto (0.95) en titulos principales
+- Aplicar a: Hero h1, titulos de seccion, nombre de profesionales en card grande
+
+---
+
+## Cambio 4: Micro-interacciones en tarjetas
+
+**Archivo:** `src/components/EnhancedProfessionalCard.tsx`, `src/components/ProfessionalCard.tsx`, `src/components/ServiceCategories.tsx`
+
+- Hover: `translateY(-5px) scale(1.02)` con `cubic-bezier(0.25, 0.8, 0.25, 1)`
+- Sombra que crece en hover: `shadow-[0_20px_40px_rgba(0,0,0,0.15)]`
+- Borde de color accent que aparece en hover: `border-primary/40`
+- Glow sutil en tarjetas de profesionales verificados
+- Categorias de servicio: escala e iluminacion al hover
+- Transicion suave de 300ms en todas las propiedades
+
+---
+
+## Cambio 5: Badge "Programa Pioneros"
+
+**Archivo:** `src/components/Header.tsx` (o nuevo componente `src/components/PioneersBadge.tsx`)
+
+- Badge flotante en el header, estilo VIP con gradiente dorado
+- Texto: "PIONEROS" con gradient text (`background-clip: text`)
+- Borde dorado, border-radius pill, letra spacing amplio
+- Visible en desktop como badge en el header
+- En mobile: integrado discretamente junto al logo
+- Gradiente: `linear-gradient(45deg, #FFD700, #FF8C00)`
+
+---
+
+## Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useChat.ts` | Modificar query en `fetchConversations()` para usar `.or()` cuando el usuario es profesional |
+| `src/index.css` | Agregar font import, clases glassmorphism, animaciones hover |
+| `src/components/Hero.tsx` | Redisenar con glassmorphism, menos texto, buscador protagonista |
+| `src/components/IntelligentSearch.tsx` | Estilos glassmorphism, input mas grande |
+| `src/components/LatestProfessionals.tsx` | Bento Grid layout |
+| `src/components/EnhancedProfessionalCard.tsx` | Variante "featured" grande + micro-interacciones |
+| `src/components/ProfessionalCard.tsx` | Micro-interacciones hover |
+| `src/components/ServiceCategories.tsx` | Micro-interacciones en categorias |
+| `src/components/Header.tsx` | Badge Pioneros |
 
-## Resultado Esperado
+## Resultado esperado
 
-Después del fix:
-- Un profesional verá en su lista TODAS sus conversaciones:
-  - Donde clientes le escriben a él (es el `professional_id`)
-  - Donde él escribe a otros profesionales (es el `user_id`)
-- La conversación `f6175d58-58b0-4a82-ace4-4c7667e10720` aparecerá en la lista y podrá abrirse correctamente
+- Homepage que se siente "cara" y moderna, no generica
+- Buscador como elemento central que invita a la accion
+- Tarjetas de profesionales con jerarquia visual (destacados vs normales)
+- Interacciones que dan vida a cada elemento
+- Identidad de marca reforzada con el badge Pioneros
+
