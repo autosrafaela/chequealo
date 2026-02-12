@@ -1,53 +1,95 @@
 
+# Plan: Rediseno de Comunicacion en el Dashboard Profesional
 
-# Plan: Busqueda Imbatible - Mejoras Finales
+## Resumen
 
-## Analisis
+Fusionar la pestana "Solicitudes" con "Mensajes", transformar la seccion de mensajes en una interfaz de chat moderno a pantalla completa dentro del dashboard, y simplificar las acciones rapidas para destacar unicamente el boton de Mensajes con contador en tiempo real.
 
-La mayor parte de la logica ya esta implementada (sinonimos, fuzzy match, multicampo, prioridad geografica, busqueda en professional_professions). Los cambios necesarios son puntuales.
+---
 
-## Cambios
+## Cambios Detallados
 
-### 1. Expandir diccionario de sinonimos (useAdvancedSearch.ts)
+### 1. Fusionar Solicitudes en Mensajes (ProfessionalDashboard.tsx)
 
-Agregar terminos faltantes al SYNONYM_MAP existente:
+**Que cambia:**
+- Eliminar el `TabsTrigger` de "Solicitudes" (value="requests") de la lista de tabs
+- Eliminar el `TabsContent value="requests"` completo (lineas 629-659)
+- En el `TabsContent value="messages"`, integrar las solicitudes pendientes (TransactionConfirmationCard, ReadyToRateTransactions, ContactRequestsPanel) como una seccion colapsable ARRIBA del chat
+- Reducir las tabs de 9 a 8: Mensajes, Resenas, Servicios, Portfolio, Trabajos, Suscripcion, Mi Perfil, Config
 
-- **Plomero / Gasista**: agregar `'baño'`, `'tanque'`, `'desagote'`, `'sifon'`
-- **Tecnico de Aire Acondicionado**: agregar `'frio'`, `'frío'`, `'calefaccion'`
-- **Tecnico en Refrigeracion**: agregar entrada nueva con `'heladera'`, `'freezer'`, `'refrigerador'`
-- **Albañil**: agregar `'humedad'`, `'fisura'`, `'rajadura'`
-- **Techista**: agregar `'filtracion'`, `'lluvia'`
+**Logica de integracion:**
+- Las solicitudes de contacto (ContactRequestsPanel) se muestran como un banner/acordeon dentro de la tab de Mensajes
+- Cada solicitud pendiente incluye un boton "Responder" que abre el chat directamente
+- Las confirmaciones pendientes (TransactionConfirmationCard) tambien se muestran arriba del chat
 
-### 2. Pantalla "Sin Resultados" mejorada (Search.tsx)
+### 2. Interfaz de Chat Moderno a Pantalla Completa (MessagesDesktopLayout.tsx)
 
-Reemplazar la card simple actual (lineas 168-181) por un diseño con:
+**Que cambia:**
+- Cambiar la altura fija de `h-[600px]` a `h-[calc(100vh-300px)] min-h-[500px]` para ocupar mas pantalla
+- En la columna izquierda (lista de chats):
+  - Mantener foto circular (Avatar), nombre, ultimo mensaje y fecha (ya existe)
+  - Mejorar el empty state del avatar con icono User en lugar de iniciales
+- En la columna derecha (area de chat):
+  - Mantener las burbujas existentes del MessageBubble (ya usa colores tematicos via CSS variables)
+  - El color de burbujas se controla via `--chat-bubble-sent` y `--chat-bubble-received` en el tema
 
-- Icono de lupa con cara triste (SearchX de lucide-react)
-- Titulo: "No encontramos lo que buscas..."
-- Subtitulo contextual con el termino buscado
-- Formulario ultra-corto con un solo campo de texto + boton "Avisarme"
-- Al enviar, guardar en una tabla existente o mostrar toast de confirmacion
-- Boton secundario "Limpiar filtros"
+**Header del chat (ChatHeader + WhatsAppChatView):**
+- Ya muestra nombre y profesion del contacto
+- Agregar etiqueta contextual: "Interesado en: [profesion]" cuando el chat viene de un contact_request con service_type
+- Para esto, al cargar la conversacion, buscar si tiene `contact_request_id` y mostrar el `service_type` del contact_request asociado
 
-Dado que no existe una tabla para estas solicitudes, el formulario insertara en `contact_requests` con type `'search_request'` y el mensaje sera lo que el usuario busco. Alternativamente, si no queremos contaminar esa tabla, simplemente mostramos un toast de exito simulado con el mensaje "Te avisaremos cuando haya profesionales de [termino]".
+**Input de mensaje:**
+- Ya existe con boton de enviar (Send icon) y adjuntar archivos (Paperclip)
+- Sin cambios necesarios, la funcionalidad esta completa
 
-Enfoque elegido: toast simple sin persistencia en DB (mas liviano, sin migracion).
+### 3. Etiqueta "Interesado en" en el Header del Chat
 
-### 3. Actualizacion automatica de rubros nuevos
+**Archivo:** `src/components/chat/MessagesDesktopLayout.tsx`
 
-La busqueda ya consulta `professional_professions` en cada ejecucion, por lo que rubros nuevos son encontrables al instante. No se necesita cambio adicional. La unica mejora es asegurar que `EditMyServices` invalide el cache de busqueda:
+En el ChatPanel, cuando se selecciona una conversacion que tiene `contact_request_id`, consultar el `service_type` del contact_request asociado y mostrarlo como badge debajo del nombre:
 
-En `EditMyServices.tsx`, despues del guardado exitoso, agregar:
-```typescript
-queryClient.invalidateQueries({ queryKey: ['search'] });
+```text
+Juan Perez
+Interesado en: Lobbista
 ```
 
-Esto ya se implemento parcialmente en el cambio anterior. Solo necesitamos verificar que la invalidacion cubra las queries relevantes.
+Esto requiere expandir la query de conversaciones para incluir el service_type del contact_request relacionado, o hacer una query adicional al seleccionar la conversacion.
 
-## Archivos a modificar
+Enfoque elegido: agregar el campo `service_type` a la relacion de conversacion, consultando `contact_requests(service_type, type)` en la query de fetchConversations del useChat hook.
+
+### 4. Acciones Rapidas - Solo Mensajes con Contador (ActiveUserDashboard.tsx)
+
+**Que cambia:**
+- Reducir la grilla de 4 tiles a una sola accion prominente: "Mensajes"
+- Mostrar un contador de notificaciones pendientes (unread messages + pending requests) en tiempo real
+- El tile de Mensajes sera mas grande, ocupando el ancho completo
+- Mantener los otros 3 tiles (Perfil Publico, Servicios, Galeria) pero como links secundarios mas pequenos debajo
+
+**Implementacion del contador:**
+- Usar `useNotification` context para obtener el unread count de mensajes
+- Sumar `stats.pendingRequests` para las solicitudes pendientes
+- Mostrar como badge rojo sobre el icono de Mensajes
+
+### 5. Redireccion de "Ver solicitudes ahora" (ActiveUserDashboard.tsx)
+
+**Que cambia:**
+- El boton urgente "Ver solicitudes ahora" (ZONA 1) cambia de `onTabChange('requests')` a `onTabChange('messages')`
+- Los links de "Consultas Recientes" tambien redirigen a `onTabChange('messages')` en lugar de `onTabChange('requests')`
+
+---
+
+## Archivos a Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useAdvancedSearch.ts` | Expandir SYNONYM_MAP con terminos faltantes |
-| `src/pages/Search.tsx` | Pantalla "Sin Resultados" con icono triste, mensaje contextual y mini-formulario |
+| `src/pages/ProfessionalDashboard.tsx` | Eliminar tab "Solicitudes", mover su contenido a tab "Mensajes", reordenar tabs |
+| `src/components/chat/MessagesDesktopLayout.tsx` | Aumentar altura, agregar seccion de solicitudes pendientes arriba del chat, mostrar etiqueta "Interesado en" |
+| `src/components/dashboard/ActiveUserDashboard.tsx` | Hacer "Mensajes" la accion principal con contador, cambiar redirects de 'requests' a 'messages' |
+| `src/hooks/useChat.ts` | Expandir query de conversaciones para incluir `contact_requests(service_type)` |
 
+## Notas Tecnicas
+
+- No se requieren migraciones de base de datos
+- La tabla `contact_requests` ya tiene el campo `service_type` que se usara para la etiqueta "Interesado en"
+- La tabla `conversations` ya tiene `contact_request_id` como FK opcional
+- El NotificationContext ya provee contadores de mensajes no leidos en tiempo real
