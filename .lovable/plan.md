@@ -1,85 +1,78 @@
 
-# Plan: Mejora del Dashboard Profesional
+# Plan: Finalizacion del Rediseno del Dashboard Profesional
 
 ## Resumen
 
-Cinco mejoras clave: (1) permitir activar perfil profesional desde el dashboard de usuario sin re-registro, (2) reemplazar alerta de suscripcion expirada por banner dorado "Programa Pioneros", (3) redisenar el switch de visibilidad con borde verde, (4) mejorar agrupacion y estilo de acciones rapidas, (5) empty states con grafico ilustrativo.
+Transformar el dashboard profesional con un widget de visibilidad mas impactante, acciones rapidas con iconos circulares en colores pastel, un feed de "Consultas Recientes", y una estetica general mas limpia con sombras suaves y sin bordes innecesarios.
 
 ---
 
-## 1. Activar Perfil Profesional desde UserDashboard
+## 1. Saludo con emoji y tipografia amigable
 
-**Archivo:** `src/pages/UserDashboard.tsx`
+**Archivo:** `src/pages/ProfessionalDashboard.tsx` (linea ~516)
 
-- Agregar un boton/card en el dashboard del usuario: "Activar Perfil Profesional"
-- Solo visible si el usuario NO tiene registro en la tabla `professionals`
-- Al hacer clic, abrir un Dialog/Modal que pida solo los datos faltantes:
-  - Profesion (selector de tags como en Register)
-  - Descripcion breve
-  - DNI/CUIT
-  - Telefono (si no lo tiene en su perfil)
-- Al confirmar, insertar en la tabla `professionals` usando los datos existentes del perfil (`full_name`, `email`, `location` desde `profiles`)
-- Redirigir a `/dashboard` tras la creacion exitosa
-- No requiere volver a loguearse
+- Cambiar `Hola, {nombre} 👋` a usar tipografia mas amigable: `text-2xl md:text-3xl font-extrabold tracking-tight`
+- Mantener el emoji de saludo (ya existe el 👋)
 
-**Archivo:** `src/pages/ProfessionalDashboard.tsx`
-- Actualizar el bloque "No tienes perfil profesional" (lineas 475-498) para redirigir a `/user-dashboard` con un query param `?activate=professional` en lugar de `/register`
-
-## 2. Banner "Programa Pioneros Activo" (reemplaza SubscriptionAlert)
-
-**Archivo:** `src/components/SubscriptionAlert.tsx`
-
-- Cuando el status sea `trial`, en vez de ocultarlo (`return null`), mostrar un banner dorado elegante:
-  - Fondo: `bg-gradient-to-r from-amber-50 to-orange-50 border-amber-300`
-  - Icono de estrella/corona dorada
-  - Texto: "Programa Pioneros Activo: Tenes X dias de acceso gratuito"
-  - Badge dorado con "PIONERO" 
-  - Sin boton de accion agresivo, solo informativo
-- Mantener los estados `payment_reminder`, `payment_required`, `expired` como estan
-
-## 3. Rediseno del Switch de Visibilidad
+## 2. Widget de Visibilidad rediseñado
 
 **Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
 
-- Redisenar la card de "Estas trabajando hoy?" en la DashboardHero:
-  - Switch mas grande: `scale-150` con contenedor visual prominente
-  - Cuando `isActiveInZone === true`: toda la card tiene `border-2 border-green-400 shadow-[0_0_15px_rgba(74,222,128,0.3)]` (borde verde brillante con glow)
-  - Cuando `isActiveInZone === false`: borde normal gris
-  - Agregar un indicador circular animado (pulso verde) cuando esta activo
-  - Texto mas grande y claro: "EN LINEA" vs "FUERA DE LINEA"
+- Reemplazar el `DashboardHero` de visibilidad por un bloque custom sin usar Card con bordes:
+  - Fondo: `bg-white rounded-2xl shadow-sm p-6` (shadow suave, sin borde visible)
+  - Switch mas grande y prominente con label claro
+  - **ON**: badge verde pulsante "Activo en [ciudad]" (usa `professional.city` o fallback "tu zona"), borde verde sutil `border border-green-200`, glow `shadow-[0_0_20px_rgba(74,222,128,0.15)]`
+  - **OFF**: aplica `grayscale-[30%] opacity-90` al wrapper del dashboard completo (div padre), con un mensaje centrado: "Estas invisible para los clientes" en `text-muted-foreground italic`
+- El switch ocupa un area visual grande: contenedor flex con icono de MapPin a la izquierda, texto al centro, switch a la derecha
 
-## 4. Acciones Rapidas Mejoradas
+## 3. Grid de Acciones Rapidas 3x2 con iconos circulares pastel
 
 **Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
 **Archivo:** `src/components/dashboard/QuickActionTile.tsx`
 
 En `QuickActionTile.tsx`:
-- Agregar prop `iconColor` para colores individuales por tile
-- Aplicar color al icono y al fondo del contenedor del icono
-- Reducir padding para que esten mas compactos: `p-4` en vez de `p-5`
-- Bordes mas sutiles: `border` en vez de `border-2`
+- Cambiar el fondo del icono de `rounded-xl` a `rounded-full` (circular)
+- Usar colores pastel suaves para el fondo: `bg-blue-50`, `bg-green-50`, `bg-purple-50`, etc.
+- Eliminar borde del Card: `border-0 shadow-sm hover:shadow-md`
+- Iconos ligeramente mas grandes: `h-6 w-6`
 
 En `ActiveUserDashboard.tsx`:
-- Pasar colores especificos a cada tile:
-  - Ver Perfil: azul (`text-blue-500`)
-  - Servicios: verde (`text-green-500`)
-  - Portfolio: violeta (`text-purple-500`)
-  - Mensajes: naranja (`text-orange-500`)
-  - Configuracion: gris (`text-gray-500`)
-  - Mi Profesion: amber (`text-amber-500`)
-- Grid mas compacto: `gap-3` en vez de `gap-4`
+- Cambiar grid de `grid-cols-2 md:grid-cols-3 lg:grid-cols-6` a `grid-cols-3 gap-4` (3x2 fijo)
+- Renombrar las 6 acciones:
+  1. "Mi Perfil Publico" (Eye, azul)
+  2. "Mis Servicios" (Package, verde)
+  3. "Galeria de Trabajos" (Camera, purpura)
+  4. "Mensajes" (MessageCircle, naranja)
+  5. "Configuracion" (Settings, gris)
+  6. "Mi Plan Pioneros" (Crown/Award, amber) - reemplaza "Mi Profesion"
+- Eliminar el acordeon de "Mas opciones" (Collapsible) y el ProfessionModal ya que "Mi Plan Pioneros" lleva al tab de suscripcion
 
-## 5. Empty States con Grafico Ilustrativo
+## 4. Feed de Consultas Recientes
+
+**Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
+
+- Agregar debajo del widget de visibilidad una seccion "Consultas Recientes"
+- Query a `contact_requests` filtrando por `professional_id`, ordenado por `created_at DESC`, limit 3
+- Si hay consultas: mostrar cada una como un item con avatar placeholder, nombre del cliente, mensaje truncado y fecha relativa
+- Si NO hay consultas (empty state):
+  - Icono grande de `MessageCircle` con opacity baja
+  - Texto: "Aun no tenes mensajes. Asegurate de tener tu perfil completo para atraer clientes!"
+  - Boton sutil: "Completar mi perfil" que lleva a `onTabChange('settings')`
+- Contenedor: `bg-white rounded-2xl shadow-sm p-6` (sin bordes)
+
+## 5. Estetica General - Sombras suaves y sin bordes
+
+**Archivo:** `src/components/dashboard/ActiveUserDashboard.tsx`
+
+- Wrapper principal: si `isActiveInZone === false`, aplicar `className="grayscale-[30%] opacity-90 transition-all duration-500"` al div padre, con un banner sutil arriba
+- Reemplazar la Card de DashboardHero de "contactos pendientes" (variant danger) por un div con `bg-white rounded-2xl shadow-sm`
+- Eliminar `border-2` de las cards de metricas; usar solo `shadow-sm` y `rounded-2xl`
 
 **Archivo:** `src/components/dashboard/MetricCard.tsx`
+- Cambiar Card a: `border-0 shadow-sm rounded-2xl hover:shadow-md`
 
-- Agregar logica: cuando `value === 0` o `value === "0.0"`, mostrar un "empty state" especial:
-  - En lugar del numero "0" grande, mostrar un mini grafico de barras SVG con opacidad baja (3-4 barras grises escalonadas, estilo placeholder)
-  - Debajo del grafico: texto "Proximamente veras aqui tus estadisticas" en `text-xs text-muted-foreground italic`
-  - Mantener el label y el icono normales
-
-**Archivo:** `src/components/dashboard/NewUserDashboard.tsx`
-- Aplicar el mismo patron a las MetricCards que ya muestran 0
+**Archivo:** `src/components/dashboard/DashboardHero.tsx`
+- Cambiar Card a: `border-0 shadow-sm rounded-2xl` (eliminar `border-2`)
 
 ---
 
@@ -87,27 +80,32 @@ En `ActiveUserDashboard.tsx`:
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/UserDashboard.tsx` | Boton + Modal "Activar Perfil Profesional" |
-| `src/pages/ProfessionalDashboard.tsx` | Redirigir a UserDashboard en vez de Register |
-| `src/components/SubscriptionAlert.tsx` | Banner dorado "Programa Pioneros" para trial |
-| `src/components/dashboard/ActiveUserDashboard.tsx` | Switch grande con borde verde, tiles coloridos |
-| `src/components/dashboard/QuickActionTile.tsx` | Prop iconColor, padding compacto |
-| `src/components/dashboard/MetricCard.tsx` | Empty state con grafico SVG placeholder |
-
----
+| `src/components/dashboard/ActiveUserDashboard.tsx` | Widget visibilidad, grid 3x2, feed consultas, estetica sin bordes, efecto grayscale OFF |
+| `src/components/dashboard/QuickActionTile.tsx` | Iconos circulares pastel, sin borde, shadow suave |
+| `src/components/dashboard/MetricCard.tsx` | Sin borde, shadow suave, rounded-2xl |
+| `src/components/dashboard/DashboardHero.tsx` | Sin borde, shadow suave, rounded-2xl |
+| `src/pages/ProfessionalDashboard.tsx` | Tipografia del saludo mas amigable |
 
 ## Detalles tecnicos
 
-### Modal de activacion profesional
-- Consulta inicial: `supabase.from('professionals').select('id').eq('user_id', user.id).maybeSingle()` para verificar si ya existe
-- Insert: reutiliza `full_name` y `email` del perfil existente
-- No necesita migracion de BD, la tabla `professionals` ya tiene todos los campos necesarios
-
-### SVG placeholder para empty states
-```text
-Un mini grafico de barras con 4 rectangulos de alturas 40%, 65%, 50%, 80%, color gris con opacity 0.15, sobre fondo transparente. Aproximadamente 60x40px.
+### Query de Consultas Recientes
+```
+supabase.from('contact_requests')
+  .select('id, client_name, message, created_at, status')
+  .eq('professional_id', professional.id)
+  .order('created_at', { ascending: false })
+  .limit(3)
 ```
 
-### Switch de visibilidad
-- Usar `transition-all duration-500` para que el cambio de borde sea suave
-- El glow verde usa `shadow-[0_0_15px_rgba(74,222,128,0.3)]`
+### Efecto grayscale cuando OFF
+- Envolver todo el contenido del dashboard en un div con clase condicional:
+  `className={cn('space-y-6 transition-all duration-500', !isActiveInZone && 'grayscale-[30%] opacity-90')}`
+- El widget de visibilidad queda FUERA del wrapper grayscale para que siempre se vea a color
+
+### Colores pastel para iconos circulares
+- Mi Perfil Publico: `bg-blue-50 text-blue-500`
+- Mis Servicios: `bg-green-50 text-green-500`
+- Galeria de Trabajos: `bg-purple-50 text-purple-500`
+- Mensajes: `bg-orange-50 text-orange-500`
+- Configuracion: `bg-gray-100 text-gray-500`
+- Mi Plan Pioneros: `bg-amber-50 text-amber-500`
