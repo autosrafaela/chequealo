@@ -28,17 +28,18 @@ export interface Professional {
 
 // --- Diccionario de sinónimos ---
 const SYNONYM_MAP: Record<string, string[]> = {
-  'Plomero / Gasista': ['agua', 'cano', 'canilla', 'griferia', 'perdida', 'cañeria', 'inundacion'],
+  'Plomero / Gasista': ['agua', 'cano', 'canilla', 'griferia', 'perdida', 'cañeria', 'inundacion', 'baño', 'tanque', 'desagote', 'sifon', 'desague'],
   'Electricista': ['luz', 'corriente', 'termica', 'enchufe', 'cortocircuito', 'cable', 'tablero'],
   'Abogado': ['defensa', 'juicio', 'legal', 'demanda', 'contrato', 'lobbista'],
-  'Técnico de Aire Acondicionado': ['aire', 'split', 'frio calor', 'refrigeracion', 'climatizacion'],
+  'Técnico de Aire Acondicionado': ['aire', 'split', 'frio calor', 'refrigeracion', 'climatizacion', 'frio', 'frío', 'calefaccion'],
+  'Técnico en Refrigeración': ['heladera', 'freezer', 'refrigerador', 'enfriador'],
   'Pintor': ['pintar', 'pintura', 'paredes', 'latex', 'esmalte'],
   'Cerrajero': ['cerraduras', 'llave', 'puerta trabada', 'cerradura'],
   'Colocador de Pisos': ['piso', 'ceramico', 'porcelanato', 'baldosa'],
   'Fumigador / Control de Plagas': ['plagas', 'cucarachas', 'ratas', 'fumigacion', 'hormiga'],
   'Mecánico': ['auto', 'motor', 'frenos', 'aceite', 'taller'],
   'Carpintero / Ebanista': ['muebles', 'madera', 'estantes', 'carpinteria'],
-  'Techista': ['techo', 'gotera', 'membrana', 'canaleta'],
+  'Techista': ['techo', 'gotera', 'membrana', 'canaleta', 'filtracion', 'lluvia'],
   'Instalador de Alarmas': ['alarma', 'seguridad', 'camaras'],
   'Instalador de Internet': ['internet', 'wifi', 'red'],
   'Reparación de Celulares': ['celular', 'pantalla rota', 'telefono'],
@@ -52,7 +53,7 @@ const SYNONYM_MAP: Record<string, string[]> = {
   'Diseñador Gráfico': ['diseno', 'logo', 'marca', 'diseño'],
   'Desarrollador Web': ['web', 'pagina', 'sitio', 'app'],
   'Contador': ['contabilidad', 'impuestos', 'monotributo'],
-  'Albañil': ['construccion', 'obra', 'pared', 'revoque', 'albañileria'],
+  'Albañil': ['construccion', 'obra', 'pared', 'revoque', 'albañileria', 'humedad', 'fisura', 'rajadura'],
   'Gasista': ['gas', 'garrafa', 'calefon'],
   'Jardinero': ['jardin', 'cesped', 'poda', 'plantas'],
 };
