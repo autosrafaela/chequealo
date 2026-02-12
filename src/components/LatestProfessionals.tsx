@@ -26,7 +26,6 @@ export const LatestProfessionals = () => {
   useEffect(() => {
     const fetchFeaturedProfessionals = async () => {
       try {
-        // Fetch verified professionals ordered by rating and review count
         const { data, error } = await supabase
           .from('professionals_with_contact')
           .select('*')
@@ -40,7 +39,6 @@ export const LatestProfessionals = () => {
           return;
         }
 
-        // If we don't have enough verified professionals, fetch more
         if (!data || data.length < 8) {
           const { data: moreData } = await supabase
             .from('professionals_with_contact')
@@ -65,16 +63,13 @@ export const LatestProfessionals = () => {
 
   if (loading) {
     return (
-      <section className="py-8 sm:py-12 md:py-16 bg-background">
+      <section className="py-10 sm:py-14 md:py-20 bg-background">
         <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-6 sm:mb-8 md:mb-12">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-4 flex items-center justify-center gap-2">
-              <Star className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500" />
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-display text-foreground" style={{ fontSize: 'clamp(1.5rem, 3vw + 0.5rem, 2.5rem)' }}>
+              <Star className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500 inline-block mr-2 align-middle" />
               Profesionales Destacados
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
-              Los mejores profesionales verificados con mejor reputación
-            </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {[...Array(8)].map((_, index) => (
@@ -91,32 +86,41 @@ export const LatestProfessionals = () => {
   }
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 bg-background">
+    <section className="py-10 sm:py-14 md:py-20 bg-background">
       <div className="container mx-auto px-3 sm:px-4">
-        <div className="text-center mb-6 sm:mb-8 md:mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-4 flex items-center justify-center gap-2">
-            <Star className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500" />
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-display text-foreground mb-2 sm:mb-3" style={{ fontSize: 'clamp(1.5rem, 3vw + 0.5rem, 2.5rem)' }}>
+            <Star className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500 inline-block mr-2 align-middle" />
             Profesionales Destacados
           </h2>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             Los mejores profesionales verificados con mejor reputación
           </p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8 sm:mb-10 md:mb-12">
-          {professionals.map((professional) => (
-            <div key={professional.id} className="animate-fade-in">
-              <EnhancedProfessionalCard
-                professional={professional}
-                compact={true}
-              />
-            </div>
-          ))}
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 mb-10 sm:mb-12" 
+             style={{ gridAutoRows: 'minmax(0, auto)' }}>
+          {professionals.map((professional, index) => {
+            const isFeatured = index < 2;
+            return (
+              <div 
+                key={professional.id} 
+                className={`animate-fade-in ${isFeatured ? 'sm:col-span-2 sm:row-span-2' : ''}`}
+              >
+                <EnhancedProfessionalCard
+                  professional={professional}
+                  compact={!isFeatured}
+                  featured={isFeatured}
+                />
+              </div>
+            );
+          })}
         </div>
 
         <div className="text-center">
           <Link to="/search">
-            <Button size="default" className="hover-scale text-sm sm:text-base px-4 sm:px-6">
+            <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 rounded-xl">
               Ver Todos los Profesionales
               <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
             </Button>

@@ -27,12 +27,14 @@ interface EnhancedProfessionalCardProps {
   professional: Professional;
   compact?: boolean;
   showDistance?: boolean;
+  featured?: boolean;
 }
 
 export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> = ({
   professional,
   compact = false,
-  showDistance = true
+  showDistance = true,
+  featured = false
 }) => {
   const navigate = useNavigate();
   const { favorites, toggleFavorite, loading: favoritesLoading } = useFavorites();
@@ -77,14 +79,18 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
 
   return (
     <Card 
-      className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+      className={`group cursor-pointer card-hover-premium border ${
+        featured 
+          ? 'border-primary/20 shadow-md h-full' 
+          : 'hover:border-primary/30'
+      } ${professional.is_verified ? 'hover:shadow-[0_20px_40px_rgba(var(--primary),0.1)]' : ''}`}
       onClick={handleCardClick}
     >
-      <CardContent className={`p-3 sm:p-4 ${compact ? 'pb-2 sm:pb-3' : 'pb-3 sm:pb-4'}`}>
+      <CardContent className={`${featured ? 'p-4 sm:p-6' : 'p-3 sm:p-4'} ${compact ? 'pb-2 sm:pb-3' : 'pb-3 sm:pb-4'} h-full`}>
         <div className="flex gap-3 sm:gap-4">
           {/* Avatar and Status - Responsive */}
           <div className="relative flex-shrink-0">
-            <Avatar className={compact ? "h-10 w-10 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16"}>
+            <Avatar className={featured ? "h-16 w-16 sm:h-20 sm:w-20" : compact ? "h-10 w-10 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16"}>
               <AvatarImage src={professional.image_url} alt={professional.full_name.toUpperCase()} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs sm:text-sm">
                 {professional.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
@@ -114,8 +120,8 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
                   {professional.profession}
                 </p>
                 
-                {!compact && professional.description && (
-                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-2 sm:mb-3 hidden sm:block">
+                {(featured || !compact) && professional.description && (
+                  <p className={`text-muted-foreground mb-2 sm:mb-3 ${featured ? 'text-sm sm:text-base line-clamp-3' : 'text-xs sm:text-sm line-clamp-2 hidden sm:block'}`}>
                     {professional.description}
                   </p>
                 )}
@@ -188,14 +194,14 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
               </div>
 
               {/* Contact Button - Responsive */}
-              {!compact && (
+              {(featured || !compact) && (
                 <Button
-                  size="sm"
+                  size={featured ? "default" : "sm"}
                   onClick={handleContactClick}
-                  className="flex items-center gap-1 sm:gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 h-auto"
+                  className={`flex items-center gap-1 sm:gap-2 bg-green-600 hover:bg-green-700 h-auto ${featured ? 'text-sm px-4 py-2 rounded-xl' : 'text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5'}`}
                 >
-                  <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">WhatsApp</span>
+                  <MessageCircle className={featured ? "h-4 w-4" : "h-3 w-3 sm:h-4 sm:w-4"} />
+                  <span className={featured ? "" : "hidden sm:inline"}>WhatsApp</span>
                 </Button>
               )}
             </div>

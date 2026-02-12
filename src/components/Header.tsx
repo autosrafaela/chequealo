@@ -144,12 +144,15 @@ const Header = () => {
       <div className="container mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo - Responsive */}
-          <Link to="/" className="flex items-center flex-shrink-0">
+          <Link to="/" className="flex items-center flex-shrink-0 gap-2">
             <img 
               src={chequealoLogo} 
               alt="Chequealo" 
               className="h-8 sm:h-10 md:h-12 w-auto" 
             />
+            <span className="hidden sm:inline-block badge-pioneros text-[10px] sm:text-xs border border-yellow-500/40 px-2 py-0.5 rounded-full">
+              PIONEROS
+            </span>
           </Link>
 
           {/* Desktop Search Section - Hidden on mobile */}
