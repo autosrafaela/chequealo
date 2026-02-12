@@ -19,6 +19,8 @@ const portalRequestSchema = z.object({
         // Whitelist allowed domains
         const allowedDomains = [
           'chequealo.lovable.app',
+          'chequealo.net',
+          'www.chequealo.net',
           'chequealo.ar',
           'www.chequealo.ar',
           'localhost',

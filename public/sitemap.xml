@@ -8,7 +8,7 @@
   
   <!-- Homepage -->
   <url>
-    <loc>https://chequealo.ar/</loc>
+    <loc>https://chequealo.net/</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -16,7 +16,7 @@
   
   <!-- Search Page -->
   <url>
-    <loc>https://chequealo.ar/search</loc>
+    <loc>https://chequealo.net/search</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
@@ -24,7 +24,7 @@
   
   <!-- How It Works -->
   <url>
-    <loc>https://chequealo.ar/how-it-works</loc>
+    <loc>https://chequealo.net/how-it-works</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -32,7 +32,7 @@
   
   <!-- Pricing -->
   <url>
-    <loc>https://chequealo.ar/pricing</loc>
+    <loc>https://chequealo.net/pricing</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -40,7 +40,7 @@
   
   <!-- FAQ -->
   <url>
-    <loc>https://chequealo.ar/faq</loc>
+    <loc>https://chequealo.net/faq</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -48,7 +48,7 @@
   
   <!-- Register -->
   <url>
-    <loc>https://chequealo.ar/register</loc>
+    <loc>https://chequealo.net/register</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -56,7 +56,7 @@
   
   <!-- Terms of Service -->
   <url>
-    <loc>https://chequealo.ar/terms</loc>
+    <loc>https://chequealo.net/terms</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -64,7 +64,7 @@
   
   <!-- Privacy Policy -->
   <url>
-    <loc>https://chequealo.ar/privacy</loc>
+    <loc>https://chequealo.net/privacy</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -72,7 +72,7 @@
   
   <!-- AI Search -->
   <url>
-    <loc>https://chequealo.ar/ai-search</loc>
+    <loc>https://chequealo.net/ai-search</loc>
     <lastmod>2024-11-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

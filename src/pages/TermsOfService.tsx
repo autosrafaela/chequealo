@@ -29,7 +29,7 @@ const TermsOfService = () => {
                     <strong>Última actualización:</strong> 12 de septiembre de 2025
                   </p>
                   <p className="text-muted-foreground">
-                    Bienvenido/a a CHEQUEALO.AR (el "Sitio" y/o la "Plataforma"), operado por MAXIMILIANO MARTIN BUSTAMANTE, CUIT 20-29048928-9, con domicilio en AV ANTONIO PODIO 1732, Rafaela, Santa Fe, República Argentina ("CHEQUEALO.AR", "nosotros" o "nuestro"). Estos Términos y Condiciones (los "Términos") regulan el acceso y uso del Sitio, de nuestras aplicaciones asociadas y de los servicios que ofrecemos (los "Servicios"). Al registrarte, acceder o utilizar la Plataforma aceptas estos Términos y nuestra Política de Privacidad.
+                    Bienvenido/a a CHEQUEALO.NET (el "Sitio" y/o la "Plataforma"), operado por MAXIMILIANO MARTIN BUSTAMANTE, CUIT 20-29048928-9, con domicilio en AV ANTONIO PODIO 1732, Rafaela, Santa Fe, República Argentina ("CHEQUEALO.NET", "nosotros" o "nuestro"). Estos Términos y Condiciones (los "Términos") regulan el acceso y uso del Sitio, de nuestras aplicaciones asociadas y de los servicios que ofrecemos (los "Servicios"). Al registrarte, acceder o utilizar la Plataforma aceptas estos Términos y nuestra Política de Privacidad.
                   </p>
                   <p className="text-muted-foreground mt-2">
                     Si no estás de acuerdo, no utilices la Plataforma.
@@ -39,7 +39,7 @@ const TermsOfService = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-3">1) Objeto del servicio</h2>
                   <p className="text-muted-foreground">
-                    CHEQUEALO.AR es un directorio y canal de contacto que conecta usuarios que buscan servicios ("Usuarios") con profesionales y comercios que los ofrecen ("Profesionales"). CHEQUEALO.AR no presta servicios profesionales, no participa en la relación contractual entre Usuarios y Profesionales, ni garantiza resultados, precios, plazos, títulos, habilitaciones o calidad.
+                    CHEQUEALO.NET es un directorio y canal de contacto que conecta usuarios que buscan servicios ("Usuarios") con profesionales y comercios que los ofrecen ("Profesionales"). CHEQUEALO.NET no presta servicios profesionales, no participa en la relación contractual entre Usuarios y Profesionales, ni garantiza resultados, precios, plazos, títulos, habilitaciones o calidad.
                   </p>
                 </section>
 
@@ -63,7 +63,7 @@ const TermsOfService = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-3">4) Comunicación y contacto</h2>
                   <p className="text-muted-foreground">
-                    CHEQUEALO.AR facilita el contacto inicial entre Usuarios y Profesionales. Una vez establecido el contacto, las partes negocian directamente términos, precios y condiciones. CHEQUEALO.AR no interviene en estas negociaciones ni en los contratos resultantes.
+                    CHEQUEALO.NET facilita el contacto inicial entre Usuarios y Profesionales. Una vez establecido el contacto, las partes negocian directamente términos, precios y condiciones. CHEQUEALO.NET no interviene en estas negociaciones ni en los contratos resultantes.
                   </p>
                 </section>
 
@@ -77,14 +77,14 @@ const TermsOfService = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-3">6) Pagos y facturación</h2>
                   <p className="text-muted-foreground">
-                    Algunos servicios de CHEQUEALO.AR pueden tener costo (planes premium, publicidad destacada, etc.). Los pagos se procesan a través de plataformas seguras. Los precios pueden cambiar con previo aviso. No hay reembolsos salvo en casos específicos determinados por CHEQUEALO.AR.
+                    Algunos servicios de CHEQUEALO.NET pueden tener costo (planes premium, publicidad destacada, etc.). Los pagos se procesan a través de plataformas seguras. Los precios pueden cambiar con previo aviso. No hay reembolsos salvo en casos específicos determinados por CHEQUEALO.NET.
                   </p>
                 </section>
 
                 <section>
                   <h2 className="text-xl font-semibold mb-3">7) Propiedad intelectual</h2>
                   <p className="text-muted-foreground">
-                    El contenido de CHEQUEALO.AR (diseño, logotipos, textos, código, etc.) está protegido por derechos de autor y marcas. Los usuarios otorgan a CHEQUEALO.AR licencia para usar el contenido que publican en la plataforma para los fines del servicio.
+                    El contenido de CHEQUEALO.NET (diseño, logotipos, textos, código, etc.) está protegido por derechos de autor y marcas. Los usuarios otorgan a CHEQUEALO.NET licencia para usar el contenido que publican en la plataforma para los fines del servicio.
                   </p>
                 </section>
 
@@ -98,7 +98,7 @@ const TermsOfService = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-3">9) Responsabilidad de CHEQUEALO.AR</h2>
                   <p className="text-muted-foreground">
-                    CHEQUEALO.AR actúa como intermediario tecnológico. No garantizamos la calidad, veracidad o disponibilidad de los servicios ofrecidos por Profesionales. No somos responsables por daños directos o indirectos derivados del uso de la plataforma o de servicios contratados a través de ella.
+                    CHEQUEALO.NET actúa como intermediario tecnológico. No garantizamos la calidad, veracidad o disponibilidad de los servicios ofrecidos por Profesionales. No somos responsables por daños directos o indirectos derivados del uso de la plataforma o de servicios contratados a través de ella.
                   </p>
                 </section>
 
@@ -133,14 +133,14 @@ const TermsOfService = () => {
                 <section>
                   <h2 className="text-xl font-semibold mb-3">14) Resolución de disputas</h2>
                   <p className="text-muted-foreground">
-                    Las disputas entre usuarios deben resolverse directamente entre las partes. CHEQUEALO.AR puede facilitar la comunicación pero no actúa como mediador oficial. Para disputas con CHEQUEALO.AR, se aplicará la legislación argentina y serán competentes los tribunales de la ciudad de Rafaela, Provincia de Santa Fe.
+                    Las disputas entre usuarios deben resolverse directamente entre las partes. CHEQUEALO.NET puede facilitar la comunicación pero no actúa como mediador oficial. Para disputas con CHEQUEALO.NET, se aplicará la legislación argentina y serán competentes los tribunales de la ciudad de Rafaela, Provincia de Santa Fe.
                   </p>
                 </section>
 
                 <section>
                   <h2 className="text-xl font-semibold mb-3">15) Fuerza mayor</h2>
                   <p className="text-muted-foreground">
-                    CHEQUEALO.AR no será responsable por incumplimientos causados por eventos de fuerza mayor, incluyendo pero no limitado a: desastres naturales, cortes de energía, fallas de internet, actos de gobierno, o pandemias.
+                    CHEQUEALO.NET no será responsable por incumplimientos causados por eventos de fuerza mayor, incluyendo pero no limitado a: desastres naturales, cortes de energía, fallas de internet, actos de gobierno, o pandemias.
                   </p>
                 </section>
 
@@ -167,7 +167,7 @@ const TermsOfService = () => {
 
                 <div className="border-t pt-4 mt-8">
                   <p className="text-xs text-muted-foreground">
-                    Términos y Condiciones de Uso - CHEQUEALO.AR
+                    Términos y Condiciones de Uso - CHEQUEALO.NET
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Última actualización: 12 de septiembre de 2025

@@ -49,7 +49,7 @@ async function sendPushNotification(
     const webpush = await import('https://esm.sh/web-push@3.6.7');
     
     webpush.default.setVapidDetails(
-      'mailto:contacto@chequealo.ar',
+      'mailto:contacto@chequealo.net',
       VAPID_PUBLIC_KEY,
       VAPID_PRIVATE_KEY
     );

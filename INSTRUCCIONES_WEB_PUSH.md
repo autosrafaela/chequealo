@@ -204,7 +204,7 @@ WHERE ps.is_active = true;
 ## 📞 Contacto
 
 Para soporte técnico sobre el sistema de notificaciones:
-- Email: contacto@chequealo.ar
+- Email: contacto@chequealo.net
 - Documentación: https://docs.lovable.dev
 
 ---

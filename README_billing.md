@@ -160,7 +160,7 @@ Todas las funciones están en `supabase/functions/`:
 ```json
 {
   "plan_id": "profesional",
-  "return_url": "https://chequealo.ar/dashboard"
+  "return_url": "https://chequealo.net/dashboard"
 }
 ```
 - **Comportamiento**:
@@ -197,7 +197,7 @@ Todas las funciones están en `supabase/functions/`:
 ```json
 {
   "ok": true,
-  "url": "https://chequealo.ar/dashboard#subscription"
+  "url": "https://chequealo.net/dashboard#subscription"
 }
 ```
 

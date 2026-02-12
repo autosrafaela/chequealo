@@ -68,9 +68,9 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
 
   const getProfileUrl = () => {
     if (professional.slug) {
-      return `https://chequealo.ar/${professional.slug}`;
+      return `https://chequealo.net/${professional.slug}`;
     }
-    return `https://chequealo.ar/professional/${professional.id}`;
+    return `https://chequealo.net/professional/${professional.id}`;
   };
 
   // Generate cards when dialog opens or format changes

@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'chequealo',
   webDir: 'dist',
   server: {
-    url: 'https://chequealo.ar',
+    url: 'https://chequealo.net',
     cleartext: true
   },
   plugins: {

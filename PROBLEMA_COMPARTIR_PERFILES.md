@@ -2,7 +2,7 @@
 
 ## 🔴 PROBLEMA IDENTIFICADO
 
-Cuando se comparte un enlace de perfil profesional (ej: `https://chequealo.ar/professional/9622a924-df66-4ae7-aff0-f5295d9d05db`) en **WhatsApp, Facebook, Twitter, Instagram** u otras redes sociales, **NO se muestra la información correcta** del profesional.
+Cuando se comparte un enlace de perfil profesional (ej: `https://chequealo.net/professional/9622a924-df66-4ae7-aff0-f5295d9d05db`) en **WhatsApp, Facebook, Twitter, Instagram** u otras redes sociales, **NO se muestra la información correcta** del profesional.
 
 ### Por qué ocurre esto:
 
@@ -42,7 +42,7 @@ Usar un servicio como **Prerender.io** o **rendertron**:
 ```apache
 # Agregar a .htaccess
 RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Twitterbot|WhatsApp|Slackbot|LinkedInBot|instagram) [NC]
-RewriteRule ^(.*)$ https://service.prerender.io/https://chequealo.ar/$1 [P,L]
+RewriteRule ^(.*)$ https://service.prerender.io/https://chequealo.net/$1 [P,L]
 ```
 
 **Ventajas:**
@@ -131,7 +131,7 @@ Una vez implementada la solución definitiva:
 7. **Verificar HTML estático:**
 ```bash
 # Simular bot de Facebook
-curl -A "facebookexternalhit/1.1" https://chequealo.ar/professional/ID
+curl -A "facebookexternalhit/1.1" https://chequealo.net/professional/ID
 # Debe mostrar meta tags correctas en el HTML
 ```
 
