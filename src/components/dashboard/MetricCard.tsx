@@ -38,8 +38,8 @@ export function MetricCard({
   return (
     <Card 
       className={cn(
-        'hover:shadow-lg transition-all duration-200',
-        onClick && 'cursor-pointer hover:scale-[1.02] hover:border-primary/30',
+        'border-0 shadow-sm rounded-2xl hover:shadow-md transition-all duration-200',
+        onClick && 'cursor-pointer hover:scale-[1.02]',
         className
       )}
       onClick={onClick}

@@ -48,7 +48,7 @@ export function DashboardHero({
   className,
 }: DashboardHeroProps) {
   return (
-    <Card className={cn('border-2 overflow-hidden', variantStyles[variant], className)}>
+    <Card className={cn('border-0 shadow-sm rounded-2xl overflow-hidden', variantStyles[variant], className)}>
       <CardContent className="p-6 md:p-8">
         <div className="flex flex-col gap-6">
           {/* Header */}
