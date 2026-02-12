@@ -26,6 +26,118 @@ export interface Professional {
   distance?: number;
 }
 
+// --- Diccionario de sinónimos ---
+const SYNONYM_MAP: Record<string, string[]> = {
+  'Plomero / Gasista': ['agua', 'cano', 'canilla', 'griferia', 'perdida', 'cañeria', 'inundacion'],
+  'Electricista': ['luz', 'corriente', 'termica', 'enchufe', 'cortocircuito', 'cable', 'tablero'],
+  'Abogado': ['defensa', 'juicio', 'legal', 'demanda', 'contrato', 'lobbista'],
+  'Técnico de Aire Acondicionado': ['aire', 'split', 'frio calor', 'refrigeracion', 'climatizacion'],
+  'Pintor': ['pintar', 'pintura', 'paredes', 'latex', 'esmalte'],
+  'Cerrajero': ['cerraduras', 'llave', 'puerta trabada', 'cerradura'],
+  'Colocador de Pisos': ['piso', 'ceramico', 'porcelanato', 'baldosa'],
+  'Fumigador / Control de Plagas': ['plagas', 'cucarachas', 'ratas', 'fumigacion', 'hormiga'],
+  'Mecánico': ['auto', 'motor', 'frenos', 'aceite', 'taller'],
+  'Carpintero / Ebanista': ['muebles', 'madera', 'estantes', 'carpinteria'],
+  'Techista': ['techo', 'gotera', 'membrana', 'canaleta'],
+  'Instalador de Alarmas': ['alarma', 'seguridad', 'camaras'],
+  'Instalador de Internet': ['internet', 'wifi', 'red'],
+  'Reparación de Celulares': ['celular', 'pantalla rota', 'telefono'],
+  'Reparación de Computadoras': ['pc', 'computadora', 'notebook'],
+  'Empleada Doméstica / Servicio de Limpieza': ['limpieza', 'limpiar', 'hogar', 'mucama'],
+  'Fletero / Mudanzas': ['mudanza', 'flete', 'transporte'],
+  'Cuidador/a de Niños (Niñera)': ['ninera', 'cuidar ninos', 'babysitter', 'niñera'],
+  'Veterinario': ['mascotas', 'perro', 'gato', 'veterinaria'],
+  'Entrenador Personal': ['yoga', 'ejercicio', 'gym', 'entrenamiento'],
+  'Fotógrafo': ['foto', 'sesion', 'fotografia'],
+  'Diseñador Gráfico': ['diseno', 'logo', 'marca', 'diseño'],
+  'Desarrollador Web': ['web', 'pagina', 'sitio', 'app'],
+  'Contador': ['contabilidad', 'impuestos', 'monotributo'],
+  'Albañil': ['construccion', 'obra', 'pared', 'revoque', 'albañileria'],
+  'Gasista': ['gas', 'garrafa', 'calefon'],
+  'Jardinero': ['jardin', 'cesped', 'poda', 'plantas'],
+};
+
+// Invertir el mapa para búsqueda rápida: keyword -> profesión
+const KEYWORD_TO_PROFESSION: Record<string, string> = {};
+for (const [profession, keywords] of Object.entries(SYNONYM_MAP)) {
+  for (const kw of keywords) {
+    KEYWORD_TO_PROFESSION[kw.toLowerCase()] = profession;
+  }
+}
+
+// --- Fuzzy Match (Levenshtein simplificado) ---
+function levenshteinDistance(a: string, b: string): number {
+  const la = a.length, lb = b.length;
+  if (la === 0) return lb;
+  if (lb === 0) return la;
+  const dp: number[][] = Array.from({ length: la + 1 }, () => Array(lb + 1).fill(0));
+  for (let i = 0; i <= la; i++) dp[i][0] = i;
+  for (let j = 0; j <= lb; j++) dp[0][j] = j;
+  for (let i = 1; i <= la; i++) {
+    for (let j = 1; j <= lb; j++) {
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+  }
+  return dp[la][lb];
+}
+
+// All known profession names for fuzzy matching
+const ALL_KNOWN_PROFESSIONS = Object.keys(SYNONYM_MAP);
+
+function findFuzzyProfession(keyword: string, maxDistance = 2): string | null {
+  if (keyword.length < 4) return null; // Skip very short words
+  const lower = keyword.toLowerCase();
+  let bestMatch: string | null = null;
+  let bestDist = maxDistance + 1;
+  
+  for (const prof of ALL_KNOWN_PROFESSIONS) {
+    // Compare against each word in the profession name
+    const profWords = prof.toLowerCase().split(/[\s/]+/);
+    for (const pw of profWords) {
+      if (pw.length < 4) continue;
+      const dist = levenshteinDistance(lower, pw);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestMatch = prof;
+      }
+    }
+  }
+  return bestDist <= maxDistance ? bestMatch : null;
+}
+
+// Expand keywords using synonym dictionary + fuzzy match
+function expandKeywords(keywords: string[]): string[] {
+  const expanded = new Set(keywords);
+  
+  for (const kw of keywords) {
+    const lower = kw.toLowerCase();
+    
+    // Check synonym map
+    const matchedProfession = KEYWORD_TO_PROFESSION[lower];
+    if (matchedProfession) {
+      // Add each word of the profession name as a keyword
+      matchedProfession.split(/[\s/()]+/).filter(w => w.length > 2).forEach(w => expanded.add(w.toLowerCase()));
+      expanded.add(matchedProfession.toLowerCase());
+    }
+    
+    // Fuzzy match against profession names
+    if (!matchedProfession) {
+      const fuzzyMatch = findFuzzyProfession(lower);
+      if (fuzzyMatch) {
+        fuzzyMatch.split(/[\s/()]+/).filter(w => w.length > 2).forEach(w => expanded.add(w.toLowerCase()));
+        expanded.add(fuzzyMatch.toLowerCase());
+        console.log(`🔤 Fuzzy match: "${kw}" → "${fuzzyMatch}"`);
+      }
+    }
+  }
+  
+  return Array.from(expanded);
+}
+
 export const useAdvancedSearch = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(false);
@@ -71,8 +183,7 @@ export const useAdvancedSearch = () => {
           .map(r => r.professional_id)
       );
       
-      // Paso 1: Preparar query base para professionals
-      // SECURITY: Using professionals_public_safe view to exclude sensitive data (email, phone, DNI)
+      // Prepare base query
       let professionalsQuery = supabase
         .from('professionals_public_safe')
         .select(`
@@ -88,52 +199,65 @@ export const useAdvancedSearch = () => {
           availability
         `);
 
-      // Paso 2: Preparar query para servicios profesionales
       let servicesQuery = supabase
         .from('professional_services')
         .select('professional_id, service_name, description')
         .eq('is_active', true);
 
-      // Paso 3: Aplicar búsqueda inteligente por palabras clave
+      // NEW: Query for professional_professions (multi-rubros)
+      let professionsQuery = supabase
+        .from('professional_professions')
+        .select('professional_id, profession');
+
+      // Apply smart keyword search with synonym expansion
+      let expandedKeywords: string[] = [];
       if (query && query.trim() !== '') {
         const searchTerms = query.toLowerCase().trim();
+        const rawKeywords = searchTerms.split(/\s+/).filter(word => word.length > 2);
         
-        // Dividir en palabras individuales para búsqueda más flexible
-        const keywords = searchTerms.split(/\s+/).filter(word => word.length > 2);
+        // Expand with synonyms + fuzzy match
+        expandedKeywords = expandKeywords(rawKeywords);
         
-        console.log('📝 Palabras clave extraídas:', keywords);
+        console.log('📝 Keywords originales:', rawKeywords);
+        console.log('📝 Keywords expandidas:', expandedKeywords);
         
-        if (keywords.length > 0) {
-          // Buscar cada palabra clave en professionals
-          const profConditions = keywords.map(keyword => 
+        if (expandedKeywords.length > 0) {
+          const profConditions = expandedKeywords.map(keyword => 
             `full_name.ilike.%${keyword}%,profession.ilike.%${keyword}%,location.ilike.%${keyword}%,description.ilike.%${keyword}%`
           ).join(',');
           
           professionalsQuery = professionalsQuery.or(profConditions);
           
-          // Buscar en servicios
-          const serviceConditions = keywords.map(keyword =>
+          const serviceConditions = expandedKeywords.map(keyword =>
             `service_name.ilike.%${keyword}%,description.ilike.%${keyword}%`
           ).join(',');
           
           servicesQuery = servicesQuery.or(serviceConditions);
+
+          // Search in professional_professions table
+          const professionConditions = expandedKeywords.map(keyword =>
+            `profession.ilike.%${keyword}%`
+          ).join(',');
+          
+          professionsQuery = professionsQuery.or(professionConditions);
         }
       }
 
-      // Paso 4: Aplicar filtro de profesión
+      // Apply profession filter
       if (currentFilters.profession && currentFilters.profession !== 'all') {
         professionalsQuery = professionalsQuery.ilike('profession', `%${currentFilters.profession}%`);
       }
 
-      // Paso 5: Aplicar filtro de ubicación
+      // Apply location filter
       if (currentFilters.location && currentFilters.location !== 'all') {
         professionalsQuery = professionalsQuery.ilike('location', `%${currentFilters.location}%`);
       }
 
-      // Paso 6: Ejecutar ambas queries en paralelo
-      const [professionalsResult, servicesResult] = await Promise.all([
+      // Execute all queries in parallel
+      const [professionalsResult, servicesResult, professionsResult] = await Promise.all([
         professionalsQuery,
-        servicesQuery
+        servicesQuery,
+        query && query.trim() !== '' ? professionsQuery : Promise.resolve({ data: null, error: null })
       ]);
 
       if (professionalsResult.error) {
@@ -143,76 +267,70 @@ export const useAdvancedSearch = () => {
 
       console.log('✅ Profesionales encontrados:', professionalsResult.data?.length || 0);
       console.log('✅ Servicios coincidentes:', servicesResult.data?.length || 0);
+      console.log('✅ Rubros coincidentes:', professionsResult.data?.length || 0);
 
       let professionalsData = professionalsResult.data || [];
       
-      // Paso 7: Agregar profesionales que tienen servicios coincidentes
-      if (servicesResult.data && servicesResult.data.length > 0) {
-        const servicesProfIds = new Set(servicesResult.data.map(s => s.professional_id));
+      // Combine professional IDs from services AND professions tables
+      const additionalProfIds = new Set<string>();
+      
+      if (servicesResult.data) {
+        servicesResult.data.forEach(s => additionalProfIds.add(s.professional_id));
+      }
+      if (professionsResult.data) {
+        professionsResult.data.forEach(p => additionalProfIds.add(p.professional_id));
+      }
+
+      // Fetch additional professionals by IDs
+      if (additionalProfIds.size > 0) {
+        const existingIds = new Set(professionalsData.map(p => p.id));
+        const missingIds = Array.from(additionalProfIds).filter(id => !existingIds.has(id));
         
-        // Buscar profesionales adicionales por IDs de servicios
-        if (servicesProfIds.size > 0) {
-          // SECURITY: Using professionals_public_safe view for additional professionals
-          const additionalProfsQuery = supabase
+        if (missingIds.length > 0) {
+          const { data: additionalProfs } = await supabase
             .from('professionals_public_safe')
             .select(`
-              id,
-              full_name,
-              profession,
-              location,
-              description,
-              rating,
-              review_count,
-              image_url,
-              is_verified,
-              availability
+              id, full_name, profession, location, description,
+              rating, review_count, image_url, is_verified, availability
             `)
-            .in('id', Array.from(servicesProfIds));
-          
-          const { data: additionalProfs } = await additionalProfsQuery;
+            .in('id', missingIds);
           
           if (additionalProfs) {
-            // Combinar resultados, evitando duplicados
-            const existingIds = new Set(professionalsData.map(p => p.id));
-            const newProfs = additionalProfs.filter(p => !existingIds.has(p.id));
-            professionalsData = [...professionalsData, ...newProfs];
-            
-            console.log('➕ Profesionales adicionales por servicios:', newProfs.length);
+            professionalsData = [...professionalsData, ...additionalProfs];
+            console.log('➕ Profesionales adicionales por servicios/rubros:', additionalProfs.length);
           }
         }
       }
 
-      // Paso 8: Sistema de scoring para relevancia
+      // Scoring system
       const scoredData = professionalsData.map(prof => {
         let score = 0;
         
-        // BOOST: "En tu zona hoy" - highest priority boost (+50 points)
-        if (boostedProIds.has(prof.id)) {
-          score += 50;
-        }
+        // BOOST: "En tu zona hoy" (+50)
+        if (boostedProIds.has(prof.id)) score += 50;
+        
+        // GEOGRAPHIC: Priorizar "En Línea" en Rafaela
+        if (prof.availability === 'available') score += 15;
+        if (prof.location?.toLowerCase().includes('rafaela')) score += 10;
         
         if (query && query.trim() !== '') {
-          const searchTerms = query.toLowerCase().trim();
-          const keywords = searchTerms.split(/\s+/).filter(word => word.length > 2);
+          const keywords = expandedKeywords.length > 0 ? expandedKeywords : query.toLowerCase().trim().split(/\s+/).filter(w => w.length > 2);
           
           keywords.forEach(keyword => {
-            // Puntuar coincidencias - más específico = más puntos
-            if (prof.profession?.toLowerCase() === keyword) score += 20; // Coincidencia exacta
+            if (prof.profession?.toLowerCase() === keyword) score += 20;
             else if (prof.profession?.toLowerCase().includes(keyword)) score += 10;
-            
             if (prof.full_name?.toLowerCase().includes(keyword)) score += 5;
             if (prof.description?.toLowerCase().includes(keyword)) score += 3;
             if (prof.location?.toLowerCase().includes(keyword)) score += 2;
           });
           
-          // Bonus por verificación y calidad
           if (prof.is_verified) score += 8;
           if (prof.rating && prof.rating >= 4.5) score += 5;
           if (prof.rating && prof.rating >= 4.0) score += 3;
           if (prof.review_count && prof.review_count > 10) score += 4;
           if (prof.review_count && prof.review_count > 5) score += 2;
           
-          // Verificar si tiene servicios relacionados (BONUS GRANDE)
+          // Bonus for matching services
           if (servicesResult.data) {
             const hasMatchingService = servicesResult.data.some(s => {
               if (s.professional_id !== prof.id) return false;
@@ -221,10 +339,20 @@ export const useAdvancedSearch = () => {
                 s.description?.toLowerCase().includes(keyword)
               );
             });
-            if (hasMatchingService) score += 20; // Alto bonus por servicios coincidentes
+            if (hasMatchingService) score += 20;
+          }
+          
+          // Bonus for matching rubros in professional_professions
+          if (professionsResult.data) {
+            const hasMatchingProfession = professionsResult.data.some(p => {
+              if (p.professional_id !== prof.id) return false;
+              return keywords.some(keyword => 
+                p.profession?.toLowerCase().includes(keyword)
+              );
+            });
+            if (hasMatchingProfession) score += 15;
           }
         } else {
-          // Sin búsqueda específica, puntuar por calidad general
           if (prof.is_verified) score += 5;
           if (prof.rating) score += prof.rating * 2;
           if (prof.review_count) score += Math.min(prof.review_count, 10);
@@ -235,53 +363,37 @@ export const useAdvancedSearch = () => {
 
       let filteredData = scoredData;
 
-      // Paso 9: Aplicar filtros adicionales
+      // Apply additional filters
       if (currentFilters.rating) {
-        filteredData = filteredData.filter(p => 
-          (p.rating || 0) >= currentFilters.rating!
-        );
+        filteredData = filteredData.filter(p => (p.rating || 0) >= currentFilters.rating!);
       }
-
       if (currentFilters.verified !== undefined) {
         filteredData = filteredData.filter(p => p.is_verified === currentFilters.verified);
       }
-
       if (currentFilters.availability && currentFilters.availability !== 'all') {
-        filteredData = filteredData.filter(p => 
-          p.availability === currentFilters.availability
-        );
+        filteredData = filteredData.filter(p => p.availability === currentFilters.availability);
       }
 
-      // Paso 10: Ordenar por relevancia o criterio seleccionado
-      // PRIORITY: Verified professionals always appear first within each sort criteria
+      // Sort: verified first, then by criteria
       filteredData.sort((a, b) => {
-        // Primary sort: Verified professionals first
-        if (a.is_verified !== b.is_verified) {
-          return a.is_verified ? -1 : 1;
-        }
+        if (a.is_verified !== b.is_verified) return a.is_verified ? -1 : 1;
         
-        // Secondary sort: By selected criteria
         if (currentFilters.sortBy === 'rating') {
           return (b.rating || 0) - (a.rating || 0);
         } else if (currentFilters.sortBy === 'reviews') {
           return (b.review_count || 0) - (a.review_count || 0);
         } else {
-          // Por defecto, ordenar por relevancia si hay búsqueda
           if (query && query.trim() !== '') {
             return (b.relevanceScore || 0) - (a.relevanceScore || 0);
           }
-          // Sin búsqueda, ordenar por rating
           return (b.rating || 0) - (a.rating || 0);
         }
       });
 
-      console.log('🎯 Resultados finales con scoring:', filteredData.slice(0, 5).map(p => ({
-        name: p.full_name,
-        profession: p.profession,
-        score: p.relevanceScore
+      console.log('🎯 Resultados finales:', filteredData.slice(0, 5).map(p => ({
+        name: p.full_name, profession: p.profession, score: p.relevanceScore
       })));
 
-      // Paso 11: Mapear a interfaz Professional
       const mappedData: Professional[] = filteredData.map(item => ({
         id: item.id,
         full_name: item.full_name,
@@ -320,52 +432,51 @@ export const useAdvancedSearch = () => {
     searchProfessionals(searchQuery, {});
   };
 
-  // Cargar TODAS las profesiones y servicios disponibles
+  // Load all professions and services
   useEffect(() => {
     const loadAllProfessionsAndServices = async () => {
       try {
-        // Lista completa de profesiones predefinidas
         const predefinedProfessions = [
-          'Alisadora Profesional',
-          'Arquitecta', 'Automatización con IA', 'Carpintero / Ebanista', 'Contadora Pública', 'Electricista',
-          'Empleada Doméstica / Servicio de Limpieza', 'Entrenador Personal', 'Herrero',
-          'Jardinero / Paisajista', 'Limpieza y Mantenimiento', 'Maquillador/a', 'Pintor',
-          'Piscinas / Piletas Colocación', 'Profesor de Apoyo Escolar', 'Profesora de Inglés', 'Técnico de PC', 'Mecánico',
-          'Técnico de Aire Acondicionado', 'Kinesiólogo / Fisioterapeuta', 'Gestor del Automotor',
-          'Servicio Técnico (Línea Blanca)', 'Limpieza de Tapizados', 'Instalador de Durlock / Yesero',
-          'Fumigador / Control de Plagas', 'Profesor de Música', 'Plomero / Gasista',
-          'Técnico en Refrigeración', 'Cerrajero', 'Albañil', 'Pintor de Obras', 'Techista',
-          'Jardinero', 'Podador de Árboles', 'Electricista Matriculado', 'Instalador de Alarmas',
-          'Instalador de Cámaras de Seguridad', 'Colocador de Pisos', 'Colocador de Cerámicos',
-          'Colocador de Porcelanatos', 'Vidriería', 'Herrería de Obra', 'Soldador',
-          'Técnico en Calefacción', 'Instalador de Paneles Solares', 'Técnico en Energías Renovables',
-          'Decorador de Interiores', 'Diseñador de Interiores', 'Organizador Profesional',
-          'Personal Shopper', 'Chef a Domicilio', 'Pastelero', 'Repostero', 'Catering',
-          'Barman / Bartender', 'Sommelier', 'Nutricionista', 'Profesor de Yoga', 'Profesor de Pilates',
-          'Masajista', 'Esteticista', 'Manicurista', 'Pedicurista', 'Peluquero/a', 'Barbero',
-          'Maquillador Profesional', 'Maquilladora Social', 'Maquilladora Artística',
-          'Fotógrafo', 'Camarógrafo', 'Capacitación en Manejo y Programación de Tornos CNC', 'Editor de Video',
+          'Alisadora Profesional', 'Arquitecta', 'Automatización con IA', 'Carpintero / Ebanista',
+          'Contadora Pública', 'Electricista', 'Empleada Doméstica / Servicio de Limpieza',
+          'Entrenador Personal', 'Herrero', 'Jardinero / Paisajista', 'Limpieza y Mantenimiento',
+          'Maquillador/a', 'Pintor', 'Piscinas / Piletas Colocación', 'Profesor de Apoyo Escolar',
+          'Profesora de Inglés', 'Técnico de PC', 'Mecánico', 'Técnico de Aire Acondicionado',
+          'Kinesiólogo / Fisioterapeuta', 'Gestor del Automotor', 'Servicio Técnico (Línea Blanca)',
+          'Limpieza de Tapizados', 'Instalador de Durlock / Yesero', 'Fumigador / Control de Plagas',
+          'Profesor de Música', 'Plomero / Gasista', 'Técnico en Refrigeración', 'Cerrajero',
+          'Albañil', 'Pintor de Obras', 'Techista', 'Jardinero', 'Podador de Árboles',
+          'Electricista Matriculado', 'Instalador de Alarmas', 'Instalador de Cámaras de Seguridad',
+          'Colocador de Pisos', 'Colocador de Cerámicos', 'Colocador de Porcelanatos', 'Vidriería',
+          'Herrería de Obra', 'Soldador', 'Técnico en Calefacción', 'Instalador de Paneles Solares',
+          'Técnico en Energías Renovables', 'Decorador de Interiores', 'Diseñador de Interiores',
+          'Organizador Profesional', 'Personal Shopper', 'Chef a Domicilio', 'Pastelero', 'Repostero',
+          'Catering', 'Barman / Bartender', 'Sommelier', 'Nutricionista', 'Profesor de Yoga',
+          'Profesor de Pilates', 'Masajista', 'Esteticista', 'Manicurista', 'Pedicurista',
+          'Peluquero/a', 'Barbero', 'Maquillador Profesional', 'Maquilladora Social',
+          'Maquilladora Artística', 'Fotógrafo', 'Camarógrafo',
+          'Capacitación en Manejo y Programación de Tornos CNC', 'Editor de Video',
           'Diseñador Gráfico', 'Desarrollador Web', 'Community Manager', 'Redactor de Contenidos',
-          'Traductor', 'Encomiendas/Comisionista', 'Profesor Particular', 'Profesor de Matemáticas', 'Profesor de Física',
-          'Profesor de Química', 'Profesor de Idiomas', 'Profesor de Música (Piano)',
-          'Profesor de Música (Guitarra)', 'Profesor de Canto', 'Profesor de Danza',
-          'Profesor de Dibujo y Pintura', 'Veterinario', 'Peluquero Canino', 'Paseador de Perros',
-          'Cuidador de Mascotas', 'Adiestrador de Perros', 'Chofer Particular', 'Remisero',
-          'Fletero / Mudanzas', 'Mensajería', 'Cuidador/a de Niños (Niñera)',
+          'Traductor', 'Encomiendas/Comisionista', 'Profesor Particular', 'Profesor de Matemáticas',
+          'Profesor de Física', 'Profesor de Química', 'Profesor de Idiomas',
+          'Profesor de Música (Piano)', 'Profesor de Música (Guitarra)', 'Profesor de Canto',
+          'Profesor de Danza', 'Profesor de Dibujo y Pintura', 'Veterinario', 'Peluquero Canino',
+          'Paseador de Perros', 'Cuidador de Mascotas', 'Adiestrador de Perros', 'Chofer Particular',
+          'Remisero', 'Fletero / Mudanzas', 'Mensajería', 'Cuidador/a de Niños (Niñera)',
           'Cuidador/a de Adultos Mayores', 'Enfermero/a', 'Acompañante Terapéutico', 'Psicólogo',
           'Psicopedagogo', 'Fonoaudiólogo', 'Terapista Ocupacional', 'Abogado', 'Contador',
           'Asesor de Seguros', 'Asesor Inmobiliario', 'Martillero Público', 'Escribano',
           'Ingeniero', 'Agrimensor', 'Reparación de Electrodomésticos', 'Reparación de Celulares',
           'Reparación de Computadoras', 'Técnico en Redes', 'Instalador de Internet',
-          'Instalador de TV', 'Tapicero', 'Cortinero', 'Cursos/Formación', 'Pulidor de Pisos', 'Limpieza de Alfombras',
-          'Limpieza de Persianas', 'Limpieza de Tanques de Agua', 'Desinfección y Sanitización',
-          'Control de Plagas y Fumigación', 'Lavadero de Autos', 'Detailing de Autos', 'Detailing',
-          'Polarizado de Vidrios', 'Instalador de Audio para Autos', 'Mecánico de Motos',
-          'Chapista y Pintor Automotor', 'Gomería', 'Auxiliares de Estudio',
+          'Instalador de TV', 'Tapicero', 'Cortinero', 'Cursos/Formación', 'Pulidor de Pisos',
+          'Limpieza de Alfombras', 'Limpieza de Persianas', 'Limpieza de Tanques de Agua',
+          'Desinfección y Sanitización', 'Control de Plagas y Fumigación', 'Lavadero de Autos',
+          'Detailing de Autos', 'Detailing', 'Polarizado de Vidrios',
+          'Instalador de Audio para Autos', 'Mecánico de Motos', 'Chapista y Pintor Automotor',
+          'Gomería', 'Auxiliares de Estudio',
           'Modista/Costurera/Confeccionista a medida/Bordados'
         ];
 
-        // Cargar profesiones de la base de datos
         const { data: profs } = await supabase
           .from('professionals_public_safe')
           .select('profession');
@@ -375,7 +486,6 @@ export const useAdvancedSearch = () => {
         allProfessionsList.sort((a, b) => a.localeCompare(b, 'es'));
         setAllAvailableProfessions(allProfessionsList);
 
-        // Cargar TODOS los servicios disponibles
         const { data: services } = await supabase
           .from('professional_services')
           .select('service_name')
@@ -392,7 +502,6 @@ export const useAdvancedSearch = () => {
   }, []);
 
   const availableProfessions = useMemo(() => {
-    // Retornar todas las profesiones disponibles, no solo las de los resultados actuales
     return allAvailableProfessions;
   }, [allAvailableProfessions]);
 
@@ -401,13 +510,11 @@ export const useAdvancedSearch = () => {
   }, [professionals]);
 
   useEffect(() => {
-    // Only search automatically if we're not on a search page with URL params
     const currentPath = window.location.pathname;
     const hasSearchParams = window.location.search.includes('q=') || 
                            window.location.search.includes('location=') || 
                            window.location.search.includes('city=');
     
-    // Load professionals automatically unless we're on search page with params
     if (!(currentPath === '/search' && hasSearchParams)) {
       searchProfessionals();
     }
