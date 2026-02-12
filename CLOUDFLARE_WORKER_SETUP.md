@@ -98,10 +98,10 @@ Ve a: Cloudflare Dashboard → Workers & Pages → "chequealo-prerender"
 - Haz clic en "Save and Deploy"
 
 ### 3. Configura la Ruta
-En Cloudflare Dashboard → tu dominio (chequealo.ar) → Workers Routes:
-- Añade ruta: `chequealo.ar/professional/*`
+En Cloudflare Dashboard → tu dominio (chequealo.net) → Workers Routes:
+- Añade ruta: `chequealo.net/professional/*`
 - Worker: `chequealo-prerender`
-- Añade ruta: `chequealo.ar/profesional/*`
+- Añade ruta: `chequealo.net/profesional/*`
 - Worker: `chequealo-prerender`
 
 ### 4. Verifica el Despliegue
@@ -113,7 +113,7 @@ Espera 1-2 minutos para que se propague.
 
 ### Test 1: Facebook Sharing Debugger
 1. Ve a: https://developers.facebook.com/tools/debug/
-2. Ingresa: `https://chequealo.ar/professional/[ID-DE-PROFESIONAL]`
+2. Ingresa: `https://chequealo.net/professional/[ID-DE-PROFESIONAL]`
 3. Haz clic en "Scrape Again" para forzar actualización
 4. Verifica que aparezca:
    - ✅ Imagen correcta (foto del profesional o imagen genérica)
@@ -147,7 +147,7 @@ Envía el link por WhatsApp y verifica el preview.
 3. Cache del crawler
 
 **Solución:**
-- Verifica que la imagen sea accesible desde: https://www.chequealo.ar/storage/[ruta]
+- Verifica que la imagen sea accesible desde: https://www.chequealo.net/storage/[ruta]
 - Las imágenes de Supabase deben tener el bucket público
 - Usa "Scrape Again" para actualizar cache
 

@@ -193,10 +193,10 @@ const AISearch = () => {
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 gap-2 text-lg px-8"
-                onClick={() => window.open("https://chequealo.ar", "_blank")}
+                onClick={() => window.open("https://chequealo.net", "_blank")}
               >
                 <ExternalLink className="w-5 h-5" />
-                Visitar Chequealo.ar
+                Visitar Chequealo.net
               </Button>
             </div>
           </CardContent>
@@ -218,7 +218,7 @@ const AISearch = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-lg">
-                <strong>Chequealo.ar</strong> es tu plataforma ideal para encontrar profesionales verificados:
+                <strong>Chequealo.net</strong> es tu plataforma ideal para encontrar profesionales verificados:
               </p>
               <ul className="space-y-2 list-disc list-inside text-muted-foreground">
                 <li>Profesionales de todas las áreas y oficios</li>
@@ -229,10 +229,10 @@ const AISearch = () => {
               <Button
                 size="lg"
                 className="w-full md:w-auto"
-                onClick={() => window.open("https://chequealo.ar", "_blank")}
+                onClick={() => window.open("https://chequealo.net", "_blank")}
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
-                Ir a Chequealo.ar
+                Ir a Chequealo.net
               </Button>
             </CardContent>
           </Card>
@@ -269,10 +269,10 @@ const AISearch = () => {
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => window.open("https://chequealo.ar", "_blank")}
+                onClick={() => window.open("https://chequealo.net", "_blank")}
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
-                Buscar en Chequealo.ar
+                Buscar en Chequealo.net
               </Button>
             </CardContent>
           </Card>
@@ -333,10 +333,10 @@ const AISearch = () => {
             <Button
               size="lg"
               className="gap-2"
-              onClick={() => window.open("https://chequealo.ar", "_blank")}
+              onClick={() => window.open("https://chequealo.net", "_blank")}
             >
               <Users className="w-5 h-5" />
-              Descubrir Profesionales en Chequealo.ar
+              Descubrir Profesionales en Chequealo.net
             </Button>
           </div>
         </div>

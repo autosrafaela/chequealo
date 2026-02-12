@@ -81,8 +81,8 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
     ogDescription.content = description;
     document.head.appendChild(ogDescription);
 
-    // Generate canonical URL (always use chequealo.ar without www)
-    const canonicalUrl = `https://chequealo.ar/professional/${professional.id}`;
+    // Generate canonical URL (always use chequealo.net without www)
+    const canonicalUrl = `https://chequealo.net/professional/${professional.id}`;
     
     const ogUrl = document.createElement('meta');
     ogUrl.setAttribute('property', 'og:url');
@@ -123,18 +123,18 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
 
     const twitterSite = document.createElement('meta');
     twitterSite.setAttribute('name', 'twitter:site');
-    twitterSite.content = '@chequealoar';
+    twitterSite.content = '@chequealonet';
     document.head.appendChild(twitterSite);
 
     const twitterCreator = document.createElement('meta');
     twitterCreator.setAttribute('name', 'twitter:creator');
-    twitterCreator.content = '@chequealoar';
+    twitterCreator.content = '@chequealonet';
     document.head.appendChild(twitterCreator);
 
     // Handle image URL - ensure it's absolute
     const SUPABASE_PROJECT_ID = 'rolitmcxydholgsxpvwa';
     const SUPABASE_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co`;
-    const DEFAULT_OG_IMAGE = 'https://chequealo.ar/images/default-professional-og.jpg';
+    const DEFAULT_OG_IMAGE = 'https://chequealo.net/images/default-professional-og.jpg';
     
     let imageUrl = professional.image_url;
     
@@ -160,10 +160,10 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
         // Already absolute URL, use as is
       } else if (imageUrl.startsWith('/')) {
         // Relative path starting with /
-        imageUrl = `https://chequealo.ar${imageUrl}`;
+        imageUrl = `https://chequealo.net${imageUrl}`;
       } else {
         // Relative path without /
-        imageUrl = `https://chequealo.ar/${imageUrl}`;
+        imageUrl = `https://chequealo.net/${imageUrl}`;
       }
     }
     
@@ -217,14 +217,14 @@ export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
       document.head.appendChild(twitterImageAlt);
     }
 
-    // Canonical URL (always use chequealo.ar without www)
+    // Canonical URL (always use chequealo.net without www)
     const canonical = document.createElement('link');
     canonical.rel = 'canonical';
-    canonical.href = `https://chequealo.ar/professional/${professional.id}`;
+    canonical.href = `https://chequealo.net/professional/${professional.id}`;
     document.head.appendChild(canonical);
 
     // Structured Data (JSON-LD)
-    const professionalUrl = `https://chequealo.ar/professional/${professional.id}`;
+    const professionalUrl = `https://chequealo.net/professional/${professional.id}`;
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Person",

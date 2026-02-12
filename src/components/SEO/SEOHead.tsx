@@ -10,7 +10,7 @@ interface SEOHeadProps {
   structuredData?: object;
 }
 
-const BASE_URL = 'https://chequealo.ar';
+const BASE_URL = 'https://chequealo.net';
 const DEFAULT_TITLE = 'Chequealo - Encontrá Profesionales de Confianza en Argentina';
 const DEFAULT_DESCRIPTION = 'Plataforma líder para encontrar profesionales verificados en Argentina. Electricistas, plomeros, albañiles y más servicios de confianza con reseñas reales.';
 const DEFAULT_IMAGE = `${BASE_URL}/images/default-professional-og.jpg`;
@@ -96,7 +96,7 @@ export const generateOrganizationSchema = () => ({
   "contactPoint": {
     "@type": "ContactPoint",
     "telephone": "+54-9-3492-60-7224",
-    "email": "info@chequealo.ar",
+    "email": "info@chequealo.net",
     "contactType": "customer service",
     "areaServed": "AR",
     "availableLanguage": "Spanish"

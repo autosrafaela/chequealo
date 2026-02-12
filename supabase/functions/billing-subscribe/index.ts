@@ -27,6 +27,8 @@ const subscribeRequestSchema = z.object({
         // Whitelist allowed domains for return URLs
         const allowedDomains = [
           'chequealo.lovable.app',
+          'chequealo.net',
+          'www.chequealo.net',
           'chequealo.ar',
           'www.chequealo.ar',
           'localhost',

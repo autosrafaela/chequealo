@@ -112,10 +112,10 @@ const NotFound = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center text-sm">
                 <a 
-                  href="mailto:info@chequealo.ar" 
+                  href="mailto:info@chequealo.net" 
                   className="text-primary hover:underline"
                 >
-                  📧 info@chequealo.ar
+                  📧 info@chequealo.net
                 </a>
                 <a 
                   href="https://wa.me/5493492607224" 

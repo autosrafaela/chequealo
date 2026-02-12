@@ -88,7 +88,7 @@ export default {
 Como alternativa temporal más simple:
 
 1. Ve a Cloudflare Dashboard → tu dominio → Page Rules
-2. Crea una regla para `chequealo.ar/professional/*`
+2. Crea una regla para `chequealo.net/professional/*`
 3. Agrega "Cache Level: Bypass" para bots
 
 **Limitación**: Esto no resuelve el problema de meta tags, solo mejora el routing.
@@ -113,7 +113,7 @@ Si tienes pocos profesionales (< 50), puedes:
 
 ```bash
 # Debe servir index.html y mantener la URL
-curl -I https://chequealo.ar/professional/test-id
+curl -I https://chequealo.net/professional/test-id
 
 # Debe devolver 200, no 301 o 404
 ```

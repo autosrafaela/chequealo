@@ -1,4 +1,4 @@
-# Checklist de Registro y Login - Chequealo.ar
+# Checklist de Registro y Login - Chequealo.net
 
 ## 📋 Flujos de Registro
 
@@ -168,10 +168,10 @@
 - [ ] "Confirm email" está deshabilitado (para testing rápido)
 - [ ] Google OAuth configurado correctamente
 - [ ] Redirect URLs incluyen:
-  - `https://chequealo.ar/auth`
-  - `https://chequealo.ar/register`
-  - `https://chequealo.ar/dashboard`
-  - `https://chequealo.ar/user-dashboard`
+  - `https://chequealo.net/auth`
+  - `https://chequealo.net/register`
+  - `https://chequealo.net/dashboard`
+  - `https://chequealo.net/user-dashboard`
 
 ---
 

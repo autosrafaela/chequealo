@@ -220,11 +220,11 @@ export const generateCard = async (
   // Decorative pattern
   drawDecorativePattern(ctx, canvas, style);
 
-  // Logo "✓ Chequealo.ar" at top
+  // Logo "✓ Chequealo.net" at top
   ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
   ctx.font = 'bold 42px Arial, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('✓ Chequealo.ar', 50, 80);
+  ctx.fillText('✓ Chequealo.net', 50, 80);
 
   // Profile photo
   const photoSize = isPost ? 200 : 260;
@@ -391,8 +391,8 @@ export const generateCard = async (
   ctx.fillStyle = '#ffffff';
   ctx.font = `bold ${isPost ? 32 : 38}px Arial, sans-serif`;
   const displayUrl = professional.slug
-    ? `chequealo.ar/${professional.slug}`
-    : `chequealo.ar/p/${professional.id.substring(0, 8)}`;
+    ? `chequealo.net/${professional.slug}`
+    : `chequealo.net/p/${professional.id.substring(0, 8)}`;
   ctx.fillText(displayUrl, w / 2, urlY + (isPost ? 42 : 50));
 
   // Footer branding

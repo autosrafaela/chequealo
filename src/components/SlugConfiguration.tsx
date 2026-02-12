@@ -168,7 +168,7 @@ const SlugConfiguration = ({ professionalId, currentSlug, onSlugUpdated }: SlugC
 
   const handleCopyUrl = () => {
     if (slug) {
-      navigator.clipboard.writeText(`https://chequealo.ar/${slug}`);
+      navigator.clipboard.writeText(`https://chequealo.net/${slug}`);
       toast.success('URL copiada al portapapeles');
     }
   };
@@ -192,7 +192,7 @@ const SlugConfiguration = ({ professionalId, currentSlug, onSlugUpdated }: SlugC
           <Label htmlFor="slug">Tu URL</Label>
           <div className="flex items-center gap-0">
             <div className="flex items-center h-10 px-3 bg-muted border border-r-0 rounded-l-md text-sm text-muted-foreground">
-              chequealo.ar/
+              chequealo.net/
             </div>
             <div className="relative flex-1">
               <Input
@@ -229,7 +229,7 @@ const SlugConfiguration = ({ professionalId, currentSlug, onSlugUpdated }: SlugC
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="text-sm font-medium truncate">
-              https://chequealo.ar/{slug}
+              https://chequealo.net/{slug}
             </span>
             <Button
               variant="ghost"
@@ -257,7 +257,7 @@ const SlugConfiguration = ({ professionalId, currentSlug, onSlugUpdated }: SlugC
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">URL actual:</span>
             <Badge variant="secondary" className="text-xs">
-              chequealo.ar/{originalSlug}
+              chequealo.net/{originalSlug}
             </Badge>
           </div>
         )}
