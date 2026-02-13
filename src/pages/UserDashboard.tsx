@@ -645,25 +645,25 @@ const UserDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-0 bg-transparent h-auto">
-            <TabsTrigger value="home" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
-              <Search className="h-4 w-4 mr-1.5" />
+          <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-2 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50">
+            <TabsTrigger value="home" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+              <Search className="h-4 w-4 mr-1.5 tab-icon-colored text-primary" />
               Inicio
             </TabsTrigger>
-            <TabsTrigger value="messages" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
-              <MessageSquare className="h-4 w-4 mr-1.5" />
+            <TabsTrigger value="messages" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+              <MessageSquare className="h-4 w-4 mr-1.5 tab-icon-colored text-blue-500" />
               Mensajes
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
-              <Star className="h-4 w-4 mr-1.5" />
+            <TabsTrigger value="reviews" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+              <Star className="h-4 w-4 mr-1.5 tab-icon-colored text-amber-500" />
               Reseñas
             </TabsTrigger>
-            <TabsTrigger value="mobile" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
-              <Smartphone className="h-4 w-4 mr-1.5" />
+            <TabsTrigger value="mobile" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+              <Smartphone className="h-4 w-4 mr-1.5 tab-icon-colored text-green-500" />
               App Móvil
             </TabsTrigger>
-            <TabsTrigger value="settings" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
-              <Settings className="h-4 w-4 mr-1.5" />
+            <TabsTrigger value="settings" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+              <Settings className="h-4 w-4 mr-1.5 tab-icon-colored text-orange-500" />
               Config
             </TabsTrigger>
           </TabsList>

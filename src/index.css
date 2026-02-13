@@ -237,3 +237,11 @@ All colors MUST be HSL.
 /* Scrollbar hide utility */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Tab icons: inherit white color when active */
+.tab-icon-colored {
+  transition: color 0.2s ease;
+}
+[data-state="active"] .tab-icon-colored {
+  color: white !important;
+}
