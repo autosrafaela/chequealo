@@ -1,32 +1,35 @@
-const CACHE_NAME = 'chequealo-v5';
+const CACHE_NAME = 'chequealo-v6';
+const STATIC_CACHE = 'chequealo-static-v1';
 const APP_SHELL = ['/', '/index.html', '/manifest.json'];
 
-// Install service worker and pre-cache app shell
+// Static assets to cache aggressively (cache-first, long-lived)
+const STATIC_ASSETS = [
+  '/favicon.ico',
+  '/favicon.png',
+  '/icon-192.png',
+  '/icon-512.png',
+];
+
+// Install service worker and pre-cache app shell + static assets
 self.addEventListener('install', (event) => {
   console.log('[ServiceWorker] 📦 Installing...');
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Caching app shell');
-      return cache.addAll(APP_SHELL);
-    })
+    Promise.all([
+      caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
+      caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS)),
+    ])
   );
 });
 
 // Activate: clean old caches and take control immediately
 self.addEventListener('activate', (event) => {
   console.log('[ServiceWorker] ✅ Activating...');
+  const KEEP = [CACHE_NAME, STATIC_CACHE];
   event.waitUntil(
     Promise.all([
-      caches.keys().then((cacheNames) =>
-        Promise.all(
-          cacheNames.map((name) => {
-            if (name !== CACHE_NAME) {
-              console.log('[ServiceWorker] Deleting old cache:', name);
-              return caches.delete(name);
-            }
-          })
-        )
+      caches.keys().then((names) =>
+        Promise.all(names.filter((n) => !KEEP.includes(n)).map((n) => caches.delete(n)))
       ),
       self.clients.claim(),
     ])
@@ -36,8 +39,15 @@ self.addEventListener('activate', (event) => {
 // Fetch strategy
 self.addEventListener('fetch', (event) => {
   const req = event.request;
+  const url = new URL(req.url);
 
-  // Network-first for navigations to avoid serving an old bundle
+  // Skip non-GET
+  if (req.method !== 'GET') return;
+
+  // Skip Supabase / API calls
+  if (url.hostname.includes('supabase') || url.pathname.startsWith('/rest/') || url.pathname.startsWith('/auth/')) return;
+
+  // Network-first for navigations
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
@@ -51,27 +61,44 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for static assets
-  const dest = req.destination;
-  if (['style', 'script', 'image', 'font'].includes(dest)) {
+  // Cache-first for fonts (Google Fonts, etc.)
+  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(
       caches.match(req).then((cached) =>
-        cached ||
-        fetch(req).then((res) => {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+        cached || fetch(req).then((res) => {
+          const clone = res.clone();
+          caches.open(STATIC_CACHE).then((c) => c.put(req, clone));
           return res;
         })
       )
     );
+    return;
+  }
+
+  // Cache-first for static assets (styles, scripts, images, fonts)
+  const dest = req.destination;
+  if (['style', 'script', 'image', 'font'].includes(dest)) {
+    event.respondWith(
+      caches.match(req).then((cached) =>
+        cached || fetch(req).then((res) => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(STATIC_CACHE).then((c) => c.put(req, clone));
+          }
+          return res;
+        }).catch(() => {
+          // Fallback for images
+          if (dest === 'image') return caches.match('/placeholder.svg');
+          return new Response('', { status: 408 });
+        })
+      )
+    );
+    return;
   }
 });
 
 // ===== PUSH NOTIFICATION HANDLER =====
 self.addEventListener('push', (event) => {
-  console.log('[ServiceWorker] 🔔 Push notification received!');
-  console.log('[ServiceWorker] Push event:', event);
-  
   let notificationData = {
     title: 'Chequealo',
     body: 'Nueva notificación',
@@ -81,25 +108,16 @@ self.addEventListener('push', (event) => {
     tag: 'default-' + Date.now(),
     requireInteraction: false,
     renotify: true,
-    data: {
-      url: '/',
-      dateOfArrival: Date.now()
-    },
+    data: { url: '/', dateOfArrival: Date.now() },
     actions: [
       { action: 'view', title: 'Ver' },
       { action: 'close', title: 'Cerrar' }
     ]
   };
 
-  // Parse push event data
   if (event.data) {
     try {
-      const rawData = event.data.text();
-      console.log('[ServiceWorker] Push raw data:', rawData.substring(0, 200));
-      
-      const data = JSON.parse(rawData);
-      console.log('[ServiceWorker] Push parsed data:', JSON.stringify(data, null, 2));
-      
+      const data = JSON.parse(event.data.text());
       notificationData = {
         title: data.title || notificationData.title,
         body: data.body || data.message || notificationData.body,
@@ -117,24 +135,10 @@ self.addEventListener('push', (event) => {
         actions: data.actions || notificationData.actions
       };
     } catch (e) {
-      console.error('[ServiceWorker] ❌ Error parsing push data:', e);
-      try {
-        notificationData.body = event.data.text();
-      } catch (textErr) {
-        console.error('[ServiceWorker] ❌ Error reading push text:', textErr);
-      }
+      try { notificationData.body = event.data.text(); } catch (_) {}
     }
-  } else {
-    console.log('[ServiceWorker] ⚠️ No data in push event');
   }
 
-  console.log('[ServiceWorker] 📤 Showing notification:', notificationData.title);
-  console.log('[ServiceWorker] Notification details:', {
-    body: notificationData.body,
-    url: notificationData.data.url,
-    tag: notificationData.tag
-  });
-  
   event.waitUntil(
     self.registration.showNotification(notificationData.title, {
       body: notificationData.body,
@@ -146,93 +150,43 @@ self.addEventListener('push', (event) => {
       renotify: notificationData.renotify,
       data: notificationData.data,
       actions: notificationData.actions
-    }).then(() => {
-      console.log('[ServiceWorker] ✅ Notification shown successfully');
-    }).catch((err) => {
-      console.error('[ServiceWorker] ❌ Error showing notification:', err);
     })
   );
 });
 
 // ===== NOTIFICATION CLICK HANDLER =====
 self.addEventListener('notificationclick', (event) => {
-  console.log('[ServiceWorker] 👆 Notification clicked:', event.action);
-  console.log('[ServiceWorker] Notification data:', event.notification.data);
-  
   event.notification.close();
-
-  // Handle close action
-  if (event.action === 'close') {
-    console.log('[ServiceWorker] User clicked close action');
-    return;
-  }
+  if (event.action === 'close') return;
 
   const urlToOpen = event.notification.data?.url || '/';
   const fullUrl = new URL(urlToOpen, self.location.origin).href;
-  console.log('[ServiceWorker] Opening URL:', fullUrl);
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((windowClients) => {
-        console.log('[ServiceWorker] Found', windowClients.length, 'open window(s)');
-        
-        // Check if app is already open
-        for (let i = 0; i < windowClients.length; i++) {
-          const client = windowClients[i];
-          console.log('[ServiceWorker] Window URL:', client.url);
-          
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            console.log('[ServiceWorker] Focusing existing window');
-            return client.focus().then(focusedClient => {
-              if ('navigate' in focusedClient) {
-                console.log('[ServiceWorker] Navigating to:', fullUrl);
-                return focusedClient.navigate(fullUrl);
-              }
-              return focusedClient;
-            });
-          }
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus().then((c) => 'navigate' in c ? c.navigate(fullUrl) : c);
         }
-        
-        // Open new window
-        if (clients.openWindow) {
-          console.log('[ServiceWorker] Opening new window:', fullUrl);
-          return clients.openWindow(fullUrl);
-        }
-      })
-      .catch((err) => {
-        console.error('[ServiceWorker] ❌ Error handling notification click:', err);
-      })
+      }
+      if (clients.openWindow) return clients.openWindow(fullUrl);
+    })
   );
 });
 
 // ===== NOTIFICATION CLOSE HANDLER =====
-self.addEventListener('notificationclose', (event) => {
-  console.log('[ServiceWorker] ❌ Notification closed by user');
-  console.log('[ServiceWorker] Notification tag:', event.notification.tag);
-});
+self.addEventListener('notificationclose', () => {});
 
-// ===== MESSAGE HANDLER (for communication with main thread) =====
+// ===== MESSAGE HANDLER =====
 self.addEventListener('message', (event) => {
-  console.log('[ServiceWorker] 📨 Message received:', event.data);
-  
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[ServiceWorker] Processing SKIP_WAITING, activating new version...');
+  if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting().then(() => {
-      console.log('[ServiceWorker] skipWaiting completed');
-      // Notify all clients that the new version is active
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          client.postMessage({ type: 'SW_UPDATED' });
-        });
-      });
+      self.clients.matchAll().then((cls) => cls.forEach((c) => c.postMessage({ type: 'SW_UPDATED' })));
     });
   }
-  
-  // Test push handling
-  if (event.data && event.data.type === 'TEST_PUSH') {
-    console.log('[ServiceWorker] 🧪 Test push requested');
+  if (event.data?.type === 'TEST_PUSH') {
     self.registration.showNotification('🧪 Test de Service Worker', {
-      body: 'Las notificaciones del Service Worker funcionan correctamente!',
+      body: 'Las notificaciones funcionan correctamente!',
       icon: '/icon-192.png',
       badge: '/icon-192.png',
       vibrate: [200, 100, 200],
@@ -241,10 +195,5 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// ===== SYNC HANDLER (for background sync) =====
-self.addEventListener('sync', (event) => {
-  console.log('[ServiceWorker] 🔄 Sync event:', event.tag);
-});
-
-// Log when service worker starts
-console.log('[ServiceWorker] 🚀 Service Worker loaded and ready');
+// ===== SYNC HANDLER =====
+self.addEventListener('sync', () => {});
