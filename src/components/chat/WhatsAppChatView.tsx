@@ -29,6 +29,7 @@ interface WhatsAppChatViewProps {
   onArchive?: () => void;
   onBlock?: () => void;
   isProfessional?: boolean;
+  myProfessionalId?: string | null;
 }
 
 const getInitials = (name: string): string => {
@@ -57,7 +58,8 @@ export const WhatsAppChatView = ({
   onCall,
   onArchive,
   onBlock,
-  isProfessional = false
+  isProfessional = false,
+  myProfessionalId
 }: WhatsAppChatViewProps) => {
   const [messageText, setMessageText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -71,10 +73,16 @@ export const WhatsAppChatView = ({
 
   const professional = conversation?.professionals;
   const clientProfile = conversation?.profiles;
-  const name = isProfessional
+  
+  // Per-conversation identity
+  const amProfessionalHere = myProfessionalId != null 
+    ? conversation?.professional_id === myProfessionalId 
+    : isProfessional;
+  
+  const name = amProfessionalHere
     ? (clientProfile?.full_name || `Cliente de ${professional?.profession || 'consulta'}`)
     : (professional?.full_name || 'Usuario');
-  const avatar = isProfessional
+  const avatar = amProfessionalHere
     ? clientProfile?.avatar_url
     : professional?.image_url;
   const profession = professional?.profession;

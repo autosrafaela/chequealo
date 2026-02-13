@@ -88,6 +88,7 @@ export const MessagesDesktopLayout = ({
     messages, 
     loading, 
     sending,
+    myProfessionalId,
     fetchMessages, 
     sendMessage,
     deleteConversation,
@@ -231,14 +232,18 @@ export const MessagesDesktopLayout = ({
             filteredConversations.map((conversation) => {
               const professionalInfo = conversation.professionals;
               const clientProfile = (conversation as any).profiles;
-              const name = isProfessional 
+              
+              // Per-conversation identity: determine if I'm the professional in THIS conversation
+              const amProfessionalHere = myProfessionalId != null && conversation.professional_id === myProfessionalId;
+              
+              const name = amProfessionalHere 
                 ? (clientProfile?.full_name || `Cliente de ${professionalInfo?.profession || 'consulta'}`)
                 : (professionalInfo?.full_name || 'Profesional');
-              const imageUrl = isProfessional 
+              const imageUrl = amProfessionalHere 
                 ? clientProfile?.avatar_url 
                 : professionalInfo?.image_url;
               const profession = professionalInfo?.profession;
-              const unreadCount = isProfessional 
+              const unreadCount = amProfessionalHere 
                 ? conversation.unread_count_professional 
                 : conversation.unread_count_user;
               const hasUnread = (unreadCount || 0) > 0;
@@ -303,11 +308,14 @@ export const MessagesDesktopLayout = ({
   // Inline chat panel JSX
   const chatPanelContent = (
     <div className="flex flex-col h-full bg-background">
-      {selectedConversationId && selectedConversation ? (
+      {selectedConversationId && selectedConversation ? (() => {
+          // Per-conversation: am I the professional in this conversation?
+          const amProfessionalInChat = myProfessionalId != null && selectedConversation.professional_id === myProfessionalId;
+          return (
         <>
           <ChatHeader
             conversation={selectedConversation}
-            isProfessional={isProfessional}
+            isProfessional={amProfessionalInChat}
             onBack={handleBack}
             onClose={handleClose}
             onArchive={() => deleteConversation(selectedConversationId)}
@@ -363,7 +371,8 @@ export const MessagesDesktopLayout = ({
             </div>
           </div>
         </>
-      ) : (
+          );
+      })() : (
         <div className="flex-1 flex items-center justify-center text-muted-foreground">
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">

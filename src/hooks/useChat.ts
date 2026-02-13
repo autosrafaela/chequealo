@@ -52,6 +52,7 @@ export const useChat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [myProfessionalId, setMyProfessionalId] = useState<string | null>(null);
 
   // In some navigation flows, the UI might have a valid Supabase session
   // before AuthContext finishes hydrating. Use this helper to avoid writes
@@ -97,6 +98,7 @@ export const useChat = () => {
         .order('last_message_at', { ascending: false });
 
       if (professional) {
+        setMyProfessionalId(professional.id);
         // Profesional puede tener conversaciones en ambos roles:
         // - Como profesional que recibe consultas (professional_id = su ID)
         // - Como usuario que consulta a otros profesionales (user_id = su auth ID)
@@ -289,13 +291,16 @@ export const useChat = () => {
         fileSize = file.size;
       }
 
-      const { data: professional } = await supabase
-        .from('professionals')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
+      // Determine sender type per-conversation: if my professional ID matches
+      // the conversation's professional_id, I'm messaging as the professional.
+      // Otherwise I'm messaging as the client/user.
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('professional_id')
+        .eq('id', conversationId)
+        .single();
 
-      const senderType = professional ? 'professional' : 'user';
+      const senderType = (myProfessionalId && conv?.professional_id === myProfessionalId) ? 'professional' : 'user';
 
       const { data, error } = await supabase
         .from('messages')
@@ -372,13 +377,17 @@ export const useChat = () => {
 
   const markMessagesAsRead = async (conversationId: string) => {
     try {
-      const { data: professional } = await supabase
-        .from('professionals')
-        .select('id')
-        .eq('user_id', user?.id)
+      // Determine role per-conversation, not globally
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('professional_id, user_id')
+        .eq('id', conversationId)
         .single();
 
-      const oppositeSenderType = professional ? 'user' : 'professional';
+      if (!conv) return;
+
+      const amProfessionalHere = myProfessionalId != null && conv.professional_id === myProfessionalId;
+      const oppositeSenderType = amProfessionalHere ? 'user' : 'professional';
 
       const { error } = await supabase
         .from('messages')
@@ -392,7 +401,7 @@ export const useChat = () => {
 
       if (error) throw error;
 
-      const updateField = professional ? 'unread_count_professional' : 'unread_count_user';
+      const updateField = amProfessionalHere ? 'unread_count_professional' : 'unread_count_user';
       
       await supabase
         .from('conversations')
@@ -564,6 +573,7 @@ export const useChat = () => {
     sending,
     activeConversationId,
     setActiveConversationId,
+    myProfessionalId,
     fetchMessages,
     createConversation,
     openConversationByContactRequest,

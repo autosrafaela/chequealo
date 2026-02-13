@@ -18,6 +18,7 @@ const Messages = () => {
     messages: allMessages,
     loading, 
     sending,
+    myProfessionalId,
     fetchMessages,
     sendMessage,
     deleteConversation,
@@ -354,6 +355,7 @@ const Messages = () => {
             currentChatId={selectedConversationId || undefined}
             currentUserId={user?.id}
             isProfessional={isProfessional}
+            myProfessionalId={myProfessionalId}
           />
         </div>
 
@@ -378,6 +380,7 @@ const Messages = () => {
               onArchive={handleArchive}
               onBlock={handleBlock}
               isProfessional={isProfessional}
+              myProfessionalId={myProfessionalId}
             />
           )}
         </div>

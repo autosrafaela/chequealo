@@ -17,6 +17,7 @@ interface WhatsAppChatListProps {
   currentChatId?: string;
   currentUserId?: string;
   isProfessional?: boolean;
+  myProfessionalId?: string | null;
 }
 
 const getStatusIcon = (isRead: boolean, isFromMe: boolean) => {
@@ -61,7 +62,8 @@ export const WhatsAppChatList = ({
   onChatSelect,
   currentChatId,
   currentUserId,
-  isProfessional = false
+  isProfessional = false,
+  myProfessionalId
 }: WhatsAppChatListProps) => {
 
   if (loading) {
@@ -122,13 +124,19 @@ export const WhatsAppChatList = ({
         {conversations.map((conv) => {
           const professional = conv.professionals;
           const clientProfile = (conv as any).profiles;
-          const name = isProfessional
+          
+          // Per-conversation identity: if myProfessionalId is available, use it; otherwise fall back to isProfessional flag
+          const amProfessionalHere = myProfessionalId != null 
+            ? conv.professional_id === myProfessionalId 
+            : isProfessional;
+          
+          const name = amProfessionalHere
             ? (clientProfile?.full_name || `Cliente de ${professional?.profession || 'consulta'}`)
             : (professional?.full_name || 'Usuario');
-          const avatar = isProfessional
+          const avatar = amProfessionalHere
             ? clientProfile?.avatar_url
             : professional?.image_url;
-          const unreadCount = isProfessional
+          const unreadCount = amProfessionalHere
             ? (conv.unread_count_professional || 0)
             : (conv.unread_count_user || 0);
           const hasUnread = unreadCount > 0;
