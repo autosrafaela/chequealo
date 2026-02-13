@@ -1,91 +1,52 @@
 
 
-# Plan: Ajustes Finales de Usabilidad y Configuracion
+# Plan: Corregir Visibilidad de Iconos en el Header
 
-## Resumen
+## Problema
 
-Cuatro cambios puntuales: eliminar tab Solicitudes del user dashboard, verificar que el switch de notificaciones push funcione en Configuracion, confirmar identidad en mensajeria del profesional, y limpiar redirects muertos.
-
----
-
-## Cambios a Realizar
-
-### 1. Eliminar Pestana "Solicitudes" del User Dashboard
-
-**Archivo**: `src/pages/UserDashboard.tsx`
-
-- Reducir grid de tabs de `grid-cols-6` a `grid-cols-5`
-- Eliminar el `TabsTrigger value="requests"` (lineas 721-724)
-- Eliminar todo el `TabsContent value="requests"` (lineas 868-962)
-- Eliminar imports y estados relacionados: `contactRequests`, `getStatusBadge`, fetch de contact_requests en `fetchUserData`
-- Eliminar imports no usados: `Phone`, `Mail`, `ExternalLink`, `format`, `es` (si ya no se usan en otro lugar)
-
-Los usuarios accederan a su historial de conversaciones directamente desde la pestana "Mensajes".
-
-### 2. Push Notifications en Configuracion (ya funcional)
-
-**Archivo**: `src/pages/UserDashboard.tsx`
-
-El componente `PushNotificationToggle` ya esta renderizado en la pestana de Configuracion (linea 1084). Este componente usa `usePushNotifications` que ya:
-- Solicita permisos del navegador (`Notification.requestPermission()`)
-- Se suscribe via VAPID / Service Worker
-- Guarda la suscripcion en `push_subscriptions`
-
-**Verificacion**: El switch ya esta funcional. No se requieren cambios de codigo, solo confirmar que funciona correctamente en el preview.
-
-### 3. Identidad en Mensajeria del Profesional (ya implementada)
-
-En el ultimo cambio se implemento la logica de `myProfessionalId` en:
-- `useChat.ts` - expone `myProfessionalId`
-- `MessagesDesktopLayout.tsx` - pasa `myProfessionalId` a los sub-componentes
-- `WhatsAppChatList.tsx` y `WhatsAppChatView.tsx` - usan `amProfessionalHere` per-conversation
-
-**Verificacion**: Ya deberia mostrar el nombre del cliente en el panel del profesional. Confirmar visualmente.
-
-### 4. Limpiar Redirects de "Solicitud Enviada"
-
-**Archivo**: `src/components/ContactRequestDialog.tsx`
-
-El redirect actual despues del exito es:
-```
-navigate(`/user-dashboard?tab=messages&conversation=${conversationId}`)
-```
-
-Esto ya apunta correctamente a Mensajes (no a Solicitudes). Como eliminamos el tab Solicitudes, si algun usuario tenia un bookmark a `?tab=requests`, simplemente caera en el tab por defecto ("home"). No se necesita cambio adicional.
-
-**Archivo**: `src/components/ContactRequestsPanel.tsx`
-
-Revisar si este componente se usa en algun lugar del user dashboard. Dado que eliminamos el tab requests, cualquier referencia interna que redirija a `tab=requests` debe apuntar a `tab=messages`.
+El icono de la campana (notificaciones) tiene clase `text-white`, haciendolo invisible sobre el fondo blanco del header. Los demas iconos (buscar, menu) ya usan `text-foreground` correctamente.
 
 ---
 
-## Detalle Tecnico
+## Cambios
 
-### Tabs finales del User Dashboard (5 tabs)
+### 1. `src/components/NotificationCenter.tsx` (linea 213)
 
-| Tab | Valor | Icono |
-|-----|-------|-------|
-| Inicio | home | Search |
-| Mensajes | messages | MessageSquare |
-| Resenas | reviews | Star |
-| App Movil | mobile | Smartphone |
-| Configuracion | settings | Settings |
-
-### Codigo a eliminar en UserDashboard.tsx
-
-1. **Interface `ContactRequest`** (lineas 65-81) - ya no se usa
-2. **Estado `contactRequests`** (linea 96) - ya no se usa
-3. **Fetch de contact_requests** en `fetchUserData` (lineas 266-300) - eliminar bloque completo
-4. **Funcion `getStatusBadge`** - buscar y eliminar si existe
-5. **TabsTrigger y TabsContent de "requests"** - eliminar ambos bloques
-
-### Grid de tabs
-
+**Antes:**
 ```tsx
-// Antes: grid-cols-6
-// Despues: grid-cols-5
-<TabsList className="grid w-full grid-cols-5">
+<Button variant="ghost" size="sm" className="relative text-white hover:text-primary hover:bg-white/10">
 ```
+
+**Despues:**
+```tsx
+<Button variant="ghost" size="sm" className="relative text-foreground hover:text-primary hover:bg-black/5 transition-colors">
+```
+
+- Cambia `text-white` a `text-foreground` (gris oscuro, consistente con los otros iconos del header)
+- Cambia `hover:bg-white/10` a `hover:bg-black/5` (efecto hover visible sobre fondo claro)
+- Agrega `transition-colors` para transicion suave en hover
+
+### 2. `src/components/notifications/NotificationBadge.tsx`
+
+Sin cambios necesarios. Ya usa `bg-destructive` que mapea a rojo (`0 84.2% 60.2%`) con texto blanco (`text-destructive-foreground`). Funciona correctamente.
+
+### 3. `src/components/Header.tsx` - Mejorar hover en iconos
+
+Los botones de Search y Menu ya usan `text-foreground hover:bg-black/5`. Agregar `transition-colors` para consistencia:
+
+**Boton Search (linea ~103):**
+```tsx
+className="text-foreground p-2 hover:bg-black/5 transition-colors"
+```
+
+**Boton Menu (linea ~114):**
+```tsx
+className="text-foreground p-2 hover:bg-black/5 transition-colors"
+```
+
+### 4. Bottom Navigation (mobile)
+
+Ya usa `text-muted-foreground` y `text-primary` correctamente. Sin cambios necesarios.
 
 ---
 
@@ -93,13 +54,13 @@ Revisar si este componente se usa en algun lugar del user dashboard. Dado que el
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/UserDashboard.tsx` | Eliminar tab Solicitudes, reducir grid a 5 cols, limpiar codigo muerto |
+| `src/components/NotificationCenter.tsx` | Cambiar `text-white` a `text-foreground`, fix hover |
+| `src/components/Header.tsx` | Agregar `transition-colors` a iconos |
 
-## Sin cambios necesarios
+## Resultado
 
-| Archivo | Razon |
-|---------|-------|
-| `PushNotificationToggle.tsx` | Ya funciona correctamente en Configuracion |
-| `MessagesDesktopLayout.tsx` | Identidad ya corregida con myProfessionalId |
-| `ContactRequestDialog.tsx` | Redirect ya apunta a messages, no a requests |
+- Campana visible en gris oscuro sobre fondo blanco
+- Badge rojo brillante con numero blanco (ya funciona)
+- Hover suave con transicion en todos los iconos
+- Consistencia visual mobile y desktop
 
