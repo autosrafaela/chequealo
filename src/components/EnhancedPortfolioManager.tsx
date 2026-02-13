@@ -368,6 +368,8 @@ export const EnhancedPortfolioManager = () => {
                       <img 
                         src={photo.before_image_url} 
                         alt="Antes" 
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-48 object-cover"
                       />
                       <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
@@ -378,6 +380,8 @@ export const EnhancedPortfolioManager = () => {
                       <img 
                         src={photo.after_image_url} 
                         alt="Después" 
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-48 object-cover"
                       />
                       <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
@@ -395,6 +399,8 @@ export const EnhancedPortfolioManager = () => {
                 <img 
                   src={photo.image_url} 
                   alt={photo.caption || 'Trabajo'} 
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-48 object-cover"
                 />
               )}
