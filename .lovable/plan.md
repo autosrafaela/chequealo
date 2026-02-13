@@ -1,141 +1,91 @@
 
-# Plan: Rediseno del Dashboard de Usuario (Cliente)
+
+# Plan: Ajustes Finales de Usabilidad y Configuracion
 
 ## Resumen
 
-Simplificar el UserDashboard eliminando la pestana de Favoritos, agregando una Card de favoritos en la vista principal, un buscador prominente, y un acceso directo a mensajes. Limpiar bloques innecesarios.
+Cuatro cambios puntuales: eliminar tab Solicitudes del user dashboard, verificar que el switch de notificaciones push funcione en Configuracion, confirmar identidad en mensajeria del profesional, y limpiar redirects muertos.
 
 ---
 
-## Cambios en `src/pages/UserDashboard.tsx`
+## Cambios a Realizar
 
-### 1. Eliminar pestana "Favoritos" del TabsList
+### 1. Eliminar Pestana "Solicitudes" del User Dashboard
 
-- Reducir de 7 columnas (`grid-cols-7`) a 6 (`grid-cols-6`)
-- Eliminar el `TabsTrigger value="favorites"` y su `TabsContent value="favorites"` correspondiente
+**Archivo**: `src/pages/UserDashboard.tsx`
 
-### 2. Redisenar la vista principal (tab "profile")
+- Reducir grid de tabs de `grid-cols-6` a `grid-cols-5`
+- Eliminar el `TabsTrigger value="requests"` (lineas 721-724)
+- Eliminar todo el `TabsContent value="requests"` (lineas 868-962)
+- Eliminar imports y estados relacionados: `contactRequests`, `getStatusBadge`, fetch de contact_requests en `fetchUserData`
+- Eliminar imports no usados: `Phone`, `Mail`, `ExternalLink`, `format`, `es` (si ya no se usan en otro lugar)
 
-Reemplazar el contenido actual del `TabsContent value="profile"` con una estructura limpia:
+Los usuarios accederan a su historial de conversaciones directamente desde la pestana "Mensajes".
 
-**a) Buscador protagonista (arriba de todo)**
+### 2. Push Notifications en Configuracion (ya funcional)
+
+**Archivo**: `src/pages/UserDashboard.tsx`
+
+El componente `PushNotificationToggle` ya esta renderizado en la pestana de Configuracion (linea 1084). Este componente usa `usePushNotifications` que ya:
+- Solicita permisos del navegador (`Notification.requestPermission()`)
+- Se suscribe via VAPID / Service Worker
+- Guarda la suscripcion en `push_subscriptions`
+
+**Verificacion**: El switch ya esta funcional. No se requieren cambios de codigo, solo confirmar que funciona correctamente en el preview.
+
+### 3. Identidad en Mensajeria del Profesional (ya implementada)
+
+En el ultimo cambio se implemento la logica de `myProfessionalId` en:
+- `useChat.ts` - expone `myProfessionalId`
+- `MessagesDesktopLayout.tsx` - pasa `myProfessionalId` a los sub-componentes
+- `WhatsAppChatList.tsx` y `WhatsAppChatView.tsx` - usan `amProfessionalHere` per-conversation
+
+**Verificacion**: Ya deberia mostrar el nombre del cliente en el panel del profesional. Confirmar visualmente.
+
+### 4. Limpiar Redirects de "Solicitud Enviada"
+
+**Archivo**: `src/components/ContactRequestDialog.tsx`
+
+El redirect actual despues del exito es:
 ```
-Barra de busqueda grande con icono Search
-Placeholder: "Que servicio buscas hoy en Rafaela?"
-Al hacer clic o escribir, navega a /search?q={query}
+navigate(`/user-dashboard?tab=messages&conversation=${conversationId}`)
 ```
 
-**b) Card "Mis Profesionales Favoritos"**
-- Usa el hook `useFavorites` para obtener IDs
-- Consulta `professionals_public` para obtener datos (nombre, profesion, imagen)
-- Muestra un grid horizontal scrollable con items circulares: foto + nombre + rubro
-- Click en un favorito navega a `/professional/{id}`
-- Estado vacio: icono Heart + "Aun no tienes favoritos guardados"
+Esto ya apunta correctamente a Mensajes (no a Solicitudes). Como eliminamos el tab Solicitudes, si algun usuario tenia un bookmark a `?tab=requests`, simplemente caera en el tab por defecto ("home"). No se necesita cambio adicional.
 
-**c) Card "Mis Consultas" (acceso directo a mensajes)**
-- Icono MessageSquare + titulo "Mis Consultas"
-- Muestra cantidad de conversaciones activas
-- Boton que cambia a `setActiveTab('messages')`
+**Archivo**: `src/components/ContactRequestsPanel.tsx`
 
-**d) Mantener la Card de "Crear Cuenta Profesional"** (si no es profesional) como CTA al final
-
-### 3. Eliminar bloques de la vista principal
-
-- Eliminar los 4 Stats Cards actuales (Solicitudes Enviadas, Solicitudes Activas, Favoritos Guardados, Crear Cuenta)
-- Eliminar TransactionConfirmationCard y ReadyToRateTransactions del tab profile (mover a solicitudes si es necesario)
-- Eliminar ProfileCompletionChecklist si existe en la vista
-
-### 4. Mover formulario de perfil
-
-- El formulario de "Informacion Personal" pasa a la pestana "Configuracion" o se mantiene como tab separado pero NO es la vista principal
-- La vista principal ahora muestra: Buscador + Favoritos + Mis Consultas
+Revisar si este componente se usa en algun lugar del user dashboard. Dado que eliminamos el tab requests, cualquier referencia interna que redirija a `tab=requests` debe apuntar a `tab=messages`.
 
 ---
 
-## Detalle tecnico
+## Detalle Tecnico
 
-### Estructura del nuevo tab principal ("home")
+### Tabs finales del User Dashboard (5 tabs)
 
-```tsx
-// Renombrar tab "profile" a "home" como vista principal
-<TabsContent value="home">
-  {/* Buscador */}
-  <div className="mb-6">
-    <div className="relative">
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-      <Input
-        placeholder="Que servicio buscas hoy en Rafaela?"
-        className="pl-12 h-14 text-lg rounded-2xl shadow-sm"
-        onKeyDown={(e) => e.key === 'Enter' && navigate(`/search?q=${searchQuery}`)}
-      />
-    </div>
-  </div>
+| Tab | Valor | Icono |
+|-----|-------|-------|
+| Inicio | home | Search |
+| Mensajes | messages | MessageSquare |
+| Resenas | reviews | Star |
+| App Movil | mobile | Smartphone |
+| Configuracion | settings | Settings |
 
-  {/* Card Favoritos */}
-  <Card className="rounded-2xl shadow-sm mb-6">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <Heart className="h-5 w-5 text-red-500" />
-        Mis Profesionales Favoritos
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      {/* Grid horizontal scrollable */}
-      <div className="flex gap-4 overflow-x-auto pb-2">
-        {favoriteProfessionals.map(prof => (
-          <button onClick={() => navigate(`/professional/${prof.id}`)}>
-            <Avatar className="h-16 w-16" />
-            <p className="text-xs font-semibold">{prof.full_name}</p>
-            <p className="text-xs text-muted-foreground">{prof.profession}</p>
-          </button>
-        ))}
-      </div>
-    </CardContent>
-  </Card>
+### Codigo a eliminar en UserDashboard.tsx
 
-  {/* Card Mis Consultas */}
-  <Card className="rounded-2xl shadow-sm mb-6 cursor-pointer"
-        onClick={() => setActiveTab('messages')}>
-    <CardContent className="p-6 flex items-center gap-4">
-      <MessageSquare className="h-8 w-8 text-primary" />
-      <div>
-        <p className="font-semibold">Mis Consultas</p>
-        <p className="text-sm text-muted-foreground">Ver conversaciones con profesionales</p>
-      </div>
-    </CardContent>
-  </Card>
+1. **Interface `ContactRequest`** (lineas 65-81) - ya no se usa
+2. **Estado `contactRequests`** (linea 96) - ya no se usa
+3. **Fetch de contact_requests** en `fetchUserData` (lineas 266-300) - eliminar bloque completo
+4. **Funcion `getStatusBadge`** - buscar y eliminar si existe
+5. **TabsTrigger y TabsContent de "requests"** - eliminar ambos bloques
 
-  {/* CTA Crear cuenta profesional */}
-  {!isProfessional && <Card>...</Card>}
-</TabsContent>
-```
-
-### Fetch de favoritos con detalles
+### Grid de tabs
 
 ```tsx
-const [favoriteProfessionals, setFavoriteProfessionals] = useState([]);
-
-useEffect(() => {
-  if (favoriteIds.length === 0) return;
-  supabase
-    .from('professionals_public')
-    .select('id, full_name, profession, image_url')
-    .in('id', favoriteIds)
-    .then(({ data }) => setFavoriteProfessionals(data || []));
-}, [favoriteIds]);
+// Antes: grid-cols-6
+// Despues: grid-cols-5
+<TabsList className="grid w-full grid-cols-5">
 ```
-
-### Tabs actualizados
-
-| Antes (7 tabs) | Despues (6 tabs) |
-|---|---|
-| Mi Perfil | Inicio |
-| Favoritos | ~~eliminado~~ |
-| Mensajes | Mensajes |
-| Solicitudes | Solicitudes |
-| Resenas | Resenas |
-| App Movil | App Movil |
-| Configuracion | Configuracion (incluye perfil personal) |
 
 ---
 
@@ -143,11 +93,13 @@ useEffect(() => {
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/UserDashboard.tsx` | Rediseno completo de la vista principal, eliminar tab Favoritos, mover perfil a Configuracion, agregar buscador + card favoritos + card mensajes |
+| `src/pages/UserDashboard.tsx` | Eliminar tab Solicitudes, reducir grid a 5 cols, limpiar codigo muerto |
 
-## Estetica
+## Sin cambios necesarios
 
-- Cards con `rounded-2xl shadow-sm` para estilo limpio
-- Bordes suaves, sin bordes duros
-- Avatares circulares con foto o iniciales en color determinista (usa `getAvatarColor`)
-- Espaciado generoso entre secciones
+| Archivo | Razon |
+|---------|-------|
+| `PushNotificationToggle.tsx` | Ya funciona correctamente en Configuracion |
+| `MessagesDesktopLayout.tsx` | Identidad ya corregida con myProfessionalId |
+| `ContactRequestDialog.tsx` | Redirect ya apunta a messages, no a requests |
+
