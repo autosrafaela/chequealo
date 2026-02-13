@@ -197,7 +197,6 @@ const ProfessionalCard = ({
         }}
         onReviewSubmitted={() => {
           setShowReviewModal(false);
-          toast.success('¡Reseña enviada con éxito!');
         }}
       />
     </>

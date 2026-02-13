@@ -141,7 +141,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
 
       if (error) throw error;
 
-      toast.success('¡Reseña publicada correctamente!');
+      toast.success('¡Gracias por tu opinión! Ayudas a la comunidad de Rafaela');
       onReviewSubmitted();
       handleClose();
     } catch (error) {
