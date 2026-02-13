@@ -99,7 +99,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-foreground p-2 hover:bg-black/5"
+              className="text-foreground p-2 hover:bg-black/5 transition-colors"
               onClick={() => navigate('/search')}
             >
               <Search className="h-5 w-5" />
@@ -113,7 +113,7 @@ const Header = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-foreground p-2 hover:bg-black/5"
+                className="text-foreground p-2 hover:bg-black/5 transition-colors"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
                 {isUserMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

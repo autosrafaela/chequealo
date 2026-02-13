@@ -210,7 +210,7 @@ const NotificationCenter = () => {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative text-white hover:text-primary hover:bg-white/10">
+        <Button variant="ghost" size="sm" className="relative text-foreground hover:text-primary hover:bg-black/5 transition-colors">
           <Bell className={`h-5 w-5 ${updateAvailable ? 'text-primary animate-pulse' : 'text-current'}`} />
           <NotificationBadge 
             count={totalUnreadCount} 
