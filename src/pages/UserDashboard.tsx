@@ -32,24 +32,24 @@ import {
   Download,
   Trash2,
   Smartphone,
-  AlertCircle
+  AlertCircle,
+  Search,
+  ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
-import ProfileCompletionChecklist from '@/components/ProfileCompletionChecklist';
 import { Navigate, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import FavoritesPanel from '@/components/FavoritesPanel';
 import { MessagesDesktopLayout } from '@/components/chat/MessagesDesktopLayout';
 import { UserTransactionReviews } from '@/components/UserTransactionReviews';
 import PWAFeatures from '@/components/PWAFeatures';
 import PushNotificationToggle from '@/components/PushNotificationToggle';
-import { TransactionConfirmationCard } from '@/components/TransactionConfirmationCard';
-import { ReadyToRateTransactions } from '@/components/ReadyToRateTransactions';
-import { useTransactionConfirmation } from '@/hooks/useTransactionConfirmation';
 import { EnableNotificationsBanner } from '@/components/EnableNotificationsBanner';
 import { BottomNavigation } from '@/components/BottomNavigation';
+import { useFavorites } from '@/hooks/useFavorites';
+import { getAvatarColor, getAvatarTextColor } from '@/utils/avatarColors';
 
+// Interfaces for user profile and contact requests
 interface UserProfile {
   id: string;
   user_id: string;
@@ -80,6 +80,13 @@ interface ContactRequest {
   } | null;
 }
 
+interface FavoriteProfessional {
+  id: string;
+  full_name: string;
+  profession: string;
+  image_url: string | null;
+}
+
 const UserDashboard = () => {
   const { user, profile } = useAuth();
   const [searchParams] = useSearchParams();
@@ -89,17 +96,15 @@ const UserDashboard = () => {
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('home');
   const [isProfessional, setIsProfessional] = useState(false);
   const [showProfessionalForm, setShowProfessionalForm] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
+  const [searchQuery, setSearchQuery] = useState('');
   
-  // Transaction confirmation hook
-  const { 
-    pendingTransactions, 
-    loading: confirmLoading, 
-    confirmCompletion 
-  } = useTransactionConfirmation();
+  // Favorites
+  const { favorites, loading: favoritesLoading } = useFavorites();
+  const [favoriteProfessionals, setFavoriteProfessionals] = useState<FavoriteProfessional[]>([]);
 
   // Form states
   const [fullName, setFullName] = useState('');
@@ -172,6 +177,19 @@ const UserDashboard = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+
+  // Fetch favorite professionals details
+  useEffect(() => {
+    if (favorites.length === 0) {
+      setFavoriteProfessionals([]);
+      return;
+    }
+    supabase
+      .from('professionals_public')
+      .select('id, full_name, profession, image_url')
+      .in('id', favorites)
+      .then(({ data }) => setFavoriteProfessionals((data as FavoriteProfessional[]) || []));
+  }, [favorites]);
 
   // Manejar parámetros de URL para abrir conversación
   useEffect(() => {
@@ -319,7 +337,6 @@ const UserDashboard = () => {
       return;
     }
 
-    // Validate required fields
     if (!fullName.trim()) {
       toast.error('El nombre completo es obligatorio');
       return;
@@ -327,26 +344,16 @@ const UserDashboard = () => {
 
     try {
       setUpdating(true);
-      console.log('Starting profile update for user:', user.id);
-      console.log('Update data:', { fullName, username, bio, location });
 
-      // First check if profile exists
       const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (checkError) {
-        console.error('Error checking existing profile:', checkError);
-        throw checkError;
-      }
-
-      console.log('Existing profile:', existingProfile);
+      if (checkError) throw checkError;
 
       if (existingProfile) {
-        // Update existing profile
-        console.log('Updating existing profile');
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -360,8 +367,6 @@ const UserDashboard = () => {
 
         if (error) throw error;
       } else {
-        // Create new profile
-        console.log('Creating new profile');
         const { error } = await supabase
           .from('profiles')
           .insert({
@@ -375,10 +380,9 @@ const UserDashboard = () => {
         if (error) throw error;
       }
 
-      console.log('Profile update successful');
       toast.success('Perfil actualizado correctamente');
       fetchUserData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
       toast.error(`Error al actualizar perfil: ${error.message || 'Error desconocido'}`);
     } finally {
@@ -388,28 +392,13 @@ const UserDashboard = () => {
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    console.log('handlePhotoUpload called', { file, user: user?.id });
-    
-    if (!file) {
-      console.log('No file selected');
-      return;
-    }
-    
-    if (!user) {
-      console.log('No user found');
-      toast.error('Debes estar conectado para subir una foto');
-      return;
-    }
+    if (!file || !user) return;
 
-    // Validate file size (5MB max)
-    console.log('File size:', file.size, 'bytes');
     if (file.size > 5 * 1024 * 1024) {
       toast.error('La imagen debe ser menor a 5MB');
       return;
     }
 
-    // Validate file type
-    console.log('File type:', file.type);
     if (!file.type.startsWith('image/')) {
       toast.error('Solo se permiten archivos de imagen');
       return;
@@ -417,59 +406,33 @@ const UserDashboard = () => {
 
     try {
       setUploadingPhoto(true);
-      console.log('Starting photo upload for user:', user.id);
-      
-      // Create a simple filename
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `${user.id}/avatar.${fileExt}`;
-      console.log('Target filename:', fileName);
       
-      // Try to upload file
-      console.log('Attempting upload to avatars bucket...');
       const { data, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { 
-          upsert: true,
-          contentType: file.type 
-        });
+        .upload(fileName, file, { upsert: true, contentType: file.type });
 
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError);
-        throw new Error(`Error de subida: ${uploadError.message}`);
-      }
+      if (uploadError) throw new Error(`Error de subida: ${uploadError.message}`);
 
-      console.log('Upload successful:', data);
-
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      console.log('Generated public URL:', publicUrl);
-
-      // Update profile with new avatar URL
-      console.log('Updating profile with new avatar URL...');
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('Existing profile check:', existingProfile);
-
       let updateError;
       if (existingProfile) {
-        console.log('Updating existing profile...');
         const { error } = await supabase
           .from('profiles')
-          .update({
-            avatar_url: publicUrl,
-            updated_at: new Date().toISOString()
-          })
+          .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
           .eq('user_id', user.id);
         updateError = error;
       } else {
-        console.log('Creating new profile with avatar...');
         const { error } = await supabase
           .from('profiles')
           .insert({
@@ -483,26 +446,16 @@ const UserDashboard = () => {
         updateError = error;
       }
 
-      if (updateError) {
-        console.error('Profile update error:', updateError);
-        throw new Error(`Error al actualizar perfil: ${updateError.message}`);
-      }
+      if (updateError) throw new Error(`Error al actualizar perfil: ${updateError.message}`);
 
-      console.log('Photo upload and profile update completed successfully');
       toast.success('Foto de perfil actualizada correctamente');
-      
-      // Reset the file input
       event.target.value = '';
-      
-      // Refresh user data
       await fetchUserData();
-      
     } catch (error: any) {
-      console.error('Complete error in handlePhotoUpload:', error);
+      console.error('Error in handlePhotoUpload:', error);
       toast.error(error.message || 'Error desconocido al subir la foto');
     } finally {
       setUploadingPhoto(false);
-      console.log('Photo upload process finished');
     }
   };
 
@@ -512,48 +465,37 @@ const UserDashboard = () => {
     try {
       setCreatingProfessional(true);
 
-      // Validate required fields
       if (!professionalData.full_name.trim() || !professionalData.email.trim() || !professionalData.profession.trim()) {
         toast.error('Por favor completa todos los campos obligatorios');
         return;
       }
 
-      // Validate DNI if provided
       if (professionalData.dni.trim()) {
-        // Check if DNI already exists
         const { data: existingDni, error: dniError } = await supabase
           .from('professionals')
           .select('id, full_name')
           .eq('dni', professionalData.dni.trim())
           .maybeSingle();
 
-        if (dniError && dniError.code !== 'PGRST116') {
-          throw dniError;
-        }
-
+        if (dniError && dniError.code !== 'PGRST116') throw dniError;
         if (existingDni) {
           toast.error(`Ya existe un profesional registrado con este DNI: ${existingDni.full_name}`);
           return;
         }
       }
 
-      // Check if user already has a professional profile
       const { data: existingProfessional, error: checkError } = await supabase
         .from('professionals')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError;
-      }
-
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
       if (existingProfessional) {
         toast.error('Ya tienes un perfil profesional creado');
         return;
       }
 
-      // Create professional profile
       const { error } = await supabase
         .from('professionals')
         .insert({
@@ -572,18 +514,7 @@ const UserDashboard = () => {
       toast.success('¡Perfil profesional creado exitosamente!');
       setShowProfessionalForm(false);
       setIsProfessional(true);
-      
-      // Reset form
-      setProfessionalData({
-        full_name: '',
-        email: '',
-        phone: '',
-        profession: '',
-        location: '',
-        description: '',
-        dni: ''
-      });
-
+      setProfessionalData({ full_name: '', email: '', phone: '', profession: '', location: '', description: '', dni: '' });
       fetchUserData();
     } catch (error) {
       console.error('Error creating professional profile:', error);
@@ -594,7 +525,6 @@ const UserDashboard = () => {
   };
 
   const openProfessionalForm = () => {
-    // Pre-fill form with user data
     setProfessionalData(prev => ({
       ...prev,
       full_name: userProfile?.full_name || fullName || '',
@@ -604,32 +534,15 @@ const UserDashboard = () => {
     setShowProfessionalForm(true);
   };
 
-  // Account actions functions
   const handleChangePassword = async () => {
-    if (!newPassword || !confirmPassword) {
-      toast.error('Por favor completa ambos campos');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      toast.error('Las contraseñas no coinciden');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      toast.error('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
+    if (!newPassword || !confirmPassword) { toast.error('Por favor completa ambos campos'); return; }
+    if (newPassword !== confirmPassword) { toast.error('Las contraseñas no coinciden'); return; }
+    if (newPassword.length < 6) { toast.error('La contraseña debe tener al menos 6 caracteres'); return; }
 
     try {
       setChangingPassword(true);
-      
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-
       toast.success('Contraseña cambiada exitosamente');
       setShowPasswordDialog(false);
       setNewPassword('');
@@ -644,12 +557,9 @@ const UserDashboard = () => {
 
   const handleExportData = async () => {
     if (!user) return;
-
     try {
       setExportingData(true);
-
-      // Collect all user data
-      const userData = {
+      const userData: any = {
         profile: userProfile,
         contactRequests: contactRequests,
         exportDate: new Date().toISOString(),
@@ -657,7 +567,6 @@ const UserDashboard = () => {
         email: user.email
       };
 
-      // Get additional data
       const [favoritesData, transactionsData, reviewsData] = await Promise.all([
         supabase.from('favorites').select('*').eq('user_id', user.id),
         supabase.from('transactions').select('*').eq('user_id', user.id),
@@ -668,18 +577,15 @@ const UserDashboard = () => {
       if (transactionsData.data) userData['transactions'] = transactionsData.data;
       if (reviewsData.data) userData['reviews'] = reviewsData.data;
 
-      // Create and download JSON file
       const dataStr = JSON.stringify(userData, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
-      
       const link = document.createElement('a');
       link.href = url;
       link.download = `datos-chequealo-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
       URL.revokeObjectURL(url);
       toast.success('Datos exportados exitosamente');
     } catch (error) {
@@ -692,25 +598,14 @@ const UserDashboard = () => {
 
   const handleDeleteAccount = async () => {
     if (!user) return;
-
     try {
       setDeletingAccount(true);
-
-      // Call edge function to delete account
       const { error } = await supabase.functions.invoke('delete-my-account', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` }
       });
-
       if (error) throw error;
-
       toast.success('Cuenta eliminada exitosamente');
-      
-      // Sign out user
       await supabase.auth.signOut();
-      
-      // Redirect to home
       window.location.href = '/';
     } catch (error) {
       console.error('Error deleting account:', error);
@@ -728,7 +623,6 @@ const UserDashboard = () => {
       completed: { variant: 'outline' as const, label: 'Completado' },
       cancelled: { variant: 'destructive' as const, label: 'Cancelado' }
     };
-    
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -740,7 +634,7 @@ const UserDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           <div className="flex items-center justify-center h-64">
@@ -752,11 +646,11 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Notifications Banner - para migración VAPID */}
+        {/* Notifications Banner */}
         <EnableNotificationsBanner className="mb-4" />
         
         {/* Header */}
@@ -813,99 +707,12 @@ const UserDashboard = () => {
           )}
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setActiveTab('requests')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Solicitudes Enviadas
-                  </p>
-                  <p className="text-2xl font-bold">{contactRequests.length}</p>
-                </div>
-                <MessageSquare className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setActiveTab('requests')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Solicitudes Activas
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {contactRequests.filter(r => r.status === 'pending' || r.status === 'contacted').length}
-                  </p>
-                </div>
-                <Calendar className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setActiveTab('favorites')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Favoritos Guardados
-                  </p>
-                  <p className="text-2xl font-bold">-</p>
-                </div>
-                <Heart className="h-8 w-8 text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {!isProfessional && (
-            <Card 
-              className="cursor-pointer hover:shadow-md transition-shadow border-2 border-dashed border-primary hover:border-primary/80 hover:bg-primary/5"
-              onClick={openProfessionalForm}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Crear Cuenta
-                    </p>
-                    <p className="text-lg font-semibold text-primary">
-                      Profesional
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Recibe solicitudes de clientes
-                    </p>
-                  </div>
-                  <div className="relative">
-                    <Briefcase className="h-8 w-8 text-primary" />
-                    <Plus className="h-4 w-4 text-primary absolute -top-1 -right-1 bg-background rounded-full" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="profile">
-              <User className="h-4 w-4 mr-2" />
-              Mi Perfil
-            </TabsTrigger>
-            <TabsTrigger value="favorites">
-              <Heart className="h-4 w-4 mr-2" />
-              Favoritos
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="home">
+              <Search className="h-4 w-4 mr-2" />
+              Inicio
             </TabsTrigger>
             <TabsTrigger value="messages">
               <MessageSquare className="h-4 w-4 mr-2" />
@@ -929,158 +736,126 @@ const UserDashboard = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile">
-            {/* Transaction Confirmations - Highest Priority */}
-            {pendingTransactions.length > 0 && (
-              <div className="mb-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Confirmaciones Pendientes</h3>
-                  <Badge variant="default">{pendingTransactions.length}</Badge>
-                </div>
-                {pendingTransactions.map((transaction) => (
-                  <TransactionConfirmationCard
-                    key={transaction.id}
-                    transaction={transaction}
-                    isProfessional={false}
-                    onConfirm={confirmCompletion}
-                    disabled={confirmLoading}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Ready to Rate Transactions */}
+          {/* ===== NEW HOME TAB ===== */}
+          <TabsContent value="home">
+            {/* Buscador protagonista */}
             <div className="mb-6">
-              <ReadyToRateTransactions 
-                isProfessional={false}
-                onRate={(transactionId) => {
-                  setActiveTab('reviews');
-                  // Scroll to reviews section
-                  setTimeout(() => {
-                    const reviewsSection = document.querySelector('[value="reviews"]');
-                    reviewsSection?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
-                }}
-              />
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="¿Qué servicio buscás hoy en Rafaela?"
+                  className="pl-12 h-14 text-lg rounded-2xl shadow-sm border-border"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                    }
+                  }}
+                />
+              </div>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Información Personal</CardTitle>
-                <CardDescription>
-                  Actualiza tu información personal y perfil público
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={userProfile?.avatar_url} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                      {fullName.charAt(0) || user.email?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                     <Button 
-                       variant="outline" 
-                       disabled={uploadingPhoto}
-                       onClick={() => {
-                         console.log('Attempting to click file input');
-                         document.getElementById('photo-upload')?.click();
-                       }}
-                     >
-                      <Camera className="h-4 w-4 mr-2" />
-                      {uploadingPhoto ? 'Subiendo...' : 'Cambiar Foto'}
-                    </Button>
-                     <input
-                       id="photo-upload"
-                       type="file"
-                       accept="image/jpeg,image/png,image/gif,image/webp"
-                       onChange={(e) => {
-                         console.log('File input changed:', e.target.files);
-                         handlePhotoUpload(e);
-                       }}
-                       className="hidden"
-                     />
-                    <p className="text-xs text-muted-foreground">
-                      Formatos: JPG, PNG, GIF (máx. 5MB)
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Nombre Completo</Label>
-                    <Input
-                      id="fullName"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Tu nombre completo"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Nombre de Usuario</Label>
-                    <Input
-                      id="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="username"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      value={user.email || ''}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      El email no se puede cambiar
-                    </p>
-                  </div>
-                  
-                  <LocationAutocomplete
-                    value={location}
-                    onChange={setLocation}
-                    label="Ubicación"
-                    id="location"
-                    placeholder="Busca tu ciudad o provincia..."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Biografía</Label>
-                  <Textarea
-                    id="bio"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Cuéntanos un poco sobre ti..."
-                    rows={3}
-                  />
-                </div>
-
-                <Button onClick={handleUpdateProfile} disabled={updating}>
-                  {updating ? 'Guardando...' : 'Guardar Cambios'}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="favorites">
-            <Card>
-              <CardHeader>
-                <CardTitle>Mis Profesionales Favoritos</CardTitle>
-                <CardDescription>
-                  Profesionales que has guardado como favoritos
-                </CardDescription>
+            {/* Card Mis Profesionales Favoritos */}
+            <Card className="rounded-2xl shadow-sm mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Heart className="h-5 w-5 text-destructive" />
+                  Mis Profesionales Favoritos
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <FavoritesPanel />
+                {favoriteProfessionals.length > 0 ? (
+                  <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                    {favoriteProfessionals.map((prof) => {
+                      const initials = prof.full_name
+                        ?.split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase() || '?';
+                      return (
+                        <button
+                          key={prof.id}
+                          onClick={() => navigate(`/professional/${prof.id}`)}
+                          className="flex flex-col items-center gap-1.5 min-w-[80px] group"
+                        >
+                          <Avatar className="h-16 w-16 ring-2 ring-transparent group-hover:ring-primary transition-all">
+                            {prof.image_url ? (
+                              <AvatarImage src={prof.image_url} alt={prof.full_name} />
+                            ) : null}
+                            <AvatarFallback className={`${getAvatarColor(prof.full_name)} ${getAvatarTextColor(prof.full_name)} text-sm font-bold`}>
+                              {initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <p className="text-xs font-semibold text-foreground text-center leading-tight line-clamp-1 max-w-[80px]">
+                            {prof.full_name?.split(' ')[0]}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground text-center leading-tight line-clamp-1 max-w-[80px]">
+                            {prof.profession}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <Heart className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Aún no tenés favoritos guardados
+                    </p>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => navigate('/search')}
+                      className="mt-1"
+                    >
+                      Explorar profesionales
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* Card Mis Consultas */}
+            <Card
+              className="rounded-2xl shadow-sm mb-6 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab('messages')}
+            >
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-xl">
+                  <MessageSquare className="h-7 w-7 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">Mis Consultas</p>
+                  <p className="text-sm text-muted-foreground">
+                    Ver conversaciones con profesionales
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </CardContent>
+            </Card>
+
+            {/* CTA Crear cuenta profesional */}
+            {!isProfessional && (
+              <Card
+                className="rounded-2xl shadow-sm border-2 border-dashed border-primary/30 hover:border-primary/60 hover:bg-primary/5 cursor-pointer transition-all"
+                onClick={openProfessionalForm}
+              >
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="relative">
+                    <Briefcase className="h-8 w-8 text-primary" />
+                    <Plus className="h-4 w-4 text-primary absolute -top-1 -right-1 bg-background rounded-full" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Crear Cuenta Profesional</p>
+                    <p className="text-sm text-muted-foreground">
+                      Recibí solicitudes de clientes y crecé tu negocio
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="messages">
@@ -1206,6 +981,106 @@ const UserDashboard = () => {
 
           <TabsContent value="settings">
             <div className="space-y-6">
+              {/* Personal Profile Form moved here */}
+              <Card className="rounded-2xl shadow-sm">
+                <CardHeader>
+                  <CardTitle>Información Personal</CardTitle>
+                  <CardDescription>
+                    Actualiza tu información personal y perfil público
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={userProfile?.avatar_url} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                        {fullName.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        disabled={uploadingPhoto}
+                        onClick={() => document.getElementById('photo-upload')?.click()}
+                      >
+                        <Camera className="h-4 w-4" />
+                        {uploadingPhoto ? 'Subiendo...' : 'Cambiar Foto'}
+                      </Button>
+                      <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handlePhotoUpload(e)}
+                        className="hidden"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Formatos: JPG, PNG, GIF (máx. 5MB)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Nombre Completo</Label>
+                      <Input
+                        id="fullName"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Tu nombre completo"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Nombre de Usuario</Label>
+                      <Input
+                        id="username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="username"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        value={user.email || ''}
+                        disabled
+                        className="bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        El email no se puede cambiar
+                      </p>
+                    </div>
+                    
+                    <LocationAutocomplete
+                      value={location}
+                      onChange={setLocation}
+                      label="Ubicación"
+                      id="location"
+                      placeholder="Busca tu ciudad o provincia..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">Biografía</Label>
+                    <Textarea
+                      id="bio"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="Cuéntanos un poco sobre ti..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <Button onClick={handleUpdateProfile} disabled={updating}>
+                    {updating ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </CardContent>
+              </Card>
+
               <PushNotificationToggle />
               
               <Card>
@@ -1215,66 +1090,66 @@ const UserDashboard = () => {
                     Gestiona la configuración y privacidad de tu cuenta
                   </CardDescription>
                 </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Información de Cuenta</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Email</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                    </div>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Información de Cuenta</h3>
                     
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Miembro desde</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(userProfile?.created_at || new Date()), 'dd/MM/yyyy', { locale: es })}
-                        </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Email</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Miembro desde</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(userProfile?.created_at || new Date()), 'dd/MM/yyyy', { locale: es })}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Acciones de Cuenta</h3>
-                  
-                  <div className="space-y-3">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => setShowPasswordDialog(true)}
-                    >
-                      <Key className="h-4 w-4 mr-2" />
-                      Cambiar Contraseña
-                    </Button>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Acciones de Cuenta</h3>
                     
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={handleExportData}
-                      disabled={exportingData}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      {exportingData ? 'Exportando...' : 'Exportar Datos'}
-                    </Button>
-                    
-                    <Button 
-                      variant="destructive" 
-                      className="w-full justify-start"
-                      onClick={() => setShowDeleteDialog(true)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar Cuenta
-                    </Button>
+                    <div className="space-y-3">
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => setShowPasswordDialog(true)}
+                      >
+                        <Key className="h-4 w-4 mr-2" />
+                        Cambiar Contraseña
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={handleExportData}
+                        disabled={exportingData}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        {exportingData ? 'Exportando...' : 'Exportar Datos'}
+                      </Button>
+                      
+                      <Button 
+                        variant="destructive" 
+                        className="w-full justify-start"
+                        onClick={() => setShowDeleteDialog(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar Cuenta
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
@@ -1296,10 +1171,7 @@ const UserDashboard = () => {
                   <Input
                     id="prof-fullname"
                     value={professionalData.full_name}
-                    onChange={(e) => setProfessionalData(prev => ({
-                      ...prev,
-                      full_name: e.target.value
-                    }))}
+                    onChange={(e) => setProfessionalData(prev => ({ ...prev, full_name: e.target.value }))}
                     placeholder="Tu nombre completo"
                   />
                 </div>
@@ -1310,10 +1182,7 @@ const UserDashboard = () => {
                     id="prof-email"
                     type="email"
                     value={professionalData.email}
-                    onChange={(e) => setProfessionalData(prev => ({
-                      ...prev,
-                      email: e.target.value
-                    }))}
+                    onChange={(e) => setProfessionalData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="tu@email.com"
                   />
                 </div>
@@ -1325,10 +1194,7 @@ const UserDashboard = () => {
                   <Input
                     id="prof-phone"
                     value={professionalData.phone}
-                    onChange={(e) => setProfessionalData(prev => ({
-                      ...prev,
-                      phone: e.target.value
-                    }))}
+                    onChange={(e) => setProfessionalData(prev => ({ ...prev, phone: e.target.value }))}
                     placeholder="11 1234-5678"
                   />
                 </div>
@@ -1338,10 +1204,7 @@ const UserDashboard = () => {
                   <Input
                     id="prof-dni"
                     value={professionalData.dni}
-                    onChange={(e) => setProfessionalData(prev => ({
-                      ...prev,
-                      dni: e.target.value
-                    }))}
+                    onChange={(e) => setProfessionalData(prev => ({ ...prev, dni: e.target.value }))}
                     placeholder="12345678"
                     maxLength={8}
                   />
@@ -1377,10 +1240,7 @@ const UserDashboard = () => {
                             type="button"
                             className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground text-sm transition-colors"
                             onClick={() => {
-                              setProfessionalData(prev => ({
-                                ...prev,
-                                profession: profession
-                              }));
+                              setProfessionalData(prev => ({ ...prev, profession }));
                               setProfessionSearch('');
                               setShowProfessionDropdown(false);
                             }}
@@ -1407,10 +1267,7 @@ const UserDashboard = () => {
 
               <LocationAutocomplete
                 value={professionalData.location}
-                onChange={(value) => setProfessionalData(prev => ({
-                  ...prev,
-                  location: value
-                }))}
+                onChange={(value) => setProfessionalData(prev => ({ ...prev, location: value }))}
                 label="Ubicación"
                 id="prof-location"
                 placeholder="Busca tu ciudad o provincia..."
@@ -1421,27 +1278,17 @@ const UserDashboard = () => {
                 <Textarea
                   id="prof-description"
                   value={professionalData.description}
-                  onChange={(e) => setProfessionalData(prev => ({
-                    ...prev,
-                    description: e.target.value
-                  }))}
+                  onChange={(e) => setProfessionalData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Describe tus servicios y experiencia..."
                   rows={4}
                 />
               </div>
 
               <div className="flex items-center justify-between pt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowProfessionalForm(false)}
-                  disabled={creatingProfessional}
-                >
+                <Button variant="outline" onClick={() => setShowProfessionalForm(false)} disabled={creatingProfessional}>
                   Cancelar
                 </Button>
-                <Button
-                  onClick={handleCreateProfessional}
-                  disabled={creatingProfessional}
-                >
+                <Button onClick={handleCreateProfessional} disabled={creatingProfessional}>
                   {creatingProfessional ? 'Creando...' : 'Crear Perfil Profesional'}
                 </Button>
               </div>
@@ -1461,31 +1308,17 @@ const UserDashboard = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="new-password">Nueva Contraseña</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Nueva contraseña"
-                />
+                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Nueva contraseña" />
               </div>
               <div>
                 <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirma tu nueva contraseña"
-                />
+                <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirma tu nueva contraseña" />
               </div>
               <div className="flex gap-2">
                 <Button onClick={handleChangePassword} disabled={changingPassword}>
                   {changingPassword ? 'Cambiando...' : 'Cambiar Contraseña'}
                 </Button>
-                <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>
-                  Cancelar
-                </Button>
+                <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>Cancelar</Button>
               </div>
             </div>
           </DialogContent>
