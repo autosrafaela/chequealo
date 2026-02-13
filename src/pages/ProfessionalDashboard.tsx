@@ -42,7 +42,11 @@ import {
   Save,
   Pencil,
   ImageIcon,
-  MapPin
+  MapPin,
+  Star,
+  Briefcase,
+  CreditCard,
+  User
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -827,9 +831,9 @@ const ProfessionalDashboard = () => {
         <div ref={tabsRef} className="scroll-mt-4">
           {(showTabs || pendingTransactions.length > 0) && (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 sticky top-4 z-10 bg-background h-auto flex-wrap">
-                <TabsTrigger value="messages" className="text-xs">
-                  <MessageCircle className="h-3 w-3 mr-1" />
+              <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-2 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50 sticky top-4 z-10">
+                <TabsTrigger value="messages" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+                  <MessageCircle className="h-4 w-4 mr-1.5 tab-icon-colored text-blue-500" />
                   Mensajes
                   {stats.pendingRequests > 0 && (
                     <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 text-[10px]">
@@ -837,19 +841,24 @@ const ProfessionalDashboard = () => {
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="reviews" className="text-xs">
+                <TabsTrigger value="reviews" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+                  <Star className="h-4 w-4 mr-1.5 tab-icon-colored text-amber-500" />
                   Reseñas
                 </TabsTrigger>
-                <TabsTrigger value="services" className="text-xs">
+                <TabsTrigger value="services" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+                  <Briefcase className="h-4 w-4 mr-1.5 tab-icon-colored text-green-500" />
                   Servicios
                 </TabsTrigger>
-                <TabsTrigger value="portfolio" className="text-xs">
+                <TabsTrigger value="portfolio" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+                  <ImageIcon className="h-4 w-4 mr-1.5 tab-icon-colored text-purple-500" />
                   Galería
                 </TabsTrigger>
-                <TabsTrigger value="subscription" className="text-xs">
+                <TabsTrigger value="subscription" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+                  <CreditCard className="h-4 w-4 mr-1.5 tab-icon-colored text-cyan-500" />
                   Suscripción
                 </TabsTrigger>
-                <TabsTrigger value="profile" className="text-xs">
+                <TabsTrigger value="profile" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+                  <User className="h-4 w-4 mr-1.5 tab-icon-colored text-orange-500" />
                   Mi Perfil
                 </TabsTrigger>
               </TabsList>
