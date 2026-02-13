@@ -585,24 +585,24 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Header />
       
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="mx-auto px-4 py-6 max-w-[600px]">
         {/* Notifications Banner */}
         <EnableNotificationsBanner className="mb-4" />
         
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <Avatar className="h-16 w-16">
+            <Avatar className="h-16 w-16 shrink-0">
               <AvatarImage src={userProfile?.avatar_url} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xl">
                 {fullName.charAt(0) || user.email?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground uppercase">
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-foreground uppercase truncate">
                 {fullName || 'Mi Cuenta'}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground truncate">
                 @{username || 'sin-username'} • Miembro desde {' '}
                 {userProfile?.created_at 
                   ? format(new Date(userProfile.created_at), 'MMMM yyyy', { locale: es })
@@ -644,35 +644,35 @@ const UserDashboard = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="home">
-              <Search className="h-4 w-4 mr-2" />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-1 p-1">
+            <TabsTrigger value="home" className="shrink-0 text-xs px-2.5">
+              <Search className="h-4 w-4 mr-1.5" />
               Inicio
             </TabsTrigger>
-            <TabsTrigger value="messages">
-              <MessageSquare className="h-4 w-4 mr-2" />
+            <TabsTrigger value="messages" className="shrink-0 text-xs px-2.5">
+              <MessageSquare className="h-4 w-4 mr-1.5" />
               Mensajes
             </TabsTrigger>
-            <TabsTrigger value="reviews">
-              <Star className="h-4 w-4 mr-2" />
+            <TabsTrigger value="reviews" className="shrink-0 text-xs px-2.5">
+              <Star className="h-4 w-4 mr-1.5" />
               Reseñas
             </TabsTrigger>
-            <TabsTrigger value="mobile">
-              <Smartphone className="h-4 w-4 mr-2" />
+            <TabsTrigger value="mobile" className="shrink-0 text-xs px-2.5">
+              <Smartphone className="h-4 w-4 mr-1.5" />
               App Móvil
             </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4 mr-2" />
-              Configuración
+            <TabsTrigger value="settings" className="shrink-0 text-xs px-2.5">
+              <Settings className="h-4 w-4 mr-1.5" />
+              Config
             </TabsTrigger>
           </TabsList>
 
           {/* ===== NEW HOME TAB ===== */}
           <TabsContent value="home">
+            <div className="space-y-4">
             {/* Buscador protagonista */}
-            <div className="mb-6">
-              <div className="relative">
+            <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="¿Qué servicio buscás hoy en Rafaela?"
@@ -686,10 +686,9 @@ const UserDashboard = () => {
                   }}
                 />
               </div>
-            </div>
 
             {/* Card Mis Profesionales Favoritos */}
-            <Card className="rounded-2xl shadow-sm mb-6">
+            <Card className="rounded-xl shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Heart className="h-5 w-5 text-destructive" />
@@ -751,7 +750,7 @@ const UserDashboard = () => {
 
             {/* Card Mis Consultas */}
             <Card
-              className="rounded-2xl shadow-sm mb-6 cursor-pointer hover:shadow-md transition-shadow"
+              className="rounded-xl shadow-sm cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setActiveTab('messages')}
             >
               <CardContent className="p-6 flex items-center gap-4">
@@ -771,7 +770,7 @@ const UserDashboard = () => {
             {/* CTA Crear cuenta profesional */}
             {!isProfessional && (
               <Card
-                className="rounded-2xl shadow-sm border-2 border-dashed border-primary/30 hover:border-primary/60 hover:bg-primary/5 cursor-pointer transition-all"
+                className="rounded-xl shadow-sm border-2 border-dashed border-primary/30 hover:border-primary/60 hover:bg-primary/5 cursor-pointer transition-all"
                 onClick={openProfessionalForm}
               >
                 <CardContent className="p-6 flex items-center gap-4">
@@ -788,6 +787,7 @@ const UserDashboard = () => {
                 </CardContent>
               </Card>
             )}
+            </div>
           </TabsContent>
 
           <TabsContent value="messages">
