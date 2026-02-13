@@ -1,103 +1,61 @@
 
-# Plan: Ajuste de Precision del User Dashboard
 
-## Resumen
+# Plan: Arreglar Pestanas Amontonadas en User Dashboard y Admin Dashboard
 
-Corregir desalineaciones en el panel de cliente: centrar contenido con max-width de 600px, unificar padding y bordes de cards, alinear header con items-center, centrar tabs y aplicar espaciado uniforme.
+## Problema
+
+Las pestanas (tabs) se ven amontonadas e ilegibles en mobile porque:
+1. El `TabsList` base tiene altura fija `h-10` y fondo gris `bg-muted` que encierra todo
+2. En el Admin Dashboard hay 16 tabs comprimidos en ese espacio
+3. En el User Dashboard hay 5 tabs que tambien se aprietan
+
+## Solucion
+
+Cambiar el estilo de los tabs a "pill chips" sin fondo contenedor, con scroll horizontal libre y mejor separacion visual.
 
 ---
 
 ## Cambios
 
-### Archivo: `src/pages/UserDashboard.tsx`
+### 1. `src/pages/UserDashboard.tsx` - Tabs como pills sueltas
 
-#### 1. Contenedor principal: max-width 600px centrado
-
-Cambiar el contenedor principal (linea 588):
+**Linea 648** - TabsList sin fondo ni altura fija:
 
 ```tsx
 // Antes:
-<div className="container mx-auto px-4 py-8 max-w-6xl">
-
-// Despues:
-<div className="mx-auto px-4 py-6 max-w-[600px]">
-```
-
-Esto centra todo el contenido en mobile y tablets con margenes laterales iguales.
-
-#### 2. Header del usuario: alineacion vertical perfecta
-
-El header (linea 594) ya usa `flex items-center gap-4`, lo cual es correcto. Pero el texto interno (lineas 601-612) no tiene alineacion explicita. Agregar `min-w-0` al div de texto para evitar overflow:
-
-```tsx
-<div className="flex items-center gap-4 mb-4">
-  <Avatar className="h-16 w-16 shrink-0">...</Avatar>
-  <div className="min-w-0">
-    <h1 className="text-2xl font-bold text-foreground uppercase truncate">...</h1>
-    <p className="text-sm text-muted-foreground truncate">...</p>
-  </div>
-</div>
-```
-
-- Reduce `text-3xl` a `text-2xl` para que no desborde en mobile
-- Agrega `truncate` para nombres largos
-- `shrink-0` en el Avatar para que no se comprima
-
-#### 3. Cards con padding y bordes uniformes (rounded-xl)
-
-Unificar todas las cards del tab Home:
-
-| Card | Antes | Despues |
-|------|-------|---------|
-| Favoritos | `rounded-2xl shadow-sm` | `rounded-xl shadow-sm` |
-| Mis Consultas | `rounded-2xl shadow-sm` | `rounded-xl shadow-sm` |
-| CTA Profesional | `rounded-2xl shadow-sm` | `rounded-xl shadow-sm` |
-| Card Profesional Banner | sin rounded especifico | `rounded-xl` |
-
-Todas las cards usaran `rounded-xl` para consistencia.
-
-#### 4. Tabs centrados con texto legible en mobile
-
-Cambiar el TabsList (linea 648):
-
-```tsx
-// Antes:
-<TabsList className="grid w-full grid-cols-5">
-
-// Despues:
 <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-1 p-1">
-```
-
-Cada TabsTrigger con `shrink-0 text-xs px-2.5` para que en pantallas chicas se pueda scrollear sin amontonarse.
-
-#### 5. Espaciado uniforme space-y-4
-
-Cambiar el `Tabs` wrapper (linea 647):
-
-```tsx
-// Antes:
-<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
 // Despues:
-<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+<TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-0 bg-transparent h-auto">
 ```
 
-Dentro del tab Home, reemplazar los `mb-6` individuales por un wrapper `space-y-4`:
+**Lineas 649-668** - Cada TabsTrigger como pill con borde:
 
 ```tsx
-<TabsContent value="home">
-  <div className="space-y-4">
-    {/* Buscador */}
-    <div className="relative">...</div>
-    {/* Card Favoritos */}
-    <Card className="rounded-xl shadow-sm">...</Card>
-    {/* Card Consultas */}
-    <Card className="rounded-xl shadow-sm">...</Card>
-    {/* CTA Profesional */}
-    {!isProfessional && <Card className="rounded-xl shadow-sm ...">...</Card>}
-  </div>
-</TabsContent>
+<TabsTrigger value="home" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:border-primary">
 ```
+
+Esto aplica a los 5 triggers (home, messages, reviews, mobile, settings).
+
+### 2. `src/pages/AdminDashboard.tsx` - Mismo patron para 16 tabs
+
+**Linea 583** - TabsList:
+
+```tsx
+<TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-0 bg-transparent h-auto">
+```
+
+**Lineas 584-599** - Cada TabsTrigger:
+
+```tsx
+<TabsTrigger value="professionals" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:border-primary">
+```
+
+Esto aplica a los 16 triggers.
+
+### 3. Sin cambios al componente base `tabs.tsx`
+
+No tocamos el componente base para no afectar otros usos en la app. Los overrides se aplican solo en estos dos dashboards via className.
 
 ---
 
@@ -105,12 +63,14 @@ Dentro del tab Home, reemplazar los `mb-6` individuales por un wrapper `space-y-
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/UserDashboard.tsx` | Contenedor 600px, header alineado, cards uniformes, tabs scrollables, space-y-4 |
+| `src/pages/UserDashboard.tsx` | TabsList y 5 TabsTriggers con estilo pill |
+| `src/pages/AdminDashboard.tsx` | TabsList y 16 TabsTriggers con estilo pill |
 
-## Resultado
+## Resultado visual
 
-- Contenido centrado en 600px max-width con margenes simetricos
-- Cards con bordes `rounded-xl` y padding consistente
-- Header con avatar y texto perfectamente alineados verticalmente
-- Tabs navegables con scroll horizontal en pantallas chicas
-- Espaciado `space-y-4` uniforme entre todas las secciones
+- Tabs como "chips" redondeados con borde gris claro
+- Tab activo en violeta (color primario) con texto blanco
+- Scroll horizontal libre sin fondo gris que encierre
+- Separacion clara entre cada tab con gap-2
+- Funciona perfecto en mobile: se desliza con el dedo
+
