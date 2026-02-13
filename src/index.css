@@ -233,3 +233,7 @@ All colors MUST be HSL.
 .avatar-organic-static {
   border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
 }
+
+/* Scrollbar hide utility */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

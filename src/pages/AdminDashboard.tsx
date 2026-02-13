@@ -429,7 +429,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card 
             className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
             onClick={() => setActiveTab('users')}
@@ -437,7 +437,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Total Usuarios
                   </p>
                   <p className="text-2xl font-bold">{stats.totalUsers}</p>
@@ -454,7 +454,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Profesionales
                   </p>
                   <p className="text-2xl font-bold">{stats.totalProfessionals}</p>
@@ -471,7 +471,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Verificaciones Pendientes
                   </p>
                   <p className="text-2xl font-bold text-orange-600">{stats.pendingVerifications}</p>
@@ -485,7 +485,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Total Reseñas
                   </p>
                   <p className="text-2xl font-bold">{stats.totalReviews}</p>
@@ -502,7 +502,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Solicitudes de Contacto
                   </p>
                   <p className="text-2xl font-bold">{stats.totalContactRequests}</p>
@@ -516,7 +516,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Rating Promedio
                   </p>
                   <p className="text-2xl font-bold">{stats.averageRating}</p>
@@ -527,13 +527,13 @@ const AdminDashboard = () => {
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+            className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-green-500"
             onClick={() => setActiveTab('subscriptions')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Suscripciones Activas
                   </p>
                   <p className="text-2xl font-bold text-green-600">{stats.activeSubscriptions}</p>
@@ -544,13 +544,13 @@ const AdminDashboard = () => {
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+            className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-blue-500"
             onClick={() => setActiveTab('subscriptions')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     En Período de Prueba
                   </p>
                   <p className="text-2xl font-bold text-blue-600">{stats.trialSubscriptions}</p>
@@ -561,13 +561,13 @@ const AdminDashboard = () => {
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+            className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-red-500"
             onClick={() => setActiveTab('subscriptions')}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Suscripciones Expiradas
                   </p>
                   <p className="text-2xl font-bold text-red-600">{stats.expiredSubscriptions}</p>
@@ -580,23 +580,23 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-[repeat(16,minmax(0,1fr))]">
-            <TabsTrigger value="professionals">Profesionales</TabsTrigger>
-            <TabsTrigger value="categories">Categorías</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="campaigns">Campañas</TabsTrigger>
-            <TabsTrigger value="moderation">Moderación</TabsTrigger>
-            <TabsTrigger value="subscriptions">Suscripciones</TabsTrigger>
-            <TabsTrigger value="plans">Planes</TabsTrigger>
-            <TabsTrigger value="verifications">Verificaciones</TabsTrigger>
-            <TabsTrigger value="contact-requests">Solicitudes</TabsTrigger>
-            <TabsTrigger value="users">Usuarios</TabsTrigger>
-            <TabsTrigger value="settings">Configuración</TabsTrigger>
-            <TabsTrigger value="business">BI</TabsTrigger>
-            <TabsTrigger value="performance">Monitor</TabsTrigger>
-            <TabsTrigger value="seo">SEO</TabsTrigger>
-            <TabsTrigger value="carousel">Carrusel</TabsTrigger>
-            <TabsTrigger value="updates">Novedades</TabsTrigger>
+          <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-1 p-1">
+            <TabsTrigger value="professionals" className="shrink-0 text-xs px-3">Profesionales</TabsTrigger>
+            <TabsTrigger value="categories" className="shrink-0 text-xs px-3">Categorías</TabsTrigger>
+            <TabsTrigger value="analytics" className="shrink-0 text-xs px-3">Analytics</TabsTrigger>
+            <TabsTrigger value="campaigns" className="shrink-0 text-xs px-3">Campañas</TabsTrigger>
+            <TabsTrigger value="moderation" className="shrink-0 text-xs px-3">Moderación</TabsTrigger>
+            <TabsTrigger value="subscriptions" className="shrink-0 text-xs px-3">Suscripciones</TabsTrigger>
+            <TabsTrigger value="plans" className="shrink-0 text-xs px-3">Planes</TabsTrigger>
+            <TabsTrigger value="verifications" className="shrink-0 text-xs px-3">Verificaciones</TabsTrigger>
+            <TabsTrigger value="contact-requests" className="shrink-0 text-xs px-3">Solicitudes</TabsTrigger>
+            <TabsTrigger value="users" className="shrink-0 text-xs px-3">Usuarios</TabsTrigger>
+            <TabsTrigger value="settings" className="shrink-0 text-xs px-3">Configuración</TabsTrigger>
+            <TabsTrigger value="business" className="shrink-0 text-xs px-3">BI</TabsTrigger>
+            <TabsTrigger value="performance" className="shrink-0 text-xs px-3">Monitor</TabsTrigger>
+            <TabsTrigger value="seo" className="shrink-0 text-xs px-3">SEO</TabsTrigger>
+            <TabsTrigger value="carousel" className="shrink-0 text-xs px-3">Carrusel</TabsTrigger>
+            <TabsTrigger value="updates" className="shrink-0 text-xs px-3">Novedades</TabsTrigger>
           </TabsList>
 
           <TabsContent value="professionals">
@@ -610,7 +610,7 @@ const AdminDashboard = () => {
                       placeholder="Buscar por nombre, profesión, ubicación o email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 h-12 text-base"
                     />
                   </div>
                 </div>
@@ -629,7 +629,7 @@ const AdminDashboard = () => {
                       );
                     })
                     .map((professional) => (
-                    <div key={professional.id} className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 border rounded-lg">
+                    <div key={professional.id} className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 border rounded-xl bg-card shadow-sm">
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           <h3 className="font-semibold">{professional.full_name}</h3>
