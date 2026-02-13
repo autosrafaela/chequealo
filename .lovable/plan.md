@@ -1,128 +1,96 @@
 
 
-# Plan: Pestanas con Color y Vida en los 3 Dashboards
+# Plan: Fix de Pestanas Recortadas - Scroll Horizontal Perfecto
 
-## Resumen
+## Problema
 
-Darle personalidad visual a las pestanas de los 3 dashboards (Usuario, Profesional, Admin) con iconos coloridos, efecto glassmorphism en inactivas, sombra en la activa y un contenedor flotante.
+Las pestanas se cortan en mobile porque:
+1. El componente base `TabsList` usa `inline-flex` y `justify-center` que no se sobreescriben correctamente con `cn()`
+2. Falta `flex-nowrap` explicito para evitar que se apilen
+3. No hay padding al final para que la ultima pestana no quede pegada al borde
+4. No hay efecto snap para centrar al deslizar
+
+## Solucion
+
+Dos cambios: uno en el componente base y otro en los dashboards.
 
 ---
 
 ## Cambios
 
-### 1. User Dashboard - `src/pages/UserDashboard.tsx` (lineas 648-668)
+### 1. Componente base `src/components/ui/tabs.tsx`
 
-**TabsList** - Contenedor flotante con padding y sombra:
+Cambiar la clase base del `TabsList` de `inline-flex` a `flex` para que las clases de los dashboards puedan sobreescribir correctamente:
 
 ```tsx
+// Linea 15, antes:
+"inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
+
+// Despues:
+"flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
+```
+
+Esto no afecta otros usos porque `flex` se comporta igual que `inline-flex` dentro de contenedores de bloque.
+
+### 2. `src/pages/UserDashboard.tsx` - TabsList (linea 648)
+
+```tsx
+// Antes:
 <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-2 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50">
+
+// Despues:
+<TabsList className="flex flex-nowrap w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-2 p-2 pr-6 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50 justify-start">
 ```
 
-**Cada TabsTrigger** - Estilo pill con sombra en activo y fondo glassmorphism en inactivo:
+Cada TabsTrigger agregar `snap-center min-w-fit`:
 
 ```tsx
-// Inicio (Search icon - violeta)
-<TabsTrigger value="home" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-0 border-0">
-  <Search className="h-4 w-4 mr-1.5 text-primary data-[state=active]:text-white" />
-  Inicio
-</TabsTrigger>
+// Ejemplo, antes:
+className="shrink-0 text-xs px-3 py-2 rounded-full ..."
 
-// Mensajes (azul)
-<TabsTrigger ...>
-  <MessageSquare className="h-4 w-4 mr-1.5 text-blue-500" />
-  Mensajes
-</TabsTrigger>
-
-// Resenas (dorado)
-<TabsTrigger ...>
-  <Star className="h-4 w-4 mr-1.5 text-amber-500" />
-  Resenas
-</TabsTrigger>
-
-// App Movil (verde)
-<TabsTrigger ...>
-  <Smartphone className="h-4 w-4 mr-1.5 text-green-500" />
-  App Movil
-</TabsTrigger>
-
-// Config (naranja)
-<TabsTrigger ...>
-  <Settings className="h-4 w-4 mr-1.5 text-orange-500" />
-  Config
-</TabsTrigger>
+// Despues:
+className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full ..."
 ```
 
-Nota: Los iconos pierden su color individual cuando el tab esta activo porque el texto se vuelve blanco. Para lograr esto usaremos `[&_svg]:data-[state=active]:text-white` en el trigger o simplemente `data-[state=active]:text-white` que hereda a los hijos.
+Aplicar a los 5 triggers.
 
-### 2. Professional Dashboard - `src/pages/ProfessionalDashboard.tsx` (lineas 829-854)
+### 3. `src/pages/ProfessionalDashboard.tsx` - TabsList (linea 834)
 
-**TabsList** - Mismo contenedor flotante:
+Mismo patron:
 
 ```tsx
+// Antes:
 <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-2 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50 sticky top-4 z-10">
+
+// Despues:
+<TabsList className="flex flex-nowrap w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-2 p-2 pr-6 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50 sticky top-4 z-10 justify-start">
 ```
 
-**Cada TabsTrigger** con icono colorido:
+Cada TabsTrigger (6 triggers) agregar `snap-center min-w-fit`.
 
-| Tab | Icono | Color del icono |
-|-----|-------|-----------------|
-| Mensajes | MessageCircle | text-blue-500 |
-| Resenas | Star | text-amber-500 |
-| Servicios | Briefcase | text-green-500 |
-| Galeria | ImageIcon | text-purple-500 |
-| Suscripcion | CreditCard | text-cyan-500 |
-| Mi Perfil | User | text-orange-500 |
+### 4. `src/pages/AdminDashboard.tsx` - TabsList
 
-Agregar iconos faltantes (Star, Briefcase, ImageIcon, CreditCard, User) al import de lucide-react. Actualmente solo MessageCircle tiene icono.
-
-### 3. Admin Dashboard - `src/pages/AdminDashboard.tsx` (lineas 583-600)
-
-**TabsList** - Contenedor flotante:
-
-```tsx
-<TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-2 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50">
-```
-
-**Cada TabsTrigger** - Mismo estilo pill pero sin iconos individuales (son 16 tabs, agregar iconos los haria demasiado anchos). Solo el estilo visual:
-
-```tsx
-<TabsTrigger value="professionals" className="shrink-0 text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
-  Profesionales
-</TabsTrigger>
-```
-
-### 4. CSS - Clase auxiliar para iconos en tabs activos
-
-En `src/index.css`, agregar:
-
-```css
-/* Tab icons: inherit white color when active */
-.tab-icon-colored {
-  transition: color 0.2s ease;
-}
-[data-state="active"] .tab-icon-colored {
-  color: white !important;
-}
-```
-
-Esto permite que los iconos coloridos cambien a blanco cuando su tab padre esta activo.
+Mismo patron aplicado a la barra de 16 tabs.
 
 ---
+
+## Resumen de clases nuevas
+
+| Clase | Funcion |
+|-------|---------|
+| `flex-nowrap` | Prohibe que las pestanas bajen a otra linea |
+| `snap-x snap-mandatory` | Efecto snap al deslizar |
+| `snap-center` | Cada tab se centra al hacer snap |
+| `min-w-fit` | El texto nunca se corta |
+| `pr-6` | Padding derecho para que la ultima pestana no quede pegada |
+| `justify-start` | Sobreescribe el `justify-center` base |
 
 ## Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/UserDashboard.tsx` | TabsList flotante + 5 triggers con iconos coloridos |
-| `src/pages/ProfessionalDashboard.tsx` | TabsList flotante + 6 triggers con iconos coloridos + imports nuevos |
-| `src/pages/AdminDashboard.tsx` | TabsList flotante + 16 triggers con estilo pill glassmorphism |
-| `src/index.css` | Clase `.tab-icon-colored` para transicion de color en activo |
+| `src/components/ui/tabs.tsx` | `inline-flex` a `flex` en TabsList base |
+| `src/pages/UserDashboard.tsx` | TabsList + 5 triggers con nowrap/snap/min-w-fit |
+| `src/pages/ProfessionalDashboard.tsx` | TabsList + 6 triggers con nowrap/snap/min-w-fit |
+| `src/pages/AdminDashboard.tsx` | TabsList + 16 triggers con nowrap/snap/min-w-fit |
 
-## Resultado visual
-
-- Barra de pestanas "flotante" con fondo semi-transparente y blur (glassmorphism)
-- Pestanas inactivas en gris suave con hover violeta tenue
-- Pestana activa en violeta solido con texto blanco y sombra de elevacion
-- Iconos con colores unicos por seccion (azul mensajes, dorado resenas, etc.)
-- Los iconos se vuelven blancos automaticamente cuando el tab esta activo
-- Scroll horizontal suave en mobile como carrete de botones coloridos
