@@ -580,23 +580,23 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-1 p-1">
-            <TabsTrigger value="professionals" className="shrink-0 text-xs px-3">Profesionales</TabsTrigger>
-            <TabsTrigger value="categories" className="shrink-0 text-xs px-3">Categorías</TabsTrigger>
-            <TabsTrigger value="analytics" className="shrink-0 text-xs px-3">Analytics</TabsTrigger>
-            <TabsTrigger value="campaigns" className="shrink-0 text-xs px-3">Campañas</TabsTrigger>
-            <TabsTrigger value="moderation" className="shrink-0 text-xs px-3">Moderación</TabsTrigger>
-            <TabsTrigger value="subscriptions" className="shrink-0 text-xs px-3">Suscripciones</TabsTrigger>
-            <TabsTrigger value="plans" className="shrink-0 text-xs px-3">Planes</TabsTrigger>
-            <TabsTrigger value="verifications" className="shrink-0 text-xs px-3">Verificaciones</TabsTrigger>
-            <TabsTrigger value="contact-requests" className="shrink-0 text-xs px-3">Solicitudes</TabsTrigger>
-            <TabsTrigger value="users" className="shrink-0 text-xs px-3">Usuarios</TabsTrigger>
-            <TabsTrigger value="settings" className="shrink-0 text-xs px-3">Configuración</TabsTrigger>
-            <TabsTrigger value="business" className="shrink-0 text-xs px-3">BI</TabsTrigger>
-            <TabsTrigger value="performance" className="shrink-0 text-xs px-3">Monitor</TabsTrigger>
-            <TabsTrigger value="seo" className="shrink-0 text-xs px-3">SEO</TabsTrigger>
-            <TabsTrigger value="carousel" className="shrink-0 text-xs px-3">Carrusel</TabsTrigger>
-            <TabsTrigger value="updates" className="shrink-0 text-xs px-3">Novedades</TabsTrigger>
+          <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-0 bg-transparent h-auto">
+            <TabsTrigger value="professionals" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Profesionales</TabsTrigger>
+            <TabsTrigger value="categories" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Categorías</TabsTrigger>
+            <TabsTrigger value="analytics" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Analytics</TabsTrigger>
+            <TabsTrigger value="campaigns" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Campañas</TabsTrigger>
+            <TabsTrigger value="moderation" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Moderación</TabsTrigger>
+            <TabsTrigger value="subscriptions" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Suscripciones</TabsTrigger>
+            <TabsTrigger value="plans" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Planes</TabsTrigger>
+            <TabsTrigger value="verifications" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Verificaciones</TabsTrigger>
+            <TabsTrigger value="contact-requests" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Solicitudes</TabsTrigger>
+            <TabsTrigger value="users" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Usuarios</TabsTrigger>
+            <TabsTrigger value="settings" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Configuración</TabsTrigger>
+            <TabsTrigger value="business" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">BI</TabsTrigger>
+            <TabsTrigger value="performance" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Monitor</TabsTrigger>
+            <TabsTrigger value="seo" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">SEO</TabsTrigger>
+            <TabsTrigger value="carousel" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Carrusel</TabsTrigger>
+            <TabsTrigger value="updates" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">Novedades</TabsTrigger>
           </TabsList>
 
           <TabsContent value="professionals">

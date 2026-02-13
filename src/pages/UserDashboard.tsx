@@ -645,24 +645,24 @@ const UserDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-1 p-1">
-            <TabsTrigger value="home" className="shrink-0 text-xs px-2.5">
+          <TabsList className="flex w-full overflow-x-auto scrollbar-hide gap-2 p-0 bg-transparent h-auto">
+            <TabsTrigger value="home" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
               <Search className="h-4 w-4 mr-1.5" />
               Inicio
             </TabsTrigger>
-            <TabsTrigger value="messages" className="shrink-0 text-xs px-2.5">
+            <TabsTrigger value="messages" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
               <MessageSquare className="h-4 w-4 mr-1.5" />
               Mensajes
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="shrink-0 text-xs px-2.5">
+            <TabsTrigger value="reviews" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
               <Star className="h-4 w-4 mr-1.5" />
               Reseñas
             </TabsTrigger>
-            <TabsTrigger value="mobile" className="shrink-0 text-xs px-2.5">
+            <TabsTrigger value="mobile" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
               <Smartphone className="h-4 w-4 mr-1.5" />
               App Móvil
             </TabsTrigger>
-            <TabsTrigger value="settings" className="shrink-0 text-xs px-2.5">
+            <TabsTrigger value="settings" className="shrink-0 text-xs px-3 py-2 rounded-full border border-border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary">
               <Settings className="h-4 w-4 mr-1.5" />
               Config
             </TabsTrigger>
