@@ -475,15 +475,35 @@ const ProfessionalProfile = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 ml-4 shrink-0">
-                    <span className="text-primary font-bold text-sm whitespace-nowrap">
-                      {service.price_from && service.price_to
-                        ? `$${service.price_from.toLocaleString()} - $${service.price_to.toLocaleString()}`
-                        : service.price_from
-                          ? `Desde $${service.price_from.toLocaleString()}`
-                          : service.price_to
-                            ? `Hasta $${service.price_to.toLocaleString()}`
-                            : 'Consultar'}
-                    </span>
+                    {service.price_from || service.price_to ? (
+                      <span className="text-primary font-bold text-sm whitespace-nowrap">
+                        {service.price_from && service.price_to
+                          ? `$${service.price_from.toLocaleString()} - $${service.price_to.toLocaleString()}`
+                          : service.price_from
+                            ? `Desde $${service.price_from.toLocaleString()}`
+                            : `Hasta $${service.price_to!.toLocaleString()}`}
+                      </span>
+                    ) : (
+                      <span
+                        className="text-primary font-bold text-sm whitespace-nowrap underline cursor-pointer hover:text-primary/80 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const phone = contactInfo?.phone?.replace(/[^0-9]/g, '');
+                          if (!phone) {
+                            toast.error('Este profesional no tiene WhatsApp disponible');
+                            return;
+                          }
+                          let wp = phone;
+                          if (!phone.startsWith('54')) {
+                            wp = phone.length === 10 ? `54${phone}` : phone.length <= 8 ? `5411${phone}` : `54${phone}`;
+                          }
+                          const msg = encodeURIComponent(`Hola ${professional?.full_name}, vi tu servicio "${service.service_name}" en Chequealo y me gustaría consultar el precio.`);
+                          window.open(`https://wa.me/${wp}?text=${msg}`, '_blank');
+                        }}
+                      >
+                        Consultar
+                      </span>
+                    )}
                     {isOwner && (
                       <Button
                         variant="ghost"
