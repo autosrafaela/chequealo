@@ -1,78 +1,153 @@
 
-# Plan: Hacer los servicios expandibles en el perfil publico
+# Plan: Lightbox Estilo E-commerce con Descripcion Visible
 
 ## Problema
 
-En la seccion de Servicios del perfil profesional (`ProfessionalProfile.tsx`), tanto el nombre como la descripcion del servicio usan la clase `truncate`, lo que corta el texto con "..." sin posibilidad de leer el contenido completo.
+1. Al hacer click en una foto de "Trabajos Realizados", el lightbox solo muestra la imagen, sin la descripcion (`caption`) ni el tipo de trabajo (`work_type`).
+2. La imagen se muestra con `object-contain` sin posibilidad de zoom, causando pixelado en imagenes pequenas.
+3. En la grilla, el caption esta truncado con `truncate` (una sola linea).
 
 ## Solucion
 
-Convertir cada servicio en un componente expandible: al hacer click se muestra la descripcion completa. Cambios minimos y directos.
+Redisenar el lightbox para que funcione como un visor de producto de e-commerce: imagen grande con zoom, navegacion entre fotos (anterior/siguiente), y descripcion visible debajo.
 
-## Cambios
+## Cambios en `src/pages/ProfessionalProfile.tsx`
 
-### Archivo: `src/pages/ProfessionalProfile.tsx` (lineas 437-470)
+### 1. Cambiar el estado `selectedPhoto`
 
-1. Quitar `truncate` de la descripcion del servicio (linea 445) y reemplazarlo por un estado expandible
-2. Mantener `truncate` en el nombre del servicio (siempre una linea)
-3. Hacer la fila clickeable: al tocar, se expande/colapsa la descripcion
-4. Cambiar la descripcion de `truncate` a `line-clamp-2` cuando esta colapsada, y sin limite cuando esta expandida
-5. Agregar un indicador visual sutil (chevron o texto "ver mas") para que el usuario sepa que puede tocar
+Actualmente guarda solo un string (la URL). Cambiarlo para guardar el indice de la foto seleccionada, lo que permite:
+- Mostrar caption y work_type de esa foto
+- Navegar entre fotos con flechas
 
-**Implementacion tecnica:**
-- Agregar un estado `expandedServiceId` (string o null) al componente
-- Al hacer click en un servicio, si tiene descripcion larga, se expande
-- La descripcion pasa de `truncate` a mostrar el texto completo
-- Agregar `cursor-pointer` a la fila cuando hay descripcion
-
-```tsx
-// Estado nuevo:
-const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null);
-
-// Cada servicio:
-<div 
-  key={service.id} 
-  className="py-3 border-b border-border/30 last:border-b-0 cursor-pointer"
-  onClick={() => service.description && setExpandedServiceId(
-    expandedServiceId === service.id ? null : service.id
-  )}
->
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-3 flex-1 min-w-0">
-      <div className="p-2 bg-primary/10 rounded-full shrink-0">
-        <Briefcase className="w-4 h-4 text-primary" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-medium text-foreground truncate">{service.service_name}</p>
-      </div>
-    </div>
-    <span className="text-primary font-bold text-sm whitespace-nowrap ml-3">
-      {/* precio */}
-    </span>
-  </div>
-  {service.description && (
-    <p className={`text-xs text-muted-foreground mt-1 ml-11 ${
-      expandedServiceId === service.id ? '' : 'line-clamp-2'
-    }`}>
-      {service.description}
-      {expandedServiceId !== service.id && (
-        <span className="text-primary ml-1 font-medium">ver mas</span>
-      )}
-    </p>
-  )}
-</div>
 ```
+// Antes:
+const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+
+// Despues:
+const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+```
+
+### 2. Redisenar el Lightbox Dialog (lineas 620-631)
+
+Reemplazar el Dialog actual por uno estilo e-commerce:
+
+- Fondo oscuro (`bg-black/95`)
+- Imagen centrada con tamano maximo optimizado
+- **Zoom con click**: al hacer click en la imagen, se alterna entre `object-contain` (vista completa) y `object-cover` con `cursor-zoom-in/zoom-out`
+- **Navegacion**: flechas izquierda/derecha (ChevronLeft, ChevronRight) para pasar entre fotos
+- **Descripcion visible**: debajo de la imagen, mostrar `caption` y `work_type` sobre fondo semi-transparente
+- **Contador**: "3 de 12" para indicar posicion
+
+```text
++------------------------------------------+
+|  [X]                              3 de 12 |
+|                                           |
+|  [<]     IMAGEN GRANDE CON ZOOM     [>]  |
+|                                           |
+|  Caption: "Instalacion de aire split"     |
+|  Tipo: "Refrigeracion"                    |
++------------------------------------------+
+```
+
+### 3. Mejorar la grilla de previews (lineas 576-606 y 706-731)
+
+- Quitar `truncate` del caption y usar `line-clamp-2` para mostrar hasta 2 lineas
+- Mostrar `work_type` como badge pequeno si existe
+
+### 4. Detalle tecnico
+
+**Nuevo estado y helpers:**
+```tsx
+const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+const [isZoomed, setIsZoomed] = useState(false);
+
+const selectedPhotoData = selectedPhotoIndex !== null ? workPhotos[selectedPhotoIndex] : null;
+
+const goToNext = () => {
+  if (selectedPhotoIndex !== null && selectedPhotoIndex < workPhotos.length - 1) {
+    setSelectedPhotoIndex(selectedPhotoIndex + 1);
+    setIsZoomed(false);
+  }
+};
+
+const goToPrev = () => {
+  if (selectedPhotoIndex !== null && selectedPhotoIndex > 0) {
+    setSelectedPhotoIndex(selectedPhotoIndex - 1);
+    setIsZoomed(false);
+  }
+};
+```
+
+**Lightbox rediseñado:**
+```tsx
+<Dialog open={selectedPhotoIndex !== null} onOpenChange={() => { setSelectedPhotoIndex(null); setIsZoomed(false); }}>
+  <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-0 overflow-hidden">
+    {selectedPhotoData && (
+      <div className="relative flex flex-col h-full">
+        {/* Contador */}
+        <div className="absolute top-3 right-12 text-white/70 text-sm z-10">
+          {selectedPhotoIndex + 1} de {workPhotos.length}
+        </div>
+
+        {/* Imagen con zoom */}
+        <div className="flex-1 flex items-center justify-center overflow-auto p-4"
+             onClick={() => setIsZoomed(!isZoomed)}>
+          <img 
+            src={selectedPhotoData.image_url}
+            alt={selectedPhotoData.caption || 'Trabajo realizado'}
+            className={`transition-all duration-300 rounded-lg ${
+              isZoomed 
+                ? 'max-w-none w-auto h-auto cursor-zoom-out' 
+                : 'max-h-[70vh] w-full object-contain cursor-zoom-in'
+            }`}
+          />
+        </div>
+
+        {/* Flechas de navegacion */}
+        <button onClick={goToPrev} className="absolute left-2 top-1/2 ...">
+          <ChevronLeft />
+        </button>
+        <button onClick={goToNext} className="absolute right-2 top-1/2 ...">
+          <ChevronRight />
+        </button>
+
+        {/* Descripcion */}
+        <div className="bg-black/80 px-6 py-4 text-white">
+          {selectedPhotoData.work_type && (
+            <span className="text-xs bg-primary/30 text-primary-foreground px-2 py-1 rounded-full">
+              {selectedPhotoData.work_type}
+            </span>
+          )}
+          {selectedPhotoData.caption && (
+            <p className="text-sm mt-2">{selectedPhotoData.caption}</p>
+          )}
+        </div>
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
+```
+
+**Actualizar los onClick en las grillas:**
+```tsx
+// Antes: onClick={() => setSelectedPhoto(photo.image_url)}
+// Despues: onClick={() => setSelectedPhotoIndex(workPhotos.indexOf(photo))}
+// (o usar el index del map)
+```
+
+**Soporte de teclado:**
+- Agregar un `useEffect` que escuche las teclas izquierda/derecha y Escape para navegar.
 
 ## Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/ProfessionalProfile.tsx` | Agregar estado `expandedServiceId`, hacer servicios clickeables con descripcion expandible |
+| `src/pages/ProfessionalProfile.tsx` | Reemplazar lightbox simple por visor e-commerce con zoom, navegacion, y descripcion visible |
 
 ## Resultado
 
-- El nombre del servicio sigue en una linea (truncado si es muy largo)
-- La descripcion muestra 2 lineas con "ver mas" al tocar
-- Al hacer click se expande y muestra todo el texto
-- Un segundo click la colapsa
-- El precio se mantiene siempre visible
+- Al hacer click en una foto, se abre un visor a pantalla completa con la imagen en alta calidad
+- Debajo de la imagen se muestra la descripcion y el tipo de trabajo
+- Se puede hacer zoom con click para ver detalles sin pixelado
+- Flechas para navegar entre fotos sin cerrar el visor
+- En la grilla, el caption muestra hasta 2 lineas en vez de cortarse
