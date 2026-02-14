@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,11 @@ const ProfessionalProfile = () => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [scrollStart, setScrollStart] = useState({ x: 0, y: 0 });
+  const [hasDragged, setHasDragged] = useState(false);
+  const zoomContainerRef = useRef<HTMLDivElement>(null);
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showExpressQuote, setShowExpressQuote] = useState(false);
   const { getContactInfo, loading: contactLoading } = useProfessionalContact();
@@ -677,19 +682,92 @@ const ProfessionalProfile = () => {
                     {selectedPhotoIndex + 1} de {workPhotos.length}
                   </div>
 
-                  {/* Image with zoom */}
+                  {/* Image with zoom and pan */}
                   <div 
+                    ref={zoomContainerRef}
                     className={`flex-1 flex items-center justify-center p-4 ${isZoomed ? 'overflow-auto' : 'overflow-hidden'}`}
-                    onClick={() => setIsZoomed(!isZoomed)}
+                    style={isZoomed ? { touchAction: 'none' } : undefined}
+                    onMouseDown={(e) => {
+                      if (!isZoomed) return;
+                      setIsDragging(true);
+                      setHasDragged(false);
+                      setDragStart({ x: e.clientX, y: e.clientY });
+                      const container = zoomContainerRef.current;
+                      if (container) setScrollStart({ x: container.scrollLeft, y: container.scrollTop });
+                    }}
+                    onMouseMove={(e) => {
+                      if (!isDragging || !isZoomed) return;
+                      const dx = e.clientX - dragStart.x;
+                      const dy = e.clientY - dragStart.y;
+                      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) setHasDragged(true);
+                      const container = zoomContainerRef.current;
+                      if (container) {
+                        container.scrollLeft = scrollStart.x - dx;
+                        container.scrollTop = scrollStart.y - dy;
+                      }
+                    }}
+                    onMouseUp={() => {
+                      if (!hasDragged && !isDragging) {
+                        setIsZoomed(!isZoomed);
+                      } else if (!hasDragged) {
+                        setIsZoomed(!isZoomed);
+                      }
+                      setIsDragging(false);
+                    }}
+                    onMouseLeave={() => setIsDragging(false)}
+                    onTouchStart={(e) => {
+                      if (!isZoomed) return;
+                      const touch = e.touches[0];
+                      setIsDragging(true);
+                      setHasDragged(false);
+                      setDragStart({ x: touch.clientX, y: touch.clientY });
+                      const container = zoomContainerRef.current;
+                      if (container) setScrollStart({ x: container.scrollLeft, y: container.scrollTop });
+                    }}
+                    onTouchMove={(e) => {
+                      if (!isDragging || !isZoomed) return;
+                      const touch = e.touches[0];
+                      const dx = touch.clientX - dragStart.x;
+                      const dy = touch.clientY - dragStart.y;
+                      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) setHasDragged(true);
+                      const container = zoomContainerRef.current;
+                      if (container) {
+                        container.scrollLeft = scrollStart.x - dx;
+                        container.scrollTop = scrollStart.y - dy;
+                      }
+                    }}
+                    onTouchEnd={() => {
+                      if (!hasDragged) setIsZoomed(!isZoomed);
+                      setIsDragging(false);
+                    }}
+                    onClick={(e) => {
+                      if (isZoomed) {
+                        e.stopPropagation();
+                        return;
+                      }
+                      // Zoom in and center on click point
+                      setIsZoomed(true);
+                      const container = zoomContainerRef.current;
+                      if (container) {
+                        const rect = container.getBoundingClientRect();
+                        const clickX = (e.clientX - rect.left) / rect.width;
+                        const clickY = (e.clientY - rect.top) / rect.height;
+                        requestAnimationFrame(() => {
+                          container.scrollLeft = (container.scrollWidth - container.clientWidth) * clickX;
+                          container.scrollTop = (container.scrollHeight - container.clientHeight) * clickY;
+                        });
+                      }
+                    }}
                   >
                     <img 
                       src={selectedPhotoData.image_url}
                       alt={selectedPhotoData.caption || 'Trabajo realizado'}
+                      draggable={false}
                       className={`transition-all duration-300 rounded-lg select-none ${
                         isZoomed 
-                          ? 'max-w-none w-auto h-auto cursor-zoom-out' 
+                          ? 'max-w-none w-auto h-auto' 
                           : 'max-h-[70vh] w-full object-contain cursor-zoom-in'
-                      }`}
+                      } ${isZoomed ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
                     />
                   </div>
 
