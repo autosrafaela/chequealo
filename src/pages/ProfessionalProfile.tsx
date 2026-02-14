@@ -33,13 +33,16 @@ import {
   Camera,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Trash2,
   Facebook,
   Instagram,
   Mail,
   Star,
   Send,
-  Briefcase
+  Briefcase,
+  X
 } from "lucide-react";
 import { ProfessionalSEO } from "@/components/SEO/ProfessionalSEO";
 import { getProfessionalShareUrl } from "@/utils/utmHelpers";
@@ -64,7 +67,8 @@ const ProfessionalProfile = () => {
   const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("about");
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+  const [isZoomed, setIsZoomed] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showExpressQuote, setShowExpressQuote] = useState(false);
   const { getContactInfo, loading: contactLoading } = useProfessionalContact();
@@ -100,6 +104,25 @@ const ProfessionalProfile = () => {
       }
     }
   }, [professional, currentUser]);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (selectedPhotoIndex === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' && selectedPhotoIndex < workPhotos.length - 1) {
+        setSelectedPhotoIndex(selectedPhotoIndex + 1);
+        setIsZoomed(false);
+      } else if (e.key === 'ArrowLeft' && selectedPhotoIndex > 0) {
+        setSelectedPhotoIndex(selectedPhotoIndex - 1);
+        setIsZoomed(false);
+      } else if (e.key === 'Escape') {
+        setSelectedPhotoIndex(null);
+        setIsZoomed(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPhotoIndex, workPhotos.length]);
 
   const getCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -578,7 +601,7 @@ const ProfessionalProfile = () => {
                 <div 
                   key={photo.id} 
                   className="relative cursor-pointer group"
-                  onClick={() => setSelectedPhoto(photo.image_url)}
+                  onClick={() => setSelectedPhotoIndex(workPhotos.indexOf(photo))}
                 >
                   <div className="aspect-square rounded-xl overflow-hidden bg-muted">
                     <img 
@@ -589,7 +612,12 @@ const ProfessionalProfile = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 truncate">
+                  {photo.work_type && (
+                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full inline-block mt-1">
+                      {photo.work_type}
+                    </span>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                     {photo.caption || 'Trabajo Realizado'}
                   </p>
                   {isOwner && (
@@ -617,20 +645,72 @@ const ProfessionalProfile = () => {
           </div>
         )}
 
-        {/* ===== Lightbox Dialog ===== */}
-        <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
-          <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-0">
-            {selectedPhoto && (
-              <img 
-                src={selectedPhoto} 
-                alt="Trabajo realizado" 
-                className="max-h-[80vh] w-full object-contain rounded-lg"
-              />
-            )}
+        {/* ===== Lightbox Dialog (E-commerce style) ===== */}
+        <Dialog open={selectedPhotoIndex !== null} onOpenChange={() => { setSelectedPhotoIndex(null); setIsZoomed(false); }}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-0 overflow-hidden [&>button]:text-white [&>button]:hover:bg-white/20">
+            {selectedPhotoIndex !== null && workPhotos[selectedPhotoIndex] && (() => {
+              const selectedPhotoData = workPhotos[selectedPhotoIndex];
+              return (
+                <div className="relative flex flex-col max-h-[95vh]">
+                  {/* Counter */}
+                  <div className="absolute top-3 right-12 text-white/70 text-sm z-10">
+                    {selectedPhotoIndex + 1} de {workPhotos.length}
+                  </div>
+
+                  {/* Image with zoom */}
+                  <div 
+                    className={`flex-1 flex items-center justify-center p-4 ${isZoomed ? 'overflow-auto' : 'overflow-hidden'}`}
+                    onClick={() => setIsZoomed(!isZoomed)}
+                  >
+                    <img 
+                      src={selectedPhotoData.image_url}
+                      alt={selectedPhotoData.caption || 'Trabajo realizado'}
+                      className={`transition-all duration-300 rounded-lg select-none ${
+                        isZoomed 
+                          ? 'max-w-none w-auto h-auto cursor-zoom-out' 
+                          : 'max-h-[70vh] w-full object-contain cursor-zoom-in'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Prev arrow */}
+                  {selectedPhotoIndex > 0 && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSelectedPhotoIndex(selectedPhotoIndex - 1); setIsZoomed(false); }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 z-10 transition-colors"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                  )}
+
+                  {/* Next arrow */}
+                  {selectedPhotoIndex < workPhotos.length - 1 && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSelectedPhotoIndex(selectedPhotoIndex + 1); setIsZoomed(false); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 z-10 transition-colors"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  )}
+
+                  {/* Description */}
+                  {(selectedPhotoData.work_type || selectedPhotoData.caption) && (
+                    <div className="bg-black/80 px-6 py-4 text-white">
+                      {selectedPhotoData.work_type && (
+                        <span className="text-xs bg-primary/30 text-primary-foreground px-2 py-1 rounded-full">
+                          {selectedPhotoData.work_type}
+                        </span>
+                      )}
+                      {selectedPhotoData.caption && (
+                        <p className="text-sm mt-2 text-white/90">{selectedPhotoData.caption}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </DialogContent>
         </Dialog>
-
-        {/* Express Quote removed - integrated as subtle link above CTAs */}
 
         {/* ===== Tabs for detailed content ===== */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
@@ -708,7 +788,7 @@ const ProfessionalProfile = () => {
                     <div key={photo.id} className="space-y-1">
                       <div 
                         className="relative aspect-square rounded-xl overflow-hidden bg-muted cursor-pointer"
-                        onClick={() => setSelectedPhoto(photo.image_url)}
+                        onClick={() => setSelectedPhotoIndex(workPhotos.indexOf(photo))}
                       >
                         <img 
                           src={photo.image_url || '/placeholder.svg'} 
@@ -726,7 +806,12 @@ const ProfessionalProfile = () => {
                           </Button>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">
+                      {photo.work_type && (
+                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full inline-block">
+                          {photo.work_type}
+                        </span>
+                      )}
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {photo.caption || 'Trabajo Realizado'}
                       </p>
                     </div>
