@@ -61,6 +61,7 @@ const ProfessionalProfile = () => {
   const [contactInfo, setContactInfo] = useState<{ phone: string | null; email: string | null } | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [showAllServices, setShowAllServices] = useState(false);
+  const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("about");
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -434,39 +435,54 @@ const ProfessionalProfile = () => {
           </div>
           {services.length > 0 ? (
             displayedServices.map((service) => (
-              <div key={service.id} className="flex items-center justify-between py-3 border-b border-border/30 last:border-b-0">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="p-2 bg-primary/10 rounded-full shrink-0">
-                    <Briefcase className="w-4 h-4 text-primary" />
+              <div 
+                key={service.id} 
+                className={`py-3 border-b border-border/30 last:border-b-0 ${service.description ? 'cursor-pointer' : ''}`}
+                onClick={() => service.description && setExpandedServiceId(
+                  expandedServiceId === service.id ? null : service.id
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                      <Briefcase className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground truncate">{service.service_name}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground truncate">{service.service_name}</p>
-                    {service.description && (
-                      <p className="text-xs text-muted-foreground truncate">{service.description}</p>
+                  <div className="flex items-center gap-3 ml-4 shrink-0">
+                    <span className="text-primary font-bold text-sm whitespace-nowrap">
+                      {service.price_from && service.price_to
+                        ? `$${service.price_from.toLocaleString()} - $${service.price_to.toLocaleString()}`
+                        : service.price_from
+                          ? `Desde $${service.price_from.toLocaleString()}`
+                          : service.price_to
+                            ? `Hasta $${service.price_to.toLocaleString()}`
+                            : 'Consultar'}
+                    </span>
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => { e.stopPropagation(); deleteService(service.id); }}
+                        className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 ml-4 shrink-0">
-                  <span className="text-primary font-bold text-sm whitespace-nowrap">
-                    {service.price_from && service.price_to
-                      ? `$${service.price_from.toLocaleString()} - $${service.price_to.toLocaleString()}`
-                      : service.price_from
-                        ? `Desde $${service.price_from.toLocaleString()}`
-                        : service.price_to
-                          ? `Hasta $${service.price_to.toLocaleString()}`
-                          : 'Consultar'}
-                  </span>
-                  {isOwner && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteService(service.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+                {service.description && (
+                  <p className={`text-xs text-muted-foreground mt-1 ml-11 transition-all ${
+                    expandedServiceId === service.id ? '' : 'line-clamp-2'
+                  }`}>
+                    {service.description}
+                  </p>
+                )}
+                {service.description && expandedServiceId !== service.id && (
+                  <span className="text-xs text-primary ml-11 font-medium">ver más</span>
+                )}
               </div>
             ))
           ) : (
