@@ -255,6 +255,10 @@ Deno.serve(async (req) => {
           .from('profiles')
           .upsert({ id: userId, user_id: userId, full_name: p.full_name }, { onConflict: 'user_id' });
 
+        // Auto-generate SEO-friendly slug: nombre-categoria-ciudad
+        const locationCity = p.location.split(',')[0].trim();
+        const autoSlug = slugify(`${p.full_name}-${p.category}-${locationCity}`);
+
         const { error: profError } = await supabaseAdmin
           .from('professionals')
           .insert({
@@ -267,6 +271,7 @@ Deno.serve(async (req) => {
             is_verified: true,
             verification_date: new Date().toISOString(),
             has_free_access: true,
+            slug: autoSlug,
           });
 
         if (profError) throw profError;
