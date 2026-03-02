@@ -602,7 +602,30 @@ const AdminDashboard = () => {
           <TabsContent value="professionals">
             <Card>
               <CardHeader>
-                <CardTitle>Gestión de Profesionales</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <CardTitle>Gestión de Profesionales</CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-amber-500 text-amber-700 hover:bg-amber-50"
+                    onClick={async () => {
+                      if (!confirm('¿Cargar los 31 profesionales Pioneros de Rafaela? Esta acción creará usuarios y perfiles automáticamente.')) return;
+                      toast.loading('Cargando pioneros...', { id: 'seed' });
+                      try {
+                        const { data, error } = await supabase.functions.invoke('seed-pioneers');
+                        if (error) throw error;
+                        if (!data?.success) throw new Error(data?.error || 'Error desconocido');
+                        toast.success(`Pioneros cargados: ${data.created} creados, ${data.failed} fallidos`, { id: 'seed' });
+                        fetchAdminData();
+                      } catch (err: any) {
+                        toast.error('Error: ' + (err.message || 'Error desconocido'), { id: 'seed' });
+                      }
+                    }}
+                  >
+                    <Users className="h-4 w-4 mr-1" />
+                    Cargar Pioneros
+                  </Button>
+                </div>
                 <div className="mt-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
