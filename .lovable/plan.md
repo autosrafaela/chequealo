@@ -1,24 +1,20 @@
 
 
-# Plan: Actualizar seed-pioneers con nueva lista y limpieza previa
+# Plan: Agregar 19 nuevos profesionales al array PIONEERS
 
-## Cambios en `supabase/functions/seed-pioneers/index.ts`
+## Cambio
 
-### 1. Reemplazar el array PIONEERS con los 16 nuevos profesionales
-Los telefonos ya vienen en formato internacional (`+54 9 3492 ...`), asi que todos tienen telefono valido. Se simplifica la logica.
+Agregar los 19 nuevos profesionales al final del array `PIONEERS` en `supabase/functions/seed-pioneers/index.ts`, manteniendo los 16 existentes. El total pasara a ser 35 profesionales.
 
-### 2. Agregar paso de limpieza antes del seed
-Antes de crear los nuevos, la funcion eliminara los pioneros anteriores (usuarios con email `@chequealo.net`):
-- Buscar todos los profesionales con email terminado en `@chequealo.net`
-- Para cada uno: eliminar datos relacionados (professional_services, work_photos, reviews, contact_requests, subscriptions, etc.), luego el registro de professionals, profiles, y finalmente el auth user con `admin.deleteUser()`
-- Esto reutiliza el patron de eliminacion de `admin-delete-user`
-
-### 3. Almacenar el telefono tal cual viene
-Como los telefonos ya estan en formato `+54 9 XXXX XXXXXX`, se guardan directamente en el campo `phone`.
+La funcion ya tiene la logica de cleanup (elimina los `@chequealo.net` existentes) y re-crea todos, asi que al ejecutar el boton se limpiaran los anteriores y se crearan los 35.
 
 ## Archivo a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `supabase/functions/seed-pioneers/index.ts` | Reemplazar array, agregar limpieza previa de pioneros `@chequealo.net` |
+| `supabase/functions/seed-pioneers/index.ts` | Agregar 19 entradas nuevas al array `PIONEERS` (linea 24, antes del cierre `]`) |
+
+## Nuevas entradas
+
+Gestores del Automotor (3), Mecanicos (4), Electricistas (2), Gasista (1), Plomeros (2), Carpinteros (2), Fletes (3), Jardineria (2).
 
