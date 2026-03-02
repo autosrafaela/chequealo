@@ -113,3 +113,6 @@ verify_jwt = true
 
 [functions.cloudflare-analytics]
 verify_jwt = true
+
+[functions.seed-pioneers]
+verify_jwt = false
