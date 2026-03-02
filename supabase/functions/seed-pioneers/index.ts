@@ -83,6 +83,11 @@ const PIONEERS = [
   {"full_name": "Impermeabilizaciones de techos Juan", "category": "Albañil y Pintor", "phone": "+54 9 3492 275311", "location": "Rafaela, Santa Fe"},
   {"full_name": "M.A.S. Pintura de obras", "category": "Pintor", "phone": "+54 9 3492 318380", "location": "Rafaela, Santa Fe"},
   {"full_name": "Villalba Revestimientos", "category": "Albañil y Pintor", "phone": "+54 9 3492 274041", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Dr. Pablo Ferraro", "category": "Psiquiatra", "phone": "+54 9 342 4410638", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Clinica Podio Especialidades", "category": "Centro Médico", "phone": "+54 9 3492 617682", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Odontología Estética Rafaela", "category": "Odontólogo", "phone": "+54 9 3492 646137", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Odontología Rafaela", "category": "Odontólogo", "phone": "+54 9 3492 621351", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Odontología Integral Dr. Toledo", "category": "Odontólogo", "phone": "+54 9 3492 228026", "location": "Rafaela, Santa Fe"},
 ];
 
 function slugify(name: string): string {
