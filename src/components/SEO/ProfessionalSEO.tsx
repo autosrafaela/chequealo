@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 interface ProfessionalSEOProps {
   professional: {
@@ -16,286 +16,97 @@ interface ProfessionalSEOProps {
   };
 }
 
+const SUPABASE_PROJECT_ID = 'rolitmcxydholgsxpvwa';
+const SUPABASE_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co`;
+const DEFAULT_OG_IMAGE = 'https://chequealo.net/images/default-professional-og.jpg';
+const BASE_URL = 'https://chequealo.net';
+
+function resolveImageUrl(imageUrl?: string): string {
+  if (!imageUrl || imageUrl.trim() === '') return DEFAULT_OG_IMAGE;
+
+  if (imageUrl.includes('supabase.co')) return imageUrl;
+  if (imageUrl.includes('/storage/v1/object/public/')) {
+    return imageUrl.startsWith('/') ? `${SUPABASE_URL}${imageUrl}` : `${SUPABASE_URL}/${imageUrl}`;
+  }
+  if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+    return `${SUPABASE_URL}/storage/v1/object/public/${imageUrl.replace(/^\//, '')}`;
+  }
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+  if (imageUrl.startsWith('/')) return `${BASE_URL}${imageUrl}`;
+  return `${BASE_URL}/${imageUrl}`;
+}
+
 export const ProfessionalSEO = ({ professional }: ProfessionalSEOProps) => {
-  useEffect(() => {
-    if (!professional) return;
+  if (!professional) return null;
 
-    // Update document title
-    const title = `${professional.full_name} - ${professional.profession} en ${professional.location} | Chequealo`;
-    document.title = title;
+  const title = `${professional.full_name} - ${professional.profession} en ${professional.location} | Chequealo`;
+  const truncatedTitle = title.length > 60 ? `${title.substring(0, 57)}...` : title;
 
-    // Update meta description
-    const description = `${professional.description ? professional.description.substring(0, 140) : `Contactá a ${professional.full_name}, ${professional.profession} profesional${professional.is_verified ? ' verificado' : ''} en ${professional.location}. Rating: ${professional.rating}/5 con ${professional.review_count} opiniones.`}`;
-    
-    // Remove existing meta tags
-    const existingDescription = document.querySelector('meta[name="description"]');
-    const existingKeywords = document.querySelector('meta[name="keywords"]');
-    const existingOgType = document.querySelector('meta[property="og:type"]');
-    const existingOgTitle = document.querySelector('meta[property="og:title"]');
-    const existingOgDescription = document.querySelector('meta[property="og:description"]');
-    const existingOgImage = document.querySelector('meta[property="og:image"]');
-    const existingOgImageSecure = document.querySelector('meta[property="og:image:secure_url"]');
-    const existingOgImageWidth = document.querySelector('meta[property="og:image:width"]');
-    const existingOgImageHeight = document.querySelector('meta[property="og:image:height"]');
-    const existingOgImageType = document.querySelector('meta[property="og:image:type"]');
-    const existingOgUrl = document.querySelector('meta[property="og:url"]');
-    const existingCanonical = document.querySelector('link[rel="canonical"]');
+  const description = professional.description
+    ? professional.description.substring(0, 155)
+    : `Contactá a ${professional.full_name}, ${professional.profession} profesional${professional.is_verified ? ' verificado' : ''} en ${professional.location}. Rating: ${professional.rating}/5 con ${professional.review_count} opiniones.`;
 
-    if (existingDescription) existingDescription.remove();
-    if (existingKeywords) existingKeywords.remove();
-    if (existingOgType) existingOgType.remove();
-    if (existingOgTitle) existingOgTitle.remove();
-    if (existingOgDescription) existingOgDescription.remove();
-    if (existingOgImage) existingOgImage.remove();
-    if (existingOgImageSecure) existingOgImageSecure.remove();
-    if (existingOgImageWidth) existingOgImageWidth.remove();
-    if (existingOgImageHeight) existingOgImageHeight.remove();
-    if (existingOgImageType) existingOgImageType.remove();
-    if (existingOgUrl) existingOgUrl.remove();
-    if (existingCanonical) existingCanonical.remove();
+  const canonicalUrl = `${BASE_URL}/professional/${professional.id}`;
+  const imageUrl = resolveImageUrl(professional.image_url);
 
-    // Add new meta tags
-    const metaDescription = document.createElement('meta');
-    metaDescription.name = 'description';
-    metaDescription.content = description;
-    document.head.appendChild(metaDescription);
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": professional.full_name,
+    "jobTitle": professional.profession,
+    "description": professional.description || `${professional.profession} profesional en ${professional.location}`,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": professional.location,
+      "addressCountry": "AR"
+    },
+    "aggregateRating": professional.review_count > 0 ? {
+      "@type": "AggregateRating",
+      "ratingValue": professional.rating,
+      "reviewCount": professional.review_count,
+      "bestRating": 5,
+      "worstRating": 1
+    } : undefined,
+    "url": canonicalUrl,
+    "image": imageUrl,
+    ...(professional.phone && { "telephone": professional.phone }),
+    ...(professional.email && { "email": professional.email }),
+  };
 
-    const metaKeywords = document.createElement('meta');
-    metaKeywords.name = 'keywords';
-    metaKeywords.content = `${professional.profession}, ${professional.location}, ${professional.full_name}, servicios, profesional, chequealo, argentina`;
-    document.head.appendChild(metaKeywords);
+  return (
+    <Helmet>
+      <title>{truncatedTitle}</title>
+      <meta name="description" content={description} />
+      <meta name="keywords" content={`${professional.profession}, ${professional.location}, ${professional.full_name}, servicios, profesional, chequealo, argentina`} />
+      <link rel="canonical" href={canonicalUrl} />
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
 
-    // Open Graph tags
-    const ogType = document.createElement('meta');
-    ogType.setAttribute('property', 'og:type');
-    ogType.content = 'profile';
-    document.head.appendChild(ogType);
+      {/* Open Graph */}
+      <meta property="og:type" content="profile" />
+      <meta property="og:title" content={truncatedTitle} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:image" content={imageUrl} />
+      <meta property="og:image:secure_url" content={imageUrl} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="1200" />
+      <meta property="og:image:type" content="image/jpeg" />
+      <meta property="og:image:alt" content={`Foto de perfil de ${professional.full_name}, ${professional.profession} en ${professional.location}`} />
+      <meta property="og:site_name" content="Chequealo" />
+      <meta property="og:locale" content="es_AR" />
 
-    const ogTitle = document.createElement('meta');
-    ogTitle.setAttribute('property', 'og:title');
-    ogTitle.content = title;
-    document.head.appendChild(ogTitle);
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={truncatedTitle} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={imageUrl} />
+      <meta name="twitter:image:alt" content={`Foto de ${professional.full_name}`} />
+      <meta name="twitter:site" content="@chequealonet" />
 
-    const ogDescription = document.createElement('meta');
-    ogDescription.setAttribute('property', 'og:description');
-    ogDescription.content = description;
-    document.head.appendChild(ogDescription);
-
-    // Generate canonical URL (always use chequealo.net without www)
-    const canonicalUrl = `https://chequealo.net/professional/${professional.id}`;
-    
-    const ogUrl = document.createElement('meta');
-    ogUrl.setAttribute('property', 'og:url');
-    ogUrl.content = canonicalUrl;
-    document.head.appendChild(ogUrl);
-
-    const ogSiteName = document.createElement('meta');
-    ogSiteName.setAttribute('property', 'og:site_name');
-    ogSiteName.content = 'Chequealo';
-    document.head.appendChild(ogSiteName);
-
-    const ogLocale = document.createElement('meta');
-    ogLocale.setAttribute('property', 'og:locale');
-    ogLocale.content = 'es_AR';
-    document.head.appendChild(ogLocale);
-
-    // WhatsApp specific meta tags (uses Open Graph)
-    const ogSiteNameWhatsApp = document.createElement('meta');
-    ogSiteNameWhatsApp.setAttribute('property', 'og:site_name');
-    ogSiteNameWhatsApp.content = 'Chequealo - Profesionales y Servicios en Argentina';
-    document.head.appendChild(ogSiteNameWhatsApp);
-
-    // Twitter Card tags
-    const twitterCard = document.createElement('meta');
-    twitterCard.setAttribute('name', 'twitter:card');
-    twitterCard.content = 'summary_large_image';
-    document.head.appendChild(twitterCard);
-
-    const twitterTitle = document.createElement('meta');
-    twitterTitle.setAttribute('name', 'twitter:title');
-    twitterTitle.content = title;
-    document.head.appendChild(twitterTitle);
-
-    const twitterDescription = document.createElement('meta');
-    twitterDescription.setAttribute('name', 'twitter:description');
-    twitterDescription.content = description;
-    document.head.appendChild(twitterDescription);
-
-    const twitterSite = document.createElement('meta');
-    twitterSite.setAttribute('name', 'twitter:site');
-    twitterSite.content = '@chequealonet';
-    document.head.appendChild(twitterSite);
-
-    const twitterCreator = document.createElement('meta');
-    twitterCreator.setAttribute('name', 'twitter:creator');
-    twitterCreator.content = '@chequealonet';
-    document.head.appendChild(twitterCreator);
-
-    // Handle image URL - ensure it's absolute
-    const SUPABASE_PROJECT_ID = 'rolitmcxydholgsxpvwa';
-    const SUPABASE_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co`;
-    const DEFAULT_OG_IMAGE = 'https://chequealo.net/images/default-professional-og.jpg';
-    
-    let imageUrl = professional.image_url;
-    
-    // If no image or empty/null, use default professional image
-    if (!imageUrl || imageUrl.trim() === '') {
-      imageUrl = DEFAULT_OG_IMAGE;
-    } else {
-      // Handle Supabase Storage URLs - various formats
-      if (imageUrl.includes('supabase.co')) {
-        // Already a full Supabase URL, use as is
-      } else if (imageUrl.includes('/storage/v1/object/public/')) {
-        // Partial Supabase path
-        if (imageUrl.startsWith('/')) {
-          imageUrl = `${SUPABASE_URL}${imageUrl}`;
-        } else {
-          imageUrl = `${SUPABASE_URL}/${imageUrl}`;
-        }
-      } else if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
-        // Legacy storage format
-        const cleanPath = imageUrl.replace(/^\//, '');
-        imageUrl = `${SUPABASE_URL}/storage/v1/object/public/${cleanPath}`;
-      } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-        // Already absolute URL, use as is
-      } else if (imageUrl.startsWith('/')) {
-        // Relative path starting with /
-        imageUrl = `https://chequealo.net${imageUrl}`;
-      } else {
-        // Relative path without /
-        imageUrl = `https://chequealo.net/${imageUrl}`;
-      }
-    }
-    
-    // Final validation - if URL seems invalid, use default
-    if (!imageUrl || !imageUrl.startsWith('http')) {
-      imageUrl = DEFAULT_OG_IMAGE;
-    }
-    
-    if (imageUrl) {
-      const ogImage = document.createElement('meta');
-      ogImage.setAttribute('property', 'og:image');
-      ogImage.content = imageUrl;
-      document.head.appendChild(ogImage);
-
-      // Add secure URL variant for Facebook
-      const ogImageSecure = document.createElement('meta');
-      ogImageSecure.setAttribute('property', 'og:image:secure_url');
-      ogImageSecure.content = imageUrl;
-      document.head.appendChild(ogImageSecure);
-
-      // Add image dimensions for better Facebook display
-      const ogImageWidth = document.createElement('meta');
-      ogImageWidth.setAttribute('property', 'og:image:width');
-      ogImageWidth.content = '1200';
-      document.head.appendChild(ogImageWidth);
-
-      const ogImageHeight = document.createElement('meta');
-      ogImageHeight.setAttribute('property', 'og:image:height');
-      ogImageHeight.content = '1200';
-      document.head.appendChild(ogImageHeight);
-
-      const ogImageType = document.createElement('meta');
-      ogImageType.setAttribute('property', 'og:image:type');
-      ogImageType.content = 'image/jpeg';
-      document.head.appendChild(ogImageType);
-
-      const ogImageAlt = document.createElement('meta');
-      ogImageAlt.setAttribute('property', 'og:image:alt');
-      ogImageAlt.content = `Foto de perfil de ${professional.full_name}, ${professional.profession} en ${professional.location}`;
-      document.head.appendChild(ogImageAlt);
-
-      // Twitter image
-      const twitterImage = document.createElement('meta');
-      twitterImage.setAttribute('name', 'twitter:image');
-      twitterImage.content = imageUrl;
-      document.head.appendChild(twitterImage);
-
-      const twitterImageAlt = document.createElement('meta');
-      twitterImageAlt.setAttribute('name', 'twitter:image:alt');
-      twitterImageAlt.content = `Foto de ${professional.full_name}`;
-      document.head.appendChild(twitterImageAlt);
-    }
-
-    // Canonical URL (always use chequealo.net without www)
-    const canonical = document.createElement('link');
-    canonical.rel = 'canonical';
-    canonical.href = `https://chequealo.net/professional/${professional.id}`;
-    document.head.appendChild(canonical);
-
-    // Structured Data (JSON-LD)
-    const professionalUrl = `https://chequealo.net/professional/${professional.id}`;
-    const structuredData = {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "name": professional.full_name,
-      "jobTitle": professional.profession,
-      "description": professional.description || `${professional.profession} profesional en ${professional.location}`,
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": professional.location,
-        "addressCountry": "AR"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": professional.rating,
-        "reviewCount": professional.review_count,
-        "bestRating": 5,
-        "worstRating": 1
-      },
-      "url": professionalUrl,
-      "image": imageUrl,
-      "sameAs": []
-    };
-
-    if (professional.phone) {
-      structuredData["telephone"] = professional.phone;
-    }
-
-    if (professional.email) {
-      structuredData["email"] = professional.email;
-    }
-
-    // Remove existing structured data
-    const existingStructuredData = document.querySelector('script[type="application/ld+json"]');
-    if (existingStructuredData) {
-      existingStructuredData.remove();
-    }
-
-    // Add structured data script
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.textContent = JSON.stringify(structuredData);
-    document.head.appendChild(script);
-
-    // Cleanup function
-    return () => {
-      // Reset to default title
-      document.title = 'Chequealo - Encontrá Profesionales y Servicios en Argentina';
-      
-      // Remove added meta tags
-      if (metaDescription.parentNode) metaDescription.remove();
-      if (metaKeywords.parentNode) metaKeywords.remove();
-      if (canonical.parentNode) canonical.remove();
-      if (script.parentNode) script.remove();
-
-      // Remove all dynamic Open Graph and Twitter meta tags
-      const ogMetaTags = document.querySelectorAll('meta[property^="og:"]');
-      ogMetaTags.forEach(tag => {
-        if (tag.parentNode) tag.remove();
-      });
-
-      const twitterMetaTags = document.querySelectorAll('meta[name^="twitter:"]');
-      twitterMetaTags.forEach(tag => {
-        if (tag.parentNode) tag.remove();
-      });
-
-      const whatsappMetaTags = document.querySelectorAll('meta[property^="og:image"], meta[property^="og:title"], meta[property^="og:description"]');
-      whatsappMetaTags.forEach(tag => {
-        if (tag.parentNode) tag.remove();
-      });
-    };
-  }, [professional]);
-
-  return null;
+      {/* Structured Data */}
+      <script type="application/ld+json">
+        {JSON.stringify(structuredData)}
+      </script>
+    </Helmet>
+  );
 };
