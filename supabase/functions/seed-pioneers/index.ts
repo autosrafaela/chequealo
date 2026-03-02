@@ -88,6 +88,21 @@ const PIONEERS = [
   {"full_name": "Odontología Estética Rafaela", "category": "Odontólogo", "phone": "+54 9 3492 646137", "location": "Rafaela, Santa Fe"},
   {"full_name": "Odontología Rafaela", "category": "Odontólogo", "phone": "+54 9 3492 621351", "location": "Rafaela, Santa Fe"},
   {"full_name": "Odontología Integral Dr. Toledo", "category": "Odontólogo", "phone": "+54 9 3492 228026", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Paloma Peluquería Unisex", "category": "Peluquería", "phone": "+54 9 3492 521491", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Lorena Mondino Barbería", "category": "Barbería", "phone": "+54 9 3492 626973", "location": "Rafaela, Santa Fe"},
+  {"full_name": "The Black Sheep Barber Shop", "category": "Barbería", "phone": "+54 9 3492 501180", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Sisters In Law Peluquería", "category": "Peluquería", "phone": "+54 9 3492 685377", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Paula Peluquería", "category": "Peluquería", "phone": "+54 9 3492 513167", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Peluquería Rita", "category": "Peluquería", "phone": "+54 9 3492 212624", "location": "Rafaela, Santa Fe"},
+  {"full_name": "SG Fotografía de Eventos", "category": "Fotógrafo", "phone": "+54 9 3492 635541", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Focus Rafaela Fotografía", "category": "Fotógrafo", "phone": "+54 9 3492 689920", "location": "Rafaela, Santa Fe"},
+  {"full_name": "DJ Seba Eventos", "category": "DJ para Eventos", "phone": "+54 9 3492 554122", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Asadores El Quincho", "category": "Catering y Eventos", "phone": "+54 9 3492 458871", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Fumigaciones Rafaela", "category": "Fumigaciones", "phone": "+54 9 3492 562872", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Control de Plagas Norte", "category": "Fumigaciones", "phone": "+54 9 3492 665214", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Mantenimiento de Piletas El Sol", "category": "Piletero", "phone": "+54 9 3492 210045", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Peluquería Canina Huellas", "category": "Peluquería Canina", "phone": "+54 9 3492 346610", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Veterinaria Merin (Turnos Wsp)", "category": "Veterinaria y Peluquería", "phone": "+54 9 3492 577410", "location": "Rafaela, Santa Fe"},
 ];
 
 function slugify(name: string): string {
