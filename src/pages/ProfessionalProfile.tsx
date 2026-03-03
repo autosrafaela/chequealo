@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { ProfessionalSEO } from "@/components/SEO/ProfessionalSEO";
 import { getProfessionalShareUrl } from "@/utils/utmHelpers";
+import { generateAutoSlug } from "@/utils/autoSlug";
 import {
   ProfileHeroSection,
   ProfileQuickAction,
@@ -104,8 +105,21 @@ const ProfessionalProfile = () => {
       });
       
       const professionalWithSlug = professional as typeof professional & { slug?: string | null };
-      if (professionalWithSlug.slug && !window.location.pathname.includes(`/${professionalWithSlug.slug}`)) {
-        window.history.replaceState(null, '', `/${professionalWithSlug.slug}`);
+      if (professionalWithSlug.slug) {
+        // Slug personalizado: usar directamente
+        if (!window.location.pathname.includes(`/${professionalWithSlug.slug}`)) {
+          window.history.replaceState(null, '', `/${professionalWithSlug.slug}`);
+        }
+      } else {
+        // Sin slug personalizado: generar auto-slug SEO con profesión-nombre-ciudad
+        const autoSlug = generateAutoSlug(
+          professional.profession,
+          professional.full_name,
+          professional.location
+        );
+        if (autoSlug && !window.location.pathname.includes(`/${autoSlug}`)) {
+          window.history.replaceState(null, '', `/${autoSlug}`);
+        }
       }
     }
   }, [professional, currentUser]);
@@ -199,18 +213,36 @@ const ProfessionalProfile = () => {
   };
 
   const shareToWhatsApp = () => {
-    const shareUrl = getProfessionalShareUrl(id!, 'wa', 'share');
+    const professionalWithSlug = professional as typeof professional & { slug?: string | null };
+    const shareUrl = getProfessionalShareUrl(id!, 'wa', 'share', {
+      slug: professionalWithSlug.slug,
+      profession: professional.profession,
+      fullName: professional.full_name,
+      location: professional.location,
+    });
     const message = `🔍 *${professional?.full_name}* - ${professional?.profession}\n📍 ${professional?.location}\n⭐ Rating: ${professional?.rating || 'N/A'}/5\n\nMira su perfil: ${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const shareToFacebook = () => {
-    const shareUrl = getProfessionalShareUrl(id!, 'fb', 'share');
+    const professionalWithSlug = professional as typeof professional & { slug?: string | null };
+    const shareUrl = getProfessionalShareUrl(id!, 'fb', 'share', {
+      slug: professionalWithSlug.slug,
+      profession: professional.profession,
+      fullName: professional.full_name,
+      location: professional.location,
+    });
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
   };
 
   const shareToTelegram = () => {
-    const shareUrl = getProfessionalShareUrl(id!, 'wa', 'share');
+    const professionalWithSlug = professional as typeof professional & { slug?: string | null };
+    const shareUrl = getProfessionalShareUrl(id!, 'wa', 'share', {
+      slug: professionalWithSlug.slug,
+      profession: professional.profession,
+      fullName: professional.full_name,
+      location: professional.location,
+    });
     const text = `¡Mirá el perfil de ${professional?.full_name}! ${professional?.profession} en Chequealo`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -221,7 +253,13 @@ const ProfessionalProfile = () => {
   };
 
   const shareToEmail = () => {
-    const shareUrl = getProfessionalShareUrl(id!, 'email', 'share');
+    const professionalWithSlug = professional as typeof professional & { slug?: string | null };
+    const shareUrl = getProfessionalShareUrl(id!, 'email', 'share', {
+      slug: professionalWithSlug.slug,
+      profession: professional.profession,
+      fullName: professional.full_name,
+      location: professional.location,
+    });
     const subject = `Conoce a ${professional?.full_name} - ${professional?.profession}`;
     const body = `Hola,\n\nTe recomiendo a ${professional?.full_name}.\n\nVer perfil: ${shareUrl}`;
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

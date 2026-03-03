@@ -2,6 +2,7 @@ import { useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PageLoader } from '@/components/ui/page-loader';
+import { generateAutoSlug } from '@/utils/autoSlug';
 import NotFound from './NotFound';
 
 // Regex para validar UUID
@@ -85,11 +86,34 @@ const ProfessionalProfileBySlug = () => {
         throw error;
       }
 
-      if (!professional) {
+      if (professional) {
+        return { id: professional.id, isUuid: false, slug: professional.slug };
+      }
+
+      // No encontrado por slug exacto: intentar resolver como auto-slug
+      // Buscar profesionales y comparar auto-slug generado
+      const { data: allProfessionals, error: allError } = await supabase
+        .from('professionals')
+        .select('id, profession, full_name, location, slug')
+        .is('slug', null)
+        .eq('is_blocked', false);
+
+      if (allError) {
+        console.error('Error searching by auto-slug:', allError);
+        throw allError;
+      }
+
+      const normalizedSlug = slug.toLowerCase();
+      const matched = allProfessionals?.find(p => {
+        const autoSlug = generateAutoSlug(p.profession, p.full_name, p.location);
+        return autoSlug === normalizedSlug;
+      });
+
+      if (!matched) {
         throw new Error('Professional not found');
       }
 
-      return { id: professional.id, isUuid: false, slug: professional.slug };
+      return { id: matched.id, isUuid: false, slug: null };
     },
     enabled: !!slug && !RESERVED_SLUGS.includes(slug?.toLowerCase() || ''),
     retry: false,
