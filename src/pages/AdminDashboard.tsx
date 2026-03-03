@@ -581,7 +581,7 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex flex-nowrap w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-2 p-2 pr-6 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50 justify-start">
+          <TabsList className="flex flex-nowrap w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-2 p-2 pr-16 bg-white/80 backdrop-blur-sm h-auto rounded-2xl shadow-sm border border-border/50 justify-start">
             <TabsTrigger value="professionals" className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">Profesionales</TabsTrigger>
             <TabsTrigger value="categories" className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">Categorías</TabsTrigger>
             <TabsTrigger value="analytics" className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">Analytics</TabsTrigger>
