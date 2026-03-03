@@ -5,6 +5,7 @@ import { Share2, Loader2, Copy, Check, Download, Sparkles, RefreshCw, LayoutGrid
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useGenerateShareCard, generateCard } from '@/hooks/useGenerateShareCard';
+import { generateAutoSlug } from '@/utils/autoSlug';
 import { CARD_STYLES, CardStyleConfig } from '@/types/cardStyles';
 
 interface ProfessionItem {
@@ -69,6 +70,15 @@ export const ProfileShareCard = ({ professional, trigger }: ProfileShareCardProp
   const getProfileUrl = () => {
     if (professional.slug) {
       return `https://chequealo.net/${professional.slug}`;
+    }
+    // Auto-slug SEO-friendly
+    const autoSlug = generateAutoSlug(
+      professional.profession,
+      professional.full_name,
+      professional.location
+    );
+    if (autoSlug) {
+      return `https://chequealo.net/${autoSlug}`;
     }
     return `https://chequealo.net/professional/${professional.id}`;
   };

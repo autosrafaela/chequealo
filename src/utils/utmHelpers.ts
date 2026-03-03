@@ -1,3 +1,5 @@
+import { generateAutoSlug } from '@/utils/autoSlug';
+
 /**
  * UTM Helper Functions for tracking professional links
  * 
@@ -35,15 +37,29 @@ export function generateUTMUrl(baseUrl: string, params: UTMParams): string {
 }
 
 /**
- * Generate a professional profile URL with UTM tracking
+ * Generate a professional profile URL with UTM tracking.
+ * Uses custom slug or auto-generated SEO slug when available.
  */
 export function getProfessionalShareUrl(
   professionalId: string, 
   source: UTMSource, 
-  medium: UTMMedium = 'share'
+  medium: UTMMedium = 'share',
+  options?: { slug?: string | null; profession?: string; fullName?: string; location?: string | null }
 ): string {
-  // Always use https://chequealo.net for better compatibility with WhatsApp/Instagram link detection
-  const baseUrl = `https://chequealo.net/professional/${professionalId}`;
+  let path = `/professional/${professionalId}`;
+  
+  if (options?.slug) {
+    // Slug personalizado
+    path = `/${options.slug}`;
+  } else if (options?.profession && options?.fullName) {
+    // Auto-slug SEO
+    const autoSlug = generateAutoSlug(options.profession, options.fullName, options.location);
+    if (autoSlug) {
+      path = `/${autoSlug}`;
+    }
+  }
+  
+  const baseUrl = `https://chequealo.net${path}`;
   return generateUTMUrl(baseUrl, { source, medium, professionalId });
 }
 
