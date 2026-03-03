@@ -17,6 +17,7 @@ import { SitemapManager } from '@/components/admin/SitemapManager';
 import UserManagementPanel from '@/components/admin/UserManagementPanel';
 import { CarouselManager } from '@/components/admin/CarouselManager';
 import PlatformUpdatesManager from '@/components/admin/PlatformUpdatesManager';
+import { LogoManager } from '@/components/admin/LogoManager';
 import CampaignMetricsPanel from '@/components/analytics/CampaignMetricsPanel';
 import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
 import { supabase } from '@/integrations/supabase/client';
@@ -597,6 +598,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="seo" className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">SEO</TabsTrigger>
             <TabsTrigger value="carousel" className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">Carrusel</TabsTrigger>
             <TabsTrigger value="updates" className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">Novedades</TabsTrigger>
+            <TabsTrigger value="logo" className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">Logo</TabsTrigger>
           </TabsList>
 
           <TabsContent value="professionals">
@@ -940,6 +942,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="updates">
             <PlatformUpdatesManager />
+          </TabsContent>
+
+          <TabsContent value="logo">
+            <LogoManager />
           </TabsContent>
         </Tabs>
       </div>
