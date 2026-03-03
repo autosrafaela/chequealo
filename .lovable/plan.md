@@ -1,15 +1,22 @@
 
 
-# Fix: Pestañas cortadas al final en Admin Dashboard
+# Plan: Guardar y eliminar logos generados
 
 ## Problema
-Las últimas pestañas (Carrusel, Novedades) se cortan porque el `pr-6` no es suficiente padding al final del scroll horizontal. Los últimos items quedan parcialmente ocultos.
+Actualmente se puede guardar logos generados en Storage, pero no hay botón para eliminar los que no gustan. Además la sección de "Logos Guardados" solo se muestra si ya hay logos previos.
 
-## Solución
-Aumentar el padding derecho de la `TabsList` de `pr-6` a `pr-16` para dar más espacio de scroll al final, asegurando que las últimas pestañas sean completamente visibles.
+## Cambios en `src/components/admin/LogoManager.tsx`
+
+1. **Agregar botón "Eliminar"** en cada card de logo guardado — llama `supabase.storage.from('logos').remove([path])` y refresca la lista
+2. **Agregar estado `deleting`** para mostrar spinner durante la eliminación
+3. **Diálogo de confirmación** antes de eliminar (usando AlertDialog o un simple confirm)
+4. **Si el logo eliminado era el activo**, desactivarlo automáticamente de localStorage
+5. **Importar `Trash2`** de lucide-react para el ícono de eliminar
+6. **Mostrar siempre** la sección de logos guardados (con mensaje "No hay logos guardados aún" si está vacía)
 
 ## Archivo
+
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/AdminDashboard.tsx` | Cambiar `pr-6` → `pr-16` en el className de `TabsList` (línea 584) |
+| `src/components/admin/LogoManager.tsx` | Agregar función `handleDelete`, botón Eliminar en cada card, y lógica de limpieza |
 
