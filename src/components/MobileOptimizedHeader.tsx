@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import NotificationCenter from './NotificationCenter';
-import chequealoLogo from "@/assets/chequealo-new-logo.png";
+import { useAppLogo } from "@/hooks/useAppLogo";
 
 export const MobileOptimizedHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +30,7 @@ export const MobileOptimizedHeader: React.FC = () => {
   const { isAdmin, isModerator } = useUserRole();
   const { unreadCount } = useRealtimeNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const chequealoLogo = useAppLogo();
 
   const handleSignOut = async () => {
     await signOut();

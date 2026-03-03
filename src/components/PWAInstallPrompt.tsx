@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Download, Smartphone, Zap, Bell, Wifi, Share, Plus, Check, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import chequealoLogo from '@/assets/chequealo-new-logo.png';
+import { getAppLogo } from '@/hooks/useAppLogo';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -158,7 +158,7 @@ export const PWAInstallPrompt: React.FC = () => {
             {/* App Icon and Title */}
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center p-2">
-                <img src={chequealoLogo} alt="Chequealo" className="w-full h-full object-contain" />
+                <img src={getAppLogo()} alt="Chequealo" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Instalá Chequealo</h2>
@@ -273,7 +273,7 @@ export const IOSInstallInstructions: React.FC = () => {
             {/* App Icon and Title */}
             <div className="flex items-center gap-4 mb-4">
               <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center p-2">
-                <img src={chequealoLogo} alt="Chequealo" className="w-full h-full object-contain" />
+                <img src={getAppLogo()} alt="Chequealo" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Instalá Chequealo</h2>

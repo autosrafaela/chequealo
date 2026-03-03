@@ -9,7 +9,7 @@ import FavoritesPanel from "./FavoritesPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import chequealoLogo from "@/assets/chequealo-new-logo.png";
+import { useAppLogo } from "@/hooks/useAppLogo";
 
 const filterOptions = [
   { value: 'latest', label: 'Últimas publicaciones', description: 'Los profesionales agregados más recientemente' },
@@ -27,6 +27,7 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('latest');
   const [isProfessional, setIsProfessional] = useState(false);
+  const chequealoLogo = useAppLogo();
 
   useEffect(() => {
     checkIfProfessional();

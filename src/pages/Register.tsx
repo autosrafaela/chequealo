@@ -16,13 +16,14 @@ import { validatePassword } from '@/utils/passwordValidation';
 import { getDashboardRoute } from '@/utils/redirectHelpers';
 import { notifyNewProfessionalToAllUsers } from '@/utils/notificationHelpers';
 import heroProfessionals from "@/assets/hero-professionals.jpg";
-import chequealoLogo from '@/assets/chequealo-new-logo.png';
+import { useAppLogo } from '@/hooks/useAppLogo';
 
 const inputClasses = "h-12 border-border/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl";
 
 const Register = () => {
   const navigate = useNavigate();
   const { signUp, signIn, user, loading } = useAuth();
+  const chequealoLogo = useAppLogo();
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

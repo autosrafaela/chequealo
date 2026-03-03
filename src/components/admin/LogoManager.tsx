@@ -136,12 +136,14 @@ export const LogoManager: React.FC = () => {
     if (url) {
       localStorage.setItem('active_logo_url', url);
       setActiveLogoUrl(url);
-      toast.success('Logo activado. Recargá la página para ver el cambio en el header.');
+      toast.success('Logo activado en toda la app.');
     } else {
       localStorage.removeItem('active_logo_url');
       setActiveLogoUrl(null);
       toast.info('Logo desactivado. Se usará el logo por defecto.');
     }
+    // Notify all components in the same tab
+    window.dispatchEvent(new Event('app-logo-changed'));
   };
 
   const handleDownload = () => {
