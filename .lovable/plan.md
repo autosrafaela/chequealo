@@ -1,15 +1,15 @@
 
 
-# Fix: Hacer visible la pestaña Logo en Admin Dashboard
+# Fix: Pestañas cortadas al final en Admin Dashboard
 
 ## Problema
-La pestaña "Logo" existe en el código pero está al final de 21 tabs en una barra scrollable. En tu screenshot se ve que el scroll termina en "Carus..." (Carrusel) y Logo queda oculto después de "Novedades".
+Las últimas pestañas (Carrusel, Novedades) se cortan porque el `pr-6` no es suficiente padding al final del scroll horizontal. Los últimos items quedan parcialmente ocultos.
 
 ## Solución
-Mover la pestaña "Logo" a una posición más visible, justo después de "Configuración" (posición ~12), ya que es una herramienta de branding/configuración. Esto la coloca antes de BI, Monitor, SEO, Carrusel y Novedades.
+Aumentar el padding derecho de la `TabsList` de `pr-6` a `pr-16` para dar más espacio de scroll al final, asegurando que las últimas pestañas sean completamente visibles.
 
-## Archivo a modificar
+## Archivo
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/AdminDashboard.tsx` | Mover el `TabsTrigger value="logo"` de la línea 601 a después de la línea 595 (después de Configuración) |
+| `src/pages/AdminDashboard.tsx` | Cambiar `pr-6` → `pr-16` en el className de `TabsList` (línea 584) |
 
