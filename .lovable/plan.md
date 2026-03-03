@@ -1,22 +1,49 @@
 
 
-# Plan: Guardar y eliminar logos generados
+# Plan: Logo activo global en toda la app
 
 ## Problema
-Actualmente se puede guardar logos generados en Storage, pero no hay botón para eliminar los que no gustan. Además la sección de "Logos Guardados" solo se muestra si ya hay logos previos.
+Actualmente el `LogoManager` guarda `active_logo_url` en `localStorage` pero **ningún componente lo consume**. El logo se importa estáticamente en cada archivo y nunca cambia.
 
-## Cambios en `src/components/admin/LogoManager.tsx`
+## Solución
 
-1. **Agregar botón "Eliminar"** en cada card de logo guardado — llama `supabase.storage.from('logos').remove([path])` y refresca la lista
-2. **Agregar estado `deleting`** para mostrar spinner durante la eliminación
-3. **Diálogo de confirmación** antes de eliminar (usando AlertDialog o un simple confirm)
-4. **Si el logo eliminado era el activo**, desactivarlo automáticamente de localStorage
-5. **Importar `Trash2`** de lucide-react para el ícono de eliminar
-6. **Mostrar siempre** la sección de logos guardados (con mensaje "No hay logos guardados aún" si está vacía)
+### 1. Crear un hook centralizado `useAppLogo`
+**Nuevo archivo: `src/hooks/useAppLogo.ts`**
 
-## Archivo
+Un hook que lee `active_logo_url` de `localStorage` y retorna la URL del logo activo o el logo por defecto (`chequealo-new-logo.png`). También actualiza el favicon dinámicamente en el DOM.
+
+```ts
+export const useAppLogo = () => {
+  const activeUrl = localStorage.getItem('active_logo_url');
+  const logoSrc = activeUrl || defaultLogo;
+  return logoSrc;
+};
+
+export const getAppLogo = () => {
+  return localStorage.getItem('active_logo_url') || defaultLogo;
+};
+```
+
+Incluirá una función `updateFavicon()` que cambia el `<link rel="icon">` del `<head>` dinámicamente al logo activo.
+
+### 2. Actualizar todos los componentes que usan el logo
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/admin/LogoManager.tsx` | Agregar función `handleDelete`, botón Eliminar en cada card, y lógica de limpieza |
+| `src/hooks/useAppLogo.ts` | **Nuevo** - hook + helper `getAppLogo()` + `updateFavicon()` |
+| `src/components/Header.tsx` | Reemplazar import estático por `useAppLogo()` |
+| `src/components/MobileOptimizedHeader.tsx` | Reemplazar import estático por `useAppLogo()` |
+| `src/pages/Auth.tsx` | Reemplazar import estático por `useAppLogo()` |
+| `src/pages/Login.tsx` | Reemplazar import estático por `useAppLogo()` |
+| `src/pages/Register.tsx` | Reemplazar import estático por `useAppLogo()` |
+| `src/pages/Install.tsx` | Reemplazar import estático por `useAppLogo()` |
+| `src/components/PWAInstallPrompt.tsx` | Reemplazar import estático por `useAppLogo()` |
+| `src/App.tsx` | Llamar `updateFavicon()` en useEffect para cambiar favicon al cargar |
+| `src/components/admin/LogoManager.tsx` | Al activar/desactivar, llamar `updateFavicon()` y disparar evento `storage` para que otros componentes se actualicen en tiempo real |
+
+### 3. Comportamiento
+- Al activar un logo en el admin, **inmediatamente** cambia en toda la app (sin recargar)
+- El favicon del navegador se actualiza dinámicamente
+- Si se desactiva, vuelve al logo por defecto (`chequealo-new-logo.png`)
+- Terms y Privacy no tienen logo propio, no necesitan cambios
 
