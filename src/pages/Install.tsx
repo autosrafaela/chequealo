@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download, Smartphone, Zap, Bell, Wifi, Shield, Star, Check, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import chequealoLogo from '@/assets/chequealo-new-logo.png';
+import { useAppLogo } from '@/hooks/useAppLogo';
 import { usePWAInstall } from '@/components/PWAInstallPrompt';
 
 const Install = () => {
   const { canInstall, triggerInstall, isInstalled } = usePWAInstall();
+  const chequealoLogo = useAppLogo();
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 

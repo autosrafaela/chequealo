@@ -17,6 +17,7 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { initializeAudioContext } from "@/utils/notificationSound";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { usePlatformUpdateNotifications } from "@/hooks/usePlatformUpdateNotifications";
+import { updateFavicon } from "@/hooks/useAppLogo";
 
 // Critical path - load immediately (homepage)
 import Index from "./pages/Index";
@@ -82,6 +83,7 @@ const useGlobalAudioInit = () => {
 
 const App = () => {
   useGlobalAudioInit();
+  useEffect(() => { updateFavicon(); }, []);
   const { updateAvailable, isUpdating, bannerDismissed, updateApp, dismissBanner } = useServiceWorkerUpdate();
   
   // Listen for platform update notifications

@@ -6,11 +6,12 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import heroProfessionals from "@/assets/hero-professionals.jpg";
-import chequealoLogo from '@/assets/chequealo-transparent-logo.png';
+import { useAppLogo } from '@/hooks/useAppLogo';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [userType, setUserType] = useState<'professional' | 'client'>('client');
+  const chequealoLogo = useAppLogo();
 
   return (
     <>

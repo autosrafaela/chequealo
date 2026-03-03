@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { PasswordStrengthIndicator } from '@/components/ui/password-strength-indicator';
 import { validatePassword } from '@/utils/passwordValidation';
 import { getDashboardRoute } from '@/utils/redirectHelpers';
-import chequealoLogo from '@/assets/chequealo-new-logo.png';
+import { useAppLogo } from '@/hooks/useAppLogo';
 import heroProfessionals from '@/assets/hero-professionals.jpg';
 
 const inputClasses = "border-border/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl h-12";
@@ -21,6 +21,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { signIn, signUp, resetPassword, user, loading } = useAuth();
   
+  const chequealoLogo = useAppLogo();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'login');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
