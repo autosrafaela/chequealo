@@ -5,8 +5,12 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Sparkles, Download, Upload, Image as ImageIcon, Check } from 'lucide-react';
+import { Loader2, Sparkles, Download, Upload, Image as ImageIcon, Check, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 import chequealoFinalLogo from '@/assets/chequealo-final-logo.png';
 import chequealoLogo from '@/assets/chequealo-logo.png';
@@ -29,6 +33,7 @@ export const LogoManager: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [savedLogos, setSavedLogos] = useState<{ name: string; url: string }[]>([]);
   const [activeLogoUrl, setActiveLogoUrl] = useState<string | null>(null);
+  const [deletingLogo, setDeletingLogo] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('active_logo_url');
@@ -105,6 +110,25 @@ export const LogoManager: React.FC = () => {
       toast.error(err.message || 'Error al guardar el logo');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (logoName: string, logoUrl: string) => {
+    setDeletingLogo(logoName);
+    try {
+      const { error } = await supabase.storage.from('logos').remove([`generated/${logoName}`]);
+      if (error) throw error;
+      if (activeLogoUrl === logoUrl) {
+        localStorage.removeItem('active_logo_url');
+        setActiveLogoUrl(null);
+      }
+      toast.success('Logo eliminado');
+      fetchSavedLogos();
+    } catch (err: any) {
+      console.error('Error deleting logo:', err);
+      toast.error(err.message || 'Error al eliminar el logo');
+    } finally {
+      setDeletingLogo(null);
     }
   };
 
@@ -212,15 +236,16 @@ export const LogoManager: React.FC = () => {
       </Card>
 
       {/* Saved Logos & Activation */}
-      {savedLogos.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Logos Guardados</CardTitle>
-            <CardDescription>Activá uno para usarlo en toda la app</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader>
+          <CardTitle>Logos Guardados</CardTitle>
+          <CardDescription>Activá uno para usarlo en toda la app o eliminá los que no te gusten</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {savedLogos.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">No hay logos guardados aún. Generá uno arriba y guardalo.</p>
+          ) : (
             <div className="space-y-4">
-              {/* Deactivate switch */}
               <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20">
                 <Switch
                   checked={!activeLogoUrl}
@@ -234,6 +259,7 @@ export const LogoManager: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {savedLogos.map((logo) => {
                   const isActive = activeLogoUrl === logo.url;
+                  const isDeleting = deletingLogo === logo.name;
                   return (
                     <div
                       key={logo.name}
@@ -243,29 +269,52 @@ export const LogoManager: React.FC = () => {
                     >
                       <img src={logo.url} alt={logo.name} className="h-20 w-auto object-contain" />
                       <span className="text-xs text-muted-foreground truncate max-w-full">{logo.name}</span>
-                      <Button
-                        size="sm"
-                        variant={isActive ? 'default' : 'outline'}
-                        onClick={() => handleActivateLogo(isActive ? null : logo.url)}
-                        className="w-full"
-                      >
-                        {isActive ? (
-                          <>
-                            <Check className="h-3 w-3 mr-1" />
-                            Activo
-                          </>
-                        ) : (
-                          'Activar'
-                        )}
-                      </Button>
+                      <div className="flex gap-2 w-full">
+                        <Button
+                          size="sm"
+                          variant={isActive ? 'default' : 'outline'}
+                          onClick={() => handleActivateLogo(isActive ? null : logo.url)}
+                          className="flex-1"
+                        >
+                          {isActive ? (
+                            <>
+                              <Check className="h-3 w-3 mr-1" />
+                              Activo
+                            </>
+                          ) : (
+                            'Activar'
+                          )}
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" disabled={isDeleting} className="px-2">
+                              {isDeleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Eliminar este logo?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta acción no se puede deshacer. El logo será eliminado del storage permanentemente.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(logo.name, logo.url)}>
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
