@@ -103,6 +103,11 @@ const PIONEERS = [
   {"full_name": "Mantenimiento de Piletas El Sol", "category": "Piletero", "phone": "+54 9 3492 210045", "location": "Rafaela, Santa Fe"},
   {"full_name": "Peluquería Canina Huellas", "category": "Peluquería Canina", "phone": "+54 9 3492 346610", "location": "Rafaela, Santa Fe"},
   {"full_name": "Veterinaria Merin (Turnos Wsp)", "category": "Veterinaria y Peluquería", "phone": "+54 9 3492 577410", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Cesana Neumáticos (Auxilio)", "category": "Gomería a Domicilio", "phone": "+54 9 3492 273481", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Auxilios y Neumáticos VF", "category": "Gomería a Domicilio", "phone": "+54 9 3492 629169", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Gomería Móvil Cristian 24hs", "category": "Gomería a Domicilio", "phone": "+54 9 3492 685922", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Neumáticos Debona (Consultas)", "category": "Gomería", "phone": "+54 9 3492 592229", "location": "Rafaela, Santa Fe"},
+  {"full_name": "Gomería Rafaela Urgencias", "category": "Gomería a Domicilio", "phone": "+54 9 3492 605078", "location": "Rafaela, Santa Fe"},
 ];
 
 function slugify(name: string): string {
@@ -228,8 +233,8 @@ Deno.serve(async (req) => {
 
     for (const p of PIONEERS) {
       try {
-        const digits = p.phone.replace(/\D/g, '');
-        const fakeEmail = `${digits}@chequealo.net`;
+        const nameSlug = slugify(p.full_name);
+        const fakeEmail = `${nameSlug}@chequealo.net`;
 
         console.log(`[seed-pioneers] Processing: ${p.full_name} -> ${fakeEmail}`);
 
