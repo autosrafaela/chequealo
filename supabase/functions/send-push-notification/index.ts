@@ -123,9 +123,37 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+    }
+
+    // Authenticate: require valid JWT or service role key
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', success: false }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    // Allow service_role key (used by DB trigger via pg_net)
+    const isServiceRole = token === supabaseServiceKey;
+
+    if (!isServiceRole) {
+      // Validate user JWT
+      const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      const { data: claimsData, error: claimsError } = await authClient.auth.getUser(token);
+      if (claimsError || !claimsData?.user) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized', success: false }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
