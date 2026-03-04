@@ -96,11 +96,13 @@ export const IntelligentSearch: React.FC<IntelligentSearchProps> = ({
     try {
       const aiSuggestions = await generateSuggestions(query);
       
-      const formattedSuggestions: SearchSuggestion[] = aiSuggestions.map((suggestion, index) => ({
-        id: `ai-${index}`,
-        text: suggestion,
-        type: 'ai'
-      }));
+      const formattedSuggestions: SearchSuggestion[] = aiSuggestions
+        .filter(s => s.trim().length >= 5 && !/^[\[\]{}"',.\s]*$/.test(s.trim()))
+        .map((suggestion, index) => ({
+          id: `ai-${index}`,
+          text: suggestion,
+          type: 'ai' as const
+        }));
 
       setSuggestions(prev => [
         ...formattedSuggestions,
