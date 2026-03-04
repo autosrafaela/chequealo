@@ -236,8 +236,7 @@ export const useAISearch = () => {
       'taller mecánico': 'mecánico',
       'mecánico': 'mecánico',
       'mecánica': 'mecánico',
-      'gomería': 'mecánico',
-      'neumáticos': 'mecánico',
+      
       'coche': 'mecánico',
       'auto': 'mecánico',
       'vehículo': 'mecánico',
@@ -285,6 +284,21 @@ export const useAISearch = () => {
       'instalar': 'instalador',
       'instalación': 'instalador',
       'mantenimiento': 'mantenimiento',
+      
+      // Gomería
+      'gomería': 'gomería',
+      'gomeria': 'gomería',
+      'neumático': 'gomería',
+      'neumatico': 'gomería',
+      'neumáticos': 'gomería',
+      'neumaticos': 'gomería',
+      'cubierta': 'gomería',
+      'cubiertas': 'gomería',
+      'rueda pinchada': 'gomería',
+      'pinchadura': 'gomería',
+      'llanta': 'gomería',
+      'auxilio mecánico': 'gomería',
+      'auxilio mecanico': 'gomería',
     };
 
     // Buscar coincidencias, priorizando las más largas (más específicas)
