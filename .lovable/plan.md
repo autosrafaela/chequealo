@@ -1,16 +1,29 @@
 
 
-# Plan: Agregar 5 gomerías a la base de datos
+# Plan: Botón "Cargar 5 Gomerías" aislado
 
-Las 5 gomerías ya están incluidas en la Edge Function `seed-pioneers`. La forma más directa es invocar esa función, que las creará automáticamente con usuarios ficticios `@chequealo.net`, verificados y con acceso fundador.
+## Problema
+La Edge Function `seed-pioneers` requiere JWT de admin para ejecutarse, y Lovable no puede invocarla directamente. Las 5 gomerías están en el array pero nunca se insertaron.
 
-## Acción
+## Solución
+Crear una Edge Function nueva y liviana (`seed-gomerias`) que solo inserte estas 5 gomerías, con `verify_jwt = false` en config.toml para poder invocarla desde el botón del admin dashboard sin complicaciones de auth (la función validará internamente el rol admin).
 
-Invocar la Edge Function `seed-pioneers` (POST, requiere auth de admin). Esto:
-1. Limpia pioneros `@chequealo.net` anteriores
-2. Re-crea los 115 profesionales del array PIONEERS (incluyendo las 5 gomerías)
+### 1. Nueva Edge Function: `supabase/functions/seed-gomerias/index.ts`
+- Contiene solo los 5 registros de gomerías hardcodeados
+- Misma lógica que `seed-pioneers`: crea usuario auth con `@chequealo.net`, perfil, professional con `is_verified=true`, `has_free_access=true`, slug SEO
+- Valida que el caller sea admin (via JWT)
+- Si el usuario ya existe (email duplicado), lo skipea sin error
+- NO hace cleanup de pioneros anteriores
 
-**Alternativa más quirúrgica**: Si no querés re-crear todos los pioneros, puedo insertar solo las 5 gomerías directamente en la DB creando usuarios auth + profiles + professionals con una migración SQL o invocando la función con un subset.
+### 2. Actualizar `supabase/config.toml`
+- Agregar `[functions.seed-gomerias]` con `verify_jwt = false`
 
-**Recomendación**: Invocar `seed-pioneers` ya que es idempotente (limpia y recrea).
+### 3. Agregar botón en `AdminDashboard.tsx`
+- Nuevo botón "Cargar 5 Gomerías" al lado del botón existente "Cargar Pioneros"
+- Mismo patrón: confirm → toast.loading → invoke → toast.success/error
+- Color diferenciado (verde) para distinguirlo
+
+### 4. Verificación
+- Invocar la función después de desplegarla para confirmar que funciona
+- Consultar la tabla professionals para verificar que las 5 gomerías existen
 
