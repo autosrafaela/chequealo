@@ -1,23 +1,23 @@
 
 
-# Plan: Agregar 5 profesionales de Gomería al seed-pioneers
+# Plan: Corregir búsqueda de "Gomería" en el buscador inteligente
 
-## Cambios
+## Problema
+El `SYNONYM_MAP` en `useAdvancedSearch.ts` no incluye "Gomería" ni "Gomería a Domicilio" como profesiones. Cuando se busca "gomería", el fuzzy matching (Levenshtein) lo empareja incorrectamente con profesiones no relacionadas, mostrando resultados irrelevantes.
+
+## Solución
 
 | Archivo | Cambio |
 |---------|--------|
-| `supabase/functions/seed-pioneers/index.ts` | Agregar 5 nuevos profesionales al array `PIONEERS` |
+| `src/hooks/useAdvancedSearch.ts` | Agregar "Gomería" y "Gomería a Domicilio" al `SYNONYM_MAP` con sinónimos relevantes (neumáticos, auxilio, rueda, cubierta, pinchadura, etc.) |
+| `src/hooks/useAISearch.ts` | Agregar mappings de gomería al `problemMappings` local para el fallback de búsqueda AI |
 
-## Nuevos profesionales a agregar
+## Entradas a agregar en SYNONYM_MAP
 
-1. Cesana Neumáticos (Auxilio) - Gomería a Domicilio
-2. Auxilios y Neumáticos VF - Gomería a Domicilio
-3. Gomería Móvil Cristian 24hs - Gomería a Domicilio
-4. Neumáticos Debona (Consultas) - Gomería
-5. Gomería Rafaela Urgencias - Gomería a Domicilio
+```ts
+'Gomería': ['neumatico', 'neumaticos', 'cubierta', 'cubiertas', 'rueda', 'pinchadura', 'llanta'],
+'Gomería a Domicilio': ['gomeria', 'auxilio', 'auxilio mecanico', 'goma', 'gomas', 'pinchada', 'rueda pinchada'],
+```
 
-## Nota
-Algunos teléfonos coinciden con profesionales existentes en el array (Cesana Neumáticos, Fletes y Auxilios VF, Mundo Servicios, Cerrajería De Urgencias). Se agregarán como entradas separadas con sus nuevas categorías, lo que generará emails diferentes basados en el slug del nombre (no del teléfono, ya que colisionarían). Verificaré si el seed usa teléfono como email — si es así, los duplicados serán omitidos automáticamente por el `createUser` que detecta emails existentes.
-
-Después de actualizar el archivo, será necesario **re-deployar** la función y **ejecutarla desde el panel admin** para que se carguen los nuevos profesionales.
+También agregar "gomería" y sinónimos al `problemMappings` en `useAISearch.ts`.
 
