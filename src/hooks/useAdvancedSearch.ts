@@ -26,6 +26,11 @@ export interface Professional {
   distance?: number;
 }
 
+// --- Normalizar texto (quitar acentos) ---
+function normalizeText(text: string): string {
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 // --- Diccionario de sinónimos ---
 const SYNONYM_MAP: Record<string, string[]> = {
   'Plomero / Gasista': ['agua', 'cano', 'canilla', 'griferia', 'perdida', 'cañeria', 'inundacion', 'baño', 'tanque', 'desagote', 'sifon', 'desague'],
@@ -60,11 +65,13 @@ const SYNONYM_MAP: Record<string, string[]> = {
   'Gomería a Domicilio': ['gomeria', 'auxilio', 'auxilio mecanico', 'pinchada', 'rueda pinchada', 'neumatico domicilio'],
 };
 
-// Invertir el mapa para búsqueda rápida: keyword -> profesión
+// Invertir el mapa para búsqueda rápida: keyword (normalizado) -> profesión
 const KEYWORD_TO_PROFESSION: Record<string, string> = {};
 for (const [profession, keywords] of Object.entries(SYNONYM_MAP)) {
+  // Also map the profession name itself (normalized)
+  KEYWORD_TO_PROFESSION[normalizeText(profession)] = profession;
   for (const kw of keywords) {
-    KEYWORD_TO_PROFESSION[kw.toLowerCase()] = profession;
+    KEYWORD_TO_PROFESSION[normalizeText(kw)] = profession;
   }
 }
 
@@ -112,25 +119,28 @@ function findFuzzyProfession(keyword: string, maxDistance = 2): string | null {
   return bestDist <= maxDistance ? bestMatch : null;
 }
 
-// Expand keywords using synonym dictionary + fuzzy match
-function expandKeywords(keywords: string[]): string[] {
+// Resolve keywords to matched professions + expanded keywords
+function resolveSearch(keywords: string[]): { matchedProfessions: string[]; expandedKeywords: string[] } {
   const expanded = new Set(keywords);
+  const matchedProfessions = new Set<string>();
   
   for (const kw of keywords) {
-    const lower = kw.toLowerCase();
+    const normalized = normalizeText(kw);
     
-    // Check synonym map
-    const matchedProfession = KEYWORD_TO_PROFESSION[lower];
+    // Check synonym map (normalized)
+    const matchedProfession = KEYWORD_TO_PROFESSION[normalized];
     if (matchedProfession) {
-      // Add each word of the profession name as a keyword
+      matchedProfessions.add(matchedProfession);
       matchedProfession.split(/[\s/()]+/).filter(w => w.length > 2).forEach(w => expanded.add(w.toLowerCase()));
       expanded.add(matchedProfession.toLowerCase());
+      console.log(`📖 Synonym match: "${kw}" → "${matchedProfession}"`);
     }
     
-    // Fuzzy match against profession names
+    // Fuzzy match against profession names (only if no synonym match)
     if (!matchedProfession) {
-      const fuzzyMatch = findFuzzyProfession(lower);
+      const fuzzyMatch = findFuzzyProfession(normalized);
       if (fuzzyMatch) {
+        matchedProfessions.add(fuzzyMatch);
         fuzzyMatch.split(/[\s/()]+/).filter(w => w.length > 2).forEach(w => expanded.add(w.toLowerCase()));
         expanded.add(fuzzyMatch.toLowerCase());
         console.log(`🔤 Fuzzy match: "${kw}" → "${fuzzyMatch}"`);
@@ -138,7 +148,7 @@ function expandKeywords(keywords: string[]): string[] {
     }
   }
   
-  return Array.from(expanded);
+  return { matchedProfessions: Array.from(matchedProfessions), expandedKeywords: Array.from(expanded) };
 }
 
 export const useAdvancedSearch = () => {
@@ -214,34 +224,51 @@ export const useAdvancedSearch = () => {
 
       // Apply smart keyword search with synonym expansion
       let expandedKeywords: string[] = [];
+      let matchedProfessions: string[] = [];
       if (query && query.trim() !== '') {
         const searchTerms = query.toLowerCase().trim();
         const rawKeywords = searchTerms.split(/\s+/).filter(word => word.length > 2);
         
-        // Expand with synonyms + fuzzy match
-        expandedKeywords = expandKeywords(rawKeywords);
+        // Resolve synonyms → professions + expanded keywords
+        const resolved = resolveSearch(rawKeywords);
+        expandedKeywords = resolved.expandedKeywords;
+        matchedProfessions = resolved.matchedProfessions;
         
         console.log('📝 Keywords originales:', rawKeywords);
         console.log('📝 Keywords expandidas:', expandedKeywords);
+        console.log('🎯 Profesiones resueltas:', matchedProfessions);
         
-        if (expandedKeywords.length > 0) {
+        if (matchedProfessions.length > 0) {
+          // PRIORITY: Filter by resolved profession(s)
+          const profFilter = matchedProfessions.map(p => `profession.ilike.%${p}%`).join(',');
+          professionalsQuery = professionalsQuery.or(profFilter);
+          
+          // Also search in professional_professions table for multi-rubro
+          const professionConditions = matchedProfessions.map(p => `profession.ilike.%${p}%`).join(',');
+          professionsQuery = professionsQuery.or(professionConditions);
+          
+          // Search services with expanded keywords
+          if (expandedKeywords.length > 0) {
+            const serviceConditions = expandedKeywords.map(keyword =>
+              `service_name.ilike.%${keyword}%,description.ilike.%${keyword}%`
+            ).join(',');
+            servicesQuery = servicesQuery.or(serviceConditions);
+          }
+        } else if (expandedKeywords.length > 0) {
+          // No profession match — fall back to broad keyword search
           const profConditions = expandedKeywords.map(keyword => 
             `full_name.ilike.%${keyword}%,profession.ilike.%${keyword}%,location.ilike.%${keyword}%,description.ilike.%${keyword}%`
           ).join(',');
-          
           professionalsQuery = professionalsQuery.or(profConditions);
           
           const serviceConditions = expandedKeywords.map(keyword =>
             `service_name.ilike.%${keyword}%,description.ilike.%${keyword}%`
           ).join(',');
-          
           servicesQuery = servicesQuery.or(serviceConditions);
 
-          // Search in professional_professions table
           const professionConditions = expandedKeywords.map(keyword =>
             `profession.ilike.%${keyword}%`
           ).join(',');
-          
           professionsQuery = professionsQuery.or(professionConditions);
         }
       }
@@ -319,6 +346,15 @@ export const useAdvancedSearch = () => {
         if (query && query.trim() !== '') {
           const keywords = expandedKeywords.length > 0 ? expandedKeywords : query.toLowerCase().trim().split(/\s+/).filter(w => w.length > 2);
           
+          // HIGH PRIORITY: Direct profession match from resolved professions
+          if (matchedProfessions.length > 0) {
+            const profNorm = normalizeText(prof.profession || '');
+            const hasProfessionMatch = matchedProfessions.some(mp => 
+              profNorm.includes(normalizeText(mp)) || normalizeText(mp).includes(profNorm)
+            );
+            if (hasProfessionMatch) score += 50; // Strong boost for exact profession match
+          }
+          
           keywords.forEach(keyword => {
             if (prof.profession?.toLowerCase() === keyword) score += 20;
             else if (prof.profession?.toLowerCase().includes(keyword)) score += 10;
@@ -365,6 +401,13 @@ export const useAdvancedSearch = () => {
       });
 
       let filteredData = scoredData;
+
+      // MINIMUM RELEVANCE THRESHOLD: Remove irrelevant results when searching
+      if (query && query.trim() !== '') {
+        const MIN_SCORE = matchedProfessions.length > 0 ? 30 : 5;
+        filteredData = filteredData.filter(p => (p.relevanceScore || 0) >= MIN_SCORE);
+        console.log(`🚫 Filtrado por score mínimo (${MIN_SCORE}): ${scoredData.length} → ${filteredData.length}`);
+      }
 
       // Apply additional filters
       if (currentFilters.rating) {
