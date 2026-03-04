@@ -13,6 +13,24 @@ interface AISearchResponse {
   };
 }
 
+// Sanitize AI responses: strip markdown, quotes, brackets
+const cleanAIResponse = (text: string): string => {
+  return text
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/gi, '')
+    .replace(/^\[|\]$/g, '')
+    .replace(/^["']+|["']+$/g, '')
+    .trim();
+};
+
+const isValidSuggestion = (text: string): boolean => {
+  const cleaned = text.trim();
+  if (cleaned.length < 5) return false;
+  if (/^[\[\]{}"',.\s]*$/.test(cleaned)) return false;
+  if (/^```/.test(cleaned)) return false;
+  return true;
+};
+
 export const useAISearch = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +53,8 @@ export const useAISearch = () => {
         return null;
       }
 
-      return data?.enhancedQuery || null;
+      const raw = data?.enhancedQuery || null;
+      return raw ? cleanAIResponse(raw) : null;
     } catch (err) {
       console.error('AI search error:', err);
       setError('Error connecting to AI service');
@@ -64,7 +83,8 @@ export const useAISearch = () => {
         return [];
       }
 
-      return data?.suggestions || [];
+      const raw: string[] = data?.suggestions || [];
+      return raw.map(s => cleanAIResponse(s)).filter(isValidSuggestion);
     } catch (err) {
       console.error('AI suggestions error:', err);
       return [];
@@ -131,17 +151,27 @@ export const useAISearch = () => {
     }
   };
 
-  // Enhanced search with local fallbacks
+  // Enhanced search: prioritize local dictionary, fallback to AI
   const intelligentSearch = async (query: string) => {
-    // Try AI enhancement first
-    const enhanced = await searchWithAI(query);
+    // Try local parsing first — faster and more reliable
+    const local = parseQueryLocally(query);
     
-    if (enhanced) {
-      return enhanced;
+    // If local resolved to a known profession (different from raw query), use it
+    if (local && local !== query.toLowerCase() && local.length >= 3) {
+      return local;
     }
 
-    // Fallback to local intelligent parsing
-    return parseQueryLocally(query);
+    // Fallback to AI enhancement
+    try {
+      const enhanced = await searchWithAI(query);
+      if (enhanced) {
+        return enhanced;
+      }
+    } catch {
+      // AI failed, use local result
+    }
+
+    return local || query;
   };
 
   const parseQueryLocally = (query: string): string => {
