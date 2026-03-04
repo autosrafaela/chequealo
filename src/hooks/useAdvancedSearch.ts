@@ -120,9 +120,28 @@ function findFuzzyProfession(keyword: string, maxDistance = 2): string | null {
 }
 
 // Resolve keywords to matched professions + expanded keywords
-function resolveSearch(keywords: string[]): { matchedProfessions: string[]; expandedKeywords: string[] } {
+function resolveSearch(keywords: string[], fullQuery?: string): { matchedProfessions: string[]; expandedKeywords: string[] } {
   const expanded = new Set(keywords);
   const matchedProfessions = new Set<string>();
+  
+  // First: try matching the FULL query against profession names (handles "psiquiatra", "veterinario", etc.)
+  if (fullQuery) {
+    const normalizedQuery = normalizeText(fullQuery.trim());
+    // Direct match in KEYWORD_TO_PROFESSION
+    const directMatch = KEYWORD_TO_PROFESSION[normalizedQuery];
+    if (directMatch) {
+      matchedProfessions.add(directMatch);
+      console.log(`📖 Direct query match: "${fullQuery}" → "${directMatch}"`);
+    }
+    // Fuzzy match full query against profession names
+    if (!directMatch) {
+      const fuzzyMatch = findFuzzyProfession(normalizedQuery);
+      if (fuzzyMatch) {
+        matchedProfessions.add(fuzzyMatch);
+        console.log(`🔤 Fuzzy query match: "${fullQuery}" → "${fuzzyMatch}"`);
+      }
+    }
+  }
   
   for (const kw of keywords) {
     const normalized = normalizeText(kw);
@@ -230,7 +249,7 @@ export const useAdvancedSearch = () => {
         const rawKeywords = searchTerms.split(/\s+/).filter(word => word.length > 2);
         
         // Resolve synonyms → professions + expanded keywords
-        const resolved = resolveSearch(rawKeywords);
+        const resolved = resolveSearch(rawKeywords, searchTerms);
         expandedKeywords = resolved.expandedKeywords;
         matchedProfessions = resolved.matchedProfessions;
         
@@ -407,6 +426,20 @@ export const useAdvancedSearch = () => {
         const MIN_SCORE = matchedProfessions.length > 0 ? 30 : 5;
         filteredData = filteredData.filter(p => (p.relevanceScore || 0) >= MIN_SCORE);
         console.log(`🚫 Filtrado por score mínimo (${MIN_SCORE}): ${scoredData.length} → ${filteredData.length}`);
+        
+        // POST-FILTER: If no matchedProfessions from synonym map, but some results
+        // have a profession field matching the query, keep ONLY those
+        if (matchedProfessions.length === 0 && query.trim().split(/\s+/).length <= 2) {
+          const queryNorm = normalizeText(query.trim());
+          const withProfMatch = filteredData.filter(p => 
+            normalizeText(p.profession || '').includes(queryNorm) || 
+            queryNorm.includes(normalizeText(p.profession || ''))
+          );
+          if (withProfMatch.length > 0 && withProfMatch.length < filteredData.length) {
+            console.log(`🎯 Post-filtro por profesión directa: ${filteredData.length} → ${withProfMatch.length}`);
+            filteredData = withProfMatch;
+          }
+        }
       }
 
       // Apply additional filters
