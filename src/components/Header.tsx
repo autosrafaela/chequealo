@@ -134,7 +134,7 @@ const Header = () => {
                             <User className="h-4 w-4 mr-2" /> Mi Cuenta
                           </Button>
                         </Link>
-                        {(isAdmin || user?.email?.toLowerCase() === 'autosrafaela@gmail.com') && (
+                        {isAdmin && (
                           <Link to="/admin" onClick={() => setIsUserMenuOpen(false)}>
                             <Button variant="outline" size="sm" className="w-full justify-start">
                               <Shield className="h-4 w-4 mr-2" /> Admin

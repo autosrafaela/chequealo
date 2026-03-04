@@ -61,8 +61,7 @@ interface AdminStats {
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
-  const emailAdmin = user?.email?.toLowerCase() === 'autosrafaela@gmail.com';
-  const effectiveIsAdmin = isAdmin || !!emailAdmin;
+  const effectiveIsAdmin = isAdmin;
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalProfessionals: 0,
@@ -86,11 +85,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('professionals');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Debug logs to diagnose blank page
-  console.log('[AdminDashboard] render', { userId: user?.id, isAdmin, roleLoading, loading });
-
   useEffect(() => {
-    console.log('[AdminDashboard] useEffect', { hasUser: !!user, isAdmin, emailAdmin, effectiveIsAdmin });
     if (user && effectiveIsAdmin) {
       fetchAdminData();
     }
@@ -105,19 +100,15 @@ const AdminDashboard = () => {
       setLoading(true);
 
       // Fetch users count
-      console.log('[AdminDashboard] Fetching profiles...');
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id');
-      console.log('[AdminDashboard] Profiles result:', { data: profiles, error: profilesError, count: profiles?.length });
 
       // Fetch professionals
-      console.log('[AdminDashboard] Fetching professionals...');
       const { data: professionalsData, error: professionalsError } = await supabase
         .from('professionals')
         .select('*')
         .order('created_at', { ascending: false });
-      console.log('[AdminDashboard] Professionals result:', { data: professionalsData, error: professionalsError, count: professionalsData?.length });
 
       // Fetch verification requests
       const { data: verificationsData } = await supabase
@@ -131,11 +122,9 @@ const AdminDashboard = () => {
         .select('rating');
 
       // Fetch contact requests
-      console.log('[AdminDashboard] Fetching contact requests...');
       const { data: contactRequestsData, error: contactRequestsError } = await supabase
         .from('contact_requests')
         .select('id');
-      console.log('[AdminDashboard] Contact requests result:', { data: contactRequestsData, error: contactRequestsError, count: contactRequestsData?.length });
 
       // Fetch subscriptions
       const { data: subscriptionsData } = await supabase
@@ -168,18 +157,6 @@ const AdminDashboard = () => {
       const trialSubscriptions = subscriptionsData?.filter(s => s.status === 'trial').length || 0;
       const expiredSubscriptions = subscriptionsData?.filter(s => s.status === 'expired').length || 0;
 
-      console.log('[AdminDashboard] Final stats being set:', {
-        totalUsers,
-        totalProfessionals,
-        pendingVerifications,
-        totalReviews,
-        totalContactRequests,
-        averageRating,
-        totalSubscriptions,
-        activeSubscriptions,
-        trialSubscriptions,
-        expiredSubscriptions
-      });
       
       setStats({
         totalUsers,
