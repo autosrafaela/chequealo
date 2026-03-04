@@ -56,6 +56,8 @@ const SYNONYM_MAP: Record<string, string[]> = {
   'Albañil': ['construccion', 'obra', 'pared', 'revoque', 'albañileria', 'humedad', 'fisura', 'rajadura'],
   'Gasista': ['gas', 'garrafa', 'calefon'],
   'Jardinero': ['jardin', 'cesped', 'poda', 'plantas'],
+  'Gomería': ['neumatico', 'neumaticos', 'cubierta', 'cubiertas', 'rueda', 'pinchadura', 'llanta', 'goma', 'gomas'],
+  'Gomería a Domicilio': ['gomeria', 'auxilio', 'auxilio mecanico', 'pinchada', 'rueda pinchada', 'neumatico domicilio'],
 };
 
 // Invertir el mapa para búsqueda rápida: keyword -> profesión
