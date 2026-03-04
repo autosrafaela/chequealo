@@ -258,9 +258,16 @@ export const useAdvancedSearch = () => {
         console.log('🎯 Profesiones resueltas:', matchedProfessions);
         
         if (matchedProfessions.length > 0) {
-          // PRIORITY: Filter by resolved profession(s)
-          const profFilter = matchedProfessions.map(p => `profession.ilike.%${p}%`).join(',');
-          professionalsQuery = professionalsQuery.or(profFilter);
+          // PRIORITY: Filter by resolved profession(s) + raw keywords across all fields
+          const allConditions = [
+            ...matchedProfessions.map(p => `profession.ilike.%${p}%`),
+            ...rawKeywords.flatMap(kw => [
+              `full_name.ilike.%${kw}%`,
+              `description.ilike.%${kw}%`,
+              `profession.ilike.%${kw}%`
+            ])
+          ];
+          professionalsQuery = professionalsQuery.or(allConditions.join(','));
           
           // Also search in professional_professions table for multi-rubro
           const professionConditions = matchedProfessions.map(p => `profession.ilike.%${p}%`).join(',');
