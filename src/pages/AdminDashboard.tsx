@@ -583,27 +583,50 @@ const AdminDashboard = () => {
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <CardTitle>Gestión de Profesionales</CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-amber-500 text-amber-700 hover:bg-amber-50"
-                    onClick={async () => {
-                      if (!confirm('¿Cargar los 31 profesionales Pioneros de Rafaela? Esta acción creará usuarios y perfiles automáticamente.')) return;
-                      toast.loading('Cargando pioneros...', { id: 'seed' });
-                      try {
-                        const { data, error } = await supabase.functions.invoke('seed-pioneers');
-                        if (error) throw error;
-                        if (!data?.success) throw new Error(data?.error || 'Error desconocido');
-                        toast.success(`Pioneros cargados: ${data.created} creados, ${data.failed} fallidos`, { id: 'seed' });
-                        fetchAdminData();
-                      } catch (err: any) {
-                        toast.error('Error: ' + (err.message || 'Error desconocido'), { id: 'seed' });
-                      }
-                    }}
-                  >
-                    <Users className="h-4 w-4 mr-1" />
-                    Cargar Pioneros
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-amber-500 text-amber-700 hover:bg-amber-50"
+                      onClick={async () => {
+                        if (!confirm('¿Cargar los 31 profesionales Pioneros de Rafaela? Esta acción creará usuarios y perfiles automáticamente.')) return;
+                        toast.loading('Cargando pioneros...', { id: 'seed' });
+                        try {
+                          const { data, error } = await supabase.functions.invoke('seed-pioneers');
+                          if (error) throw error;
+                          if (!data?.success) throw new Error(data?.error || 'Error desconocido');
+                          toast.success(`Pioneros cargados: ${data.created} creados, ${data.failed} fallidos`, { id: 'seed' });
+                          fetchAdminData();
+                        } catch (err: any) {
+                          toast.error('Error: ' + (err.message || 'Error desconocido'), { id: 'seed' });
+                        }
+                      }}
+                    >
+                      <Users className="h-4 w-4 mr-1" />
+                      Cargar Pioneros
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-emerald-500 text-emerald-700 hover:bg-emerald-50"
+                      onClick={async () => {
+                        if (!confirm('¿Cargar las 5 Gomerías de Rafaela? Se crearán como profesionales verificados con acceso fundador.')) return;
+                        toast.loading('Cargando gomerías...', { id: 'seed-gomerias' });
+                        try {
+                          const { data, error } = await supabase.functions.invoke('seed-gomerias');
+                          if (error) throw error;
+                          if (!data?.success) throw new Error(data?.error || 'Error desconocido');
+                          toast.success(`Gomerías: ${data.created} creadas, ${data.skipped} ya existían, ${data.failed} fallidas`, { id: 'seed-gomerias' });
+                          fetchAdminData();
+                        } catch (err: any) {
+                          toast.error('Error: ' + (err.message || 'Error desconocido'), { id: 'seed-gomerias' });
+                        }
+                      }}
+                    >
+                      <Gift className="h-4 w-4 mr-1" />
+                      Cargar 5 Gomerías
+                    </Button>
+                  </div>
                 </div>
                 <div className="mt-4">
                   <div className="relative">
