@@ -161,7 +161,13 @@ export const useAISearch = () => {
       return local;
     }
 
-    // Fallback to AI enhancement
+    // For short queries (1-2 words), skip AI — they're likely direct profession names
+    const words = query.trim().split(/\s+/);
+    if (words.length <= 2) {
+      return local || query;
+    }
+
+    // Fallback to AI enhancement only for longer/descriptive queries
     try {
       const enhanced = await searchWithAI(query);
       if (enhanced) {
