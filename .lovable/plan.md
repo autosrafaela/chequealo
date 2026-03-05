@@ -1,37 +1,48 @@
 
 
-# Plan: Fix search to include `profession` column (user calls it "category")
+# Plan: Fix avatar upload pipeline
 
-## Problem
-When a user types "plomero" in the search bar, the synonym engine resolves it to "Plomero / Gasista" and filters with `profession.ilike.%Plomero / Gasista%`. This misses professionals whose `profession` column is just "Plomero" (without the "/ Gasista" part). Additionally, the matched-profession branch (line 262) only filters by `profession` — it does not also search `full_name` or `description` with the original keywords.
+## Root Cause
 
-Note: The DB column is called `profession`, not `category`. The user refers to it as "category" but they mean the same field.
+The `ProfessionalDashboard.tsx` uploads avatars to a **non-existent** bucket called `'professional-photos'`. The correct bucket is `'avatars'` (which already exists, is public, and has proper RLS policies).
 
-## Fix (single file: `src/hooks/useAdvancedSearch.ts`)
+The `UserDashboard.tsx` and `ProfileCompletionProgress.tsx` correctly use the `'avatars'` bucket — those paths work fine.
 
-### Change 1 — Matched-profession branch (lines 260-275)
-When professions are resolved via synonyms, currently only `profession.ilike` is used. Change this to also include `full_name.ilike` and `description.ilike` with the **original raw keywords**, so results are a union (OR) of:
-- profession matches from synonym resolution
-- full_name/description matches from original keywords
+## Storage & RLS Status
 
+- The `avatars` bucket already exists and is public.
+- RLS policies already exist for SELECT (public), INSERT/UPDATE/DELETE (owner only via `storage.foldername(name)[1]` matching `auth.uid()`).
+- No SQL migration needed.
+
+## Changes
+
+### 1. Fix `src/pages/ProfessionalDashboard.tsx` (lines 127-138)
+
+Change the bucket from `'professional-photos'` to `'avatars'`, and use `user.id` (not `professional.id`) as the folder name to match the RLS policy:
+
+```typescript
+// Before:
+const filePath = `${professional.id}/avatar.${fileExt}`;
+supabase.storage.from('professional-photos').upload(...)
+supabase.storage.from('professional-photos').getPublicUrl(...)
+
+// After:
+const filePath = `${user.id}/avatar.${fileExt}`;
+supabase.storage.from('avatars').upload(...)
+supabase.storage.from('avatars').getPublicUrl(...)
 ```
-// Build combined OR filter:
-// 1. profession matches from resolved professions
-// 2. full_name/description matches from raw keywords
-const allConditions = [
-  ...matchedProfessions.map(p => `profession.ilike.%${p}%`),
-  ...rawKeywords.flatMap(kw => [
-    `full_name.ilike.%${kw}%`,
-    `description.ilike.%${kw}%`,
-    `profession.ilike.%${kw}%`
-  ])
-];
-professionalsQuery = professionalsQuery.or(allConditions.join(','));
-```
 
-### Change 2 — No-match fallback branch (lines 276-292)
-Already searches `full_name, profession, location, description` — this is correct. No change needed here since it already covers all three fields.
+Also need to ensure `user` is available in this component scope (it likely gets `user` from auth context or a parent).
 
-### Result
-Any text typed in the search bar will always match against `full_name`, `description`, and `profession` via ILIKE OR, regardless of whether the synonym engine resolves a profession or not.
+### 2. Add validation (size + format) to `ProfessionalDashboard.tsx`
+
+Add file size check (max 2MB) and format validation before upload, matching the pattern in `UserDashboard.tsx`.
+
+### 3. Add cache-busting to `UserDashboard.tsx`
+
+The professional dashboard already appends `?t=${Date.now()}` for cache-busting. Add the same to `UserDashboard.tsx` so the avatar updates visually after upload.
+
+### 4. Also update `ProfileCompletionProgress.tsx` profiles update
+
+This component updates `professionals.image_url` but also uses `avatars` bucket with `user.id` folder — this is correct. Just verify it also updates `profiles.avatar_url` for the sync trigger to work both ways.
 
