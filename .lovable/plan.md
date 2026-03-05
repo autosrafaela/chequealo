@@ -1,48 +1,22 @@
 
 
-# Plan: Fix avatar upload pipeline
+# Plan: Add photo upload button to ProfileHeroSection for owners
 
-## Root Cause
+## Problem
+On the public professional profile page (`/maxibustamanteok`), there is no way for the owner to change their profile photo. The camera icon and upload logic only exist in the Dashboard's "Mi Perfil" tab, not on the public profile hero.
 
-The `ProfessionalDashboard.tsx` uploads avatars to a **non-existent** bucket called `'professional-photos'`. The correct bucket is `'avatars'` (which already exists, is public, and has proper RLS policies).
-
-The `UserDashboard.tsx` and `ProfileCompletionProgress.tsx` correctly use the `'avatars'` bucket — those paths work fine.
-
-## Storage & RLS Status
-
-- The `avatars` bucket already exists and is public.
-- RLS policies already exist for SELECT (public), INSERT/UPDATE/DELETE (owner only via `storage.foldername(name)[1]` matching `auth.uid()`).
-- No SQL migration needed.
+## Solution
+Add an optional `onPhotoUpload` callback prop to `ProfileHeroSection`. When provided (i.e., the viewer is the owner), render a camera icon overlay on the avatar that triggers a hidden file input. The upload logic itself will live in `ProfessionalProfile.tsx`, reusing the same validated upload pipeline (avatars bucket, 2MB limit, cache-busting).
 
 ## Changes
 
-### 1. Fix `src/pages/ProfessionalDashboard.tsx` (lines 127-138)
+### 1. Update `src/components/profile/ProfileHeroSection.tsx`
+- Add optional props: `onPhotoUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void` and `isOwner?: boolean`
+- When `isOwner && onPhotoUpload`, render a camera icon button overlaid on the bottom-right of the avatar (similar to the dashboard pattern)
+- Include a hidden `<input type="file" accept="image/*">` triggered by the camera button
 
-Change the bucket from `'professional-photos'` to `'avatars'`, and use `user.id` (not `professional.id`) as the folder name to match the RLS policy:
-
-```typescript
-// Before:
-const filePath = `${professional.id}/avatar.${fileExt}`;
-supabase.storage.from('professional-photos').upload(...)
-supabase.storage.from('professional-photos').getPublicUrl(...)
-
-// After:
-const filePath = `${user.id}/avatar.${fileExt}`;
-supabase.storage.from('avatars').upload(...)
-supabase.storage.from('avatars').getPublicUrl(...)
-```
-
-Also need to ensure `user` is available in this component scope (it likely gets `user` from auth context or a parent).
-
-### 2. Add validation (size + format) to `ProfessionalDashboard.tsx`
-
-Add file size check (max 2MB) and format validation before upload, matching the pattern in `UserDashboard.tsx`.
-
-### 3. Add cache-busting to `UserDashboard.tsx`
-
-The professional dashboard already appends `?t=${Date.now()}` for cache-busting. Add the same to `UserDashboard.tsx` so the avatar updates visually after upload.
-
-### 4. Also update `ProfileCompletionProgress.tsx` profiles update
-
-This component updates `professionals.image_url` but also uses `avatars` bucket with `user.id` folder — this is correct. Just verify it also updates `profiles.avatar_url` for the sync trigger to work both ways.
+### 2. Update `src/pages/ProfessionalProfile.tsx`
+- Add a `handlePhotoUpload` function (same logic as ProfessionalDashboard: validate size/format, upload to `avatars` bucket with `currentUser.id`, update both `professionals.image_url` and `profiles.avatar_url`, cache-bust)
+- Pass `onPhotoUpload={handlePhotoUpload}` and `isOwner={isOwner}` to `<ProfileHeroSection>`
+- After successful upload, invalidate the `['professional', id]` query to refresh the hero image
 
