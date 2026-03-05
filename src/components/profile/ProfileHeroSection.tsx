@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, CheckCircle, User } from 'lucide-react';
+import { Star, CheckCircle, User, Camera } from 'lucide-react';
 import defaultAvatar from '@/assets/default-avatar.png';
 
 interface Professional {
@@ -18,9 +18,12 @@ interface Professional {
 
 interface ProfileHeroSectionProps {
   professional: Professional;
+  isOwner?: boolean;
+  onPhotoUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function ProfileHeroSection({ professional }: ProfileHeroSectionProps) {
+export function ProfileHeroSection({ professional, isOwner, onPhotoUpload }: ProfileHeroSectionProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isAvailable = professional.availability?.toLowerCase().includes('disponible') || 
                       professional.availability?.toLowerCase().includes('abierto');
 
@@ -49,10 +52,35 @@ export function ProfileHeroSection({ professional }: ProfileHeroSectionProps) {
           </AvatarFallback>
         </Avatar>
         
+        {/* Camera upload button for owner */}
+        {isOwner && onPhotoUpload && (
+          <>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 border-2 border-white shadow-md hover:bg-primary/90 transition-colors z-10"
+              aria-label="Cambiar foto de perfil"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={onPhotoUpload}
+            />
+          </>
+        )}
+
         {/* Verified badge - circular overlay */}
-        {professional.is_verified && (
+        {professional.is_verified && !isOwner && (
           <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1.5 border-2 border-white shadow-md">
             <CheckCircle className="w-5 h-5" />
+          </div>
+        )}
+        {professional.is_verified && isOwner && (
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-emerald-500 text-white rounded-full p-1 border-2 border-white shadow-md">
+            <CheckCircle className="w-4 h-4" />
           </div>
         )}
 
