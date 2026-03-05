@@ -1,6 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, CheckCircle, User, Camera } from 'lucide-react';
+import { Star, CheckCircle, User, Camera, ImageIcon } from 'lucide-react';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
 import defaultAvatar from '@/assets/default-avatar.png';
 
 interface Professional {
@@ -24,6 +26,9 @@ interface ProfileHeroSectionProps {
 
 export function ProfileHeroSection({ professional, isOwner, onPhotoUpload }: ProfileHeroSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
   const isAvailable = professional.availability?.toLowerCase().includes('disponible') || 
                       professional.availability?.toLowerCase().includes('abierto');
 
@@ -56,18 +61,26 @@ export function ProfileHeroSection({ professional, isOwner, onPhotoUpload }: Pro
         {isOwner && onPhotoUpload && (
           <>
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setShowPhotoMenu(true)}
               className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 border-2 border-white shadow-md hover:bg-primary/90 transition-colors z-10"
               aria-label="Cambiar foto de perfil"
             >
               <Camera className="w-4 h-4" />
             </button>
             <input
-              ref={fileInputRef}
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => { onPhotoUpload(e); setShowPhotoMenu(false); }}
+            />
+            <input
+              ref={galleryInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               className="hidden"
-              onChange={onPhotoUpload}
+              onChange={(e) => { onPhotoUpload(e); setShowPhotoMenu(false); }}
             />
           </>
         )}
@@ -114,6 +127,42 @@ export function ProfileHeroSection({ professional, isOwner, onPhotoUpload }: Pro
           ({professional.review_count || 0} reseñas)
         </span>
       </div>
+
+      {/* Photo menu drawer */}
+      {isOwner && onPhotoUpload && (
+        <Drawer open={showPhotoMenu} onOpenChange={setShowPhotoMenu}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Cambiar foto de perfil</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4 pb-8 space-y-3">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-12 text-base"
+                onClick={() => { cameraInputRef.current?.click(); }}
+              >
+                <Camera className="w-5 h-5" />
+                Sacar Foto
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-12 text-base"
+                onClick={() => { galleryInputRef.current?.click(); }}
+              >
+                <ImageIcon className="w-5 h-5" />
+                Buscar en Galería
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full h-10 text-muted-foreground"
+                onClick={() => setShowPhotoMenu(false)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
     </div>
   );
 }
