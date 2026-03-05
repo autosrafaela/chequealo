@@ -123,22 +123,36 @@ const ProfileTabContent = ({ professional, user, onTabChange, onUpdate }: {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${professional.id}/avatar.${fileExt}`;
+    // Validate size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('La imagen debe ser menor a 2MB');
+      return;
+    }
+
+    // Validate format
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Solo se permiten imágenes JPG, PNG o WebP');
+      return;
+    }
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const filePath = `${user.id}/avatar.${fileExt}`;
 
     try {
       const { error: uploadError } = await supabase.storage
-        .from('professional-photos')
-        .upload(filePath, file, { upsert: true });
+        .from('avatars')
+        .upload(filePath, file, { upsert: true, contentType: file.type });
 
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
-        .from('professional-photos')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
+      // Update professionals table
       const { error: updateError } = await supabase
         .from('professionals')
         .update({ image_url: imageUrl })
@@ -146,11 +160,17 @@ const ProfileTabContent = ({ professional, user, onTabChange, onUpdate }: {
 
       if (updateError) throw updateError;
 
+      // Also update profiles table so the sync trigger works both ways
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: imageUrl, updated_at: new Date().toISOString() })
+        .eq('user_id', user.id);
+
       onUpdate({ ...professional, image_url: imageUrl });
       toast.success('Foto actualizada');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Error al subir la foto');
+      toast.error(err.message || 'Error al subir la foto');
     }
   };
 
