@@ -400,7 +400,40 @@ const ProfessionalProfile = () => {
       <main className="px-4 py-2 space-y-6 max-w-2xl mx-auto">
         
         {/* ===== 2. HERO SECTION ===== */}
-        <ProfileHeroSection professional={professional} />
+        <ProfileHeroSection 
+          professional={professional} 
+          isOwner={isOwner}
+          onPhotoUpload={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+              toast.error('La imagen debe ser menor a 2MB');
+              return;
+            }
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+              toast.error('Solo se permiten imágenes JPG, PNG o WebP');
+              return;
+            }
+            const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+            const filePath = `${currentUser.id}/avatar.${fileExt}`;
+            try {
+              const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file, { upsert: true, contentType: file.type });
+              if (uploadError) throw uploadError;
+              const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+              const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+              await supabase.from('professionals').update({ image_url: imageUrl }).eq('id', professional.id);
+              await supabase.from('profiles').update({ avatar_url: imageUrl, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
+              queryClient.invalidateQueries({ queryKey: ['professional', id] });
+              toast.success('Foto actualizada');
+            } catch (err: any) {
+              console.error(err);
+              toast.error(err.message || 'Error al subir la foto');
+            }
+          }}
+        />
 
         {/* ===== 3. CTAs - WhatsApp + Solicitar Presupuesto ===== */}
         <div className="flex gap-3">
