@@ -361,9 +361,10 @@ const UserDashboard = () => {
 
       if (uploadError) throw new Error(`Error de subida: ${uploadError.message}`);
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl: rawUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
+      const publicUrl = `${rawUrl}?t=${Date.now()}`;
 
       const { data: existingProfile } = await supabase
         .from('profiles')

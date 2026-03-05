@@ -268,12 +268,20 @@ export const ProfileCompletionProgress: React.FC<ProfileCompletionProgressProps>
         .from('avatars')
         .getPublicUrl(filePath);
 
+      const imageUrlWithCache = `${urlData.publicUrl}?t=${Date.now()}`;
+
       const { error: updateError } = await supabase
         .from('professionals')
-        .update({ image_url: urlData.publicUrl })
+        .update({ image_url: imageUrlWithCache })
         .eq('id', professional.id);
 
       if (updateError) throw updateError;
+
+      // Also update profiles so the sync trigger works both ways
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: imageUrlWithCache, updated_at: new Date().toISOString() })
+        .eq('user_id', user?.id);
 
       toast({ title: '¡Foto actualizada!', description: 'Tu foto de perfil se guardó correctamente.' });
       setIsPhotoDialogOpen(false);
