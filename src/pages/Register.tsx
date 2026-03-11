@@ -31,7 +31,7 @@ const Register = () => {
   const urlType = searchParams.get('type');
   const urlEmail = searchParams.get('email');
   const urlName = searchParams.get('name');
-  const urlDni = searchParams.get('dni');
+  const urlDni = searchParams.get('dni') || sessionStorage.getItem('register_dni');
   
   const [userType, setUserType] = useState<'professional' | 'client'>(
     urlType === 'professional' ? 'professional' : 'professional'
