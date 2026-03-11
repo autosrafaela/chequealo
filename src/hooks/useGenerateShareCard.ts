@@ -17,419 +17,427 @@ export interface Professional {
   is_verified?: boolean;
   slug?: string | null;
   professions?: ProfessionItem[];
+  services?: { service_name: string }[];
+  description?: string;
+  phone?: string | null;
+  email?: string | null;
 }
-
-// Helper to get all professions as a joined string
-const getProfessionDisplay = (professional: Professional): string => {
-  const professions: string[] = [];
-
-  // PRIORITY 1: Collect all custom professions from professional_professions table
-  if (professional.professions && professional.professions.length > 0) {
-    // Sort: primary first, then the rest
-    const sorted = [...professional.professions].sort((a, b) => {
-      if (a.is_primary && !b.is_primary) return -1;
-      if (!a.is_primary && b.is_primary) return 1;
-      return 0;
-    });
-
-    sorted.forEach(p => {
-      if (p.profession && p.profession.trim() !== '' && !professions.includes(p.profession.trim())) {
-        professions.push(p.profession.trim());
-      }
-    });
-  }
-
-  // PRIORITY 2: Legacy profession field (but skip generic ones)
-  const genericCategories = ['otro', 'otros', 'general', 'profesional'];
-  if (
-    professions.length === 0 &&
-    professional.profession && 
-    professional.profession.trim() !== '' &&
-    !genericCategories.includes(professional.profession.toLowerCase())
-  ) {
-    professions.push(professional.profession);
-  }
-
-  // PRIORITY 3: Default fallback
-  if (professions.length === 0) {
-    return 'Profesional';
-  }
-
-  return professions.join(' • '); // Visual separator
-};
-
-// Helper to wrap text into multiple lines
-const wrapText = (
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number
-): string[] => {
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const metrics = ctx.measureText(testLine);
-
-    if (metrics.width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
-    }
-  }
-
-  if (currentLine) {
-    lines.push(currentLine);
-  }
-
-  return lines;
-};
 
 type CardFormat = 'post' | 'story';
 
-const loadImage = (src: string): Promise<HTMLImageElement> => {
-  return new Promise((resolve, reject) => {
+// ─── helpers ───────────────────────────────────────────────
+
+const getProfessionDisplay = (p: Professional): string => {
+  const profs: string[] = [];
+  if (p.professions?.length) {
+    const sorted = [...p.professions].sort((a, b) =>
+      a.is_primary && !b.is_primary ? -1 : !a.is_primary && b.is_primary ? 1 : 0
+    );
+    sorted.forEach(pr => {
+      const t = pr.profession.trim();
+      if (t && !profs.includes(t)) profs.push(t);
+    });
+  }
+  if (!profs.length && p.profession?.trim()) {
+    const skip = ['otro', 'otros', 'general', 'profesional'];
+    if (!skip.includes(p.profession.toLowerCase())) profs.push(p.profession);
+  }
+  return profs.length ? profs.join(' • ') : 'Profesional';
+};
+
+const loadImage = (src: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = src;
   });
+
+const wrapText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
 };
 
 const drawRoundRect = (
   ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number
+  x: number, y: number, w: number, h: number, r: number
 ) => {
   ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 };
 
-const drawDecorativePattern = (
+const drawCircle = (ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) => {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+};
+
+// ─── subtle decorative background ─────────────────────────
+
+const drawSubtleBackground = (
   ctx: CanvasRenderingContext2D,
-  canvas: HTMLCanvasElement,
+  w: number,
+  h: number,
   style: CardStyleConfig
 ) => {
-  ctx.globalAlpha = 0.08;
-  ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = '#ffffff';
+  // Gradient
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, style.bgPrimary);
+  grad.addColorStop(1, style.bgSecondary);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
 
-  switch (style.patternType) {
-    case 'circles':
-      for (let i = 0; i < 6; i++) {
-        ctx.beginPath();
-        ctx.arc(
-          Math.random() * canvas.width,
-          Math.random() * canvas.height,
-          Math.random() * 200 + 100,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-      }
-      break;
-
-    case 'lines':
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 15; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * 120 - 300, 0);
-        ctx.lineTo(i * 120 + 300, canvas.height);
-        ctx.stroke();
-      }
-      break;
-
-    case 'waves':
-      ctx.lineWidth = 3;
-      for (let y = 100; y < canvas.height; y += 120) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        for (let x = 0; x < canvas.width; x += 60) {
-          ctx.quadraticCurveTo(x + 30, y - 40, x + 60, y);
-        }
-        ctx.stroke();
-      }
-      break;
-
-    case 'triangles':
-      for (let i = 0; i < 10; i++) {
-        ctx.beginPath();
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        const size = Math.random() * 120 + 60;
-        ctx.moveTo(x, y - size);
-        ctx.lineTo(x - size, y + size);
-        ctx.lineTo(x + size, y + size);
-        ctx.closePath();
-        ctx.fill();
-      }
-      break;
-
-    case 'dots':
-      for (let x = 40; x < canvas.width; x += 60) {
-        for (let y = 40; y < canvas.height; y += 60) {
-          ctx.beginPath();
-          ctx.arc(x, y, 4, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      break;
-  }
-
+  // Subtle geometric circles
+  ctx.globalAlpha = 0.04;
+  ctx.fillStyle = style.accent;
+  drawCircle(ctx, w * 0.85, h * 0.12, 200);
+  ctx.fill();
+  drawCircle(ctx, w * 0.1, h * 0.75, 160);
+  ctx.fill();
+  drawCircle(ctx, w * 0.7, h * 0.65, 120);
+  ctx.fill();
   ctx.globalAlpha = 1;
 };
 
+// ─── main card generator ──────────────────────────────────
+
 export const generateCard = async (
   professional: Professional,
-  styleName: string = 'modern',
+  styleName: string = 'executive',
   format: CardFormat = 'story'
 ): Promise<string> => {
-  const style = CARD_STYLES[styleName] || CARD_STYLES.modern;
+  const style = CARD_STYLES[styleName] || CARD_STYLES.executive;
   const isPost = format === 'post';
-  
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
-  
   canvas.width = 1080;
   canvas.height = isPost ? 1080 : 1920;
   const w = canvas.width;
   const h = canvas.height;
 
-  // Background gradient
-  const gradient = ctx.createLinearGradient(0, 0, w, h);
-  gradient.addColorStop(0, style.gradient[0]);
-  gradient.addColorStop(1, style.gradient[1]);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, w, h);
+  // 1. Background
+  drawSubtleBackground(ctx, w, h, style);
 
-  // Decorative pattern
-  drawDecorativePattern(ctx, canvas, style);
-
-  // Logo "✓ Chequealo.net" at top
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-  ctx.font = 'bold 42px Arial, sans-serif';
+  // 2. Header — "✓ Chequealo.net"
+  ctx.fillStyle = style.textSecondary;
+  ctx.font = '600 32px Arial, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('✓ Chequealo.net', 50, 80);
+  ctx.fillText('✓ Chequealo.net', 60, 70);
 
-  // Profile photo
-  const photoSize = isPost ? 200 : 260;
-  const photoX = (w - photoSize) / 2;
-  const photoY = isPost ? 160 : 360;
-
-  // Photo glow
-  ctx.save();
+  // 3. Separator line under header
+  ctx.strokeStyle = style.separatorColor;
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2 + 10, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.fill();
-  ctx.restore();
+  ctx.moveTo(60, 100);
+  ctx.lineTo(w - 60, 100);
+  ctx.stroke();
 
-  // Draw photo or initials
+  // 4. Profile section — asymmetric
+  const photoSize = isPost ? 180 : 220;
+  const photoX = 60;
+  const photoY = isPost ? 130 : 150;
+  const photoCenterX = photoX + photoSize / 2;
+  const photoCenterY = photoY + photoSize / 2;
+
+  // Photo accent ring
+  drawCircle(ctx, photoCenterX, photoCenterY, photoSize / 2 + 6);
+  ctx.strokeStyle = style.accent;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // Photo
   if (professional.image_url) {
     try {
       const img = await loadImage(professional.image_url);
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, Math.PI * 2);
+      drawCircle(ctx, photoCenterX, photoCenterY, photoSize / 2);
       ctx.clip();
       ctx.drawImage(img, photoX, photoY, photoSize, photoSize);
       ctx.restore();
     } catch {
-      drawInitials(ctx, professional.full_name, photoX, photoY, photoSize);
+      drawInitials(ctx, professional.full_name, photoCenterX, photoCenterY, photoSize / 2, style);
     }
   } else {
-    drawInitials(ctx, professional.full_name, photoX, photoY, photoSize);
+    drawInitials(ctx, professional.full_name, photoCenterX, photoCenterY, photoSize / 2, style);
   }
 
-  // Verified/Available badge
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(photoX + photoSize - 15, photoY + photoSize - 15, 22, 0, Math.PI * 2);
-  ctx.fillStyle = '#10b981';
-  ctx.fill();
-  ctx.strokeStyle = 'white';
-  ctx.lineWidth = 4;
-  ctx.stroke();
-  ctx.restore();
+  // Name + profession — to the right of photo
+  const textX = photoX + photoSize + 36;
+  const textMaxW = w - textX - 60;
+  const nameY = photoY + (isPost ? 50 : 60);
 
-  // Name
-  const nameY = photoY + photoSize + (isPost ? 45 : 60);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `bold ${isPost ? 48 : 58}px Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText(professional.full_name.toUpperCase(), w / 2, nameY);
+  ctx.fillStyle = style.textPrimary;
+  ctx.font = `bold ${isPost ? 44 : 52}px Arial, sans-serif`;
+  ctx.textAlign = 'left';
 
-  // Profession - use all professions joined with " • "
-  const professionDisplay = getProfessionDisplay(professional);
-  const maxTextWidth = w - 120;
-  const professionFontSize = isPost ? 32 : 40;
-  
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-  ctx.font = `${professionFontSize}px Arial, sans-serif`;
-  
-  // Wrap text to multiple lines
-  const professionLines = wrapText(ctx, professionDisplay, maxTextWidth);
-  
-  // Limit to max 2 lines
-  const linesToShow = professionLines.slice(0, 2);
-  if (professionLines.length > 2) {
-    // Truncate second line with "..."
-    let truncated = linesToShow[1];
-    while (ctx.measureText(truncated + '...').width > maxTextWidth && truncated.length > 0) {
-      truncated = truncated.slice(0, -1);
-    }
-    linesToShow[1] = truncated + '...';
-  }
-  
-  const lineHeight = isPost ? 42 : 50;
-  const professionStartY = nameY + (isPost ? 45 : 55);
-  
-  linesToShow.forEach((line, index) => {
-    ctx.fillText(line, w / 2, professionStartY + (index * lineHeight));
+  // Wrap name if too long
+  const nameLines = wrapText(ctx, professional.full_name.toUpperCase(), textMaxW);
+  nameLines.slice(0, 2).forEach((line, i) => {
+    ctx.fillText(line, textX, nameY + i * (isPost ? 52 : 60));
   });
 
-  // Calculate dynamic offset based on number of profession lines
-  const extraLineOffset = (linesToShow.length - 1) * lineHeight;
+  const nameEndY = nameY + (Math.min(nameLines.length, 2) - 1) * (isPost ? 52 : 60);
 
-  // Rating stars
-  const ratingY = professionStartY + lineHeight + extraLineOffset + (isPost ? 30 : 40);
-  if (professional.rating) {
-    const starSize = isPost ? 32 : 40;
-    const totalStars = 5;
-    const filledStars = Math.round(professional.rating);
-    ctx.font = `${starSize}px Arial, sans-serif`;
-    ctx.textAlign = 'center';
+  // Profession
+  const profDisplay = getProfessionDisplay(professional);
+  ctx.fillStyle = style.accent;
+  ctx.font = `500 ${isPost ? 28 : 34}px Arial, sans-serif`;
+  const profLines = wrapText(ctx, profDisplay, textMaxW);
+  profLines.slice(0, 2).forEach((line, i) => {
+    ctx.fillText(line, textX, nameEndY + (isPost ? 44 : 52) + i * (isPost ? 36 : 42));
+  });
 
-    let starsText = '';
-    for (let i = 0; i < totalStars; i++) {
-      starsText += i < filledStars ? '★' : '☆';
-    }
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillText(starsText, w / 2, ratingY);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = `bold ${isPost ? 36 : 44}px Arial, sans-serif`;
-    const ratingText = `${professional.rating.toFixed(1)}`;
-    const reviewsText = professional.review_count ? ` (${professional.review_count})` : '';
-    ctx.fillText(ratingText + reviewsText, w / 2, ratingY + (isPost ? 50 : 60));
-  }
+  const profEndY = nameEndY + (isPost ? 44 : 52) + (Math.min(profLines.length, 2) - 1) * (isPost ? 36 : 42);
 
   // Verified badge
-  const badgesY = ratingY + (isPost ? 100 : 120);
   if (professional.is_verified) {
-    const badgeWidth = 200;
-    const badgeHeight = 48;
-    const badgeX = w / 2 - badgeWidth / 2;
-
-    ctx.save();
-    drawRoundRect(ctx, badgeX, badgesY - badgeHeight / 2, badgeWidth, badgeHeight, 24);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    const badgeY = profEndY + (isPost ? 30 : 36);
+    drawRoundRect(ctx, textX, badgeY - 20, 160, 36, 18);
+    ctx.fillStyle = style.accentLight;
     ctx.fill();
-    ctx.restore();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = `bold ${isPost ? 26 : 30}px Arial, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('✓ Verificado', w / 2, badgesY + 10);
+    ctx.fillStyle = style.accent;
+    ctx.font = `bold ${isPost ? 20 : 24}px Arial, sans-serif`;
+    ctx.fillText('✓ Verificado', textX + 14, badgeY + 4);
   }
 
-  // Location
-  const locationY = badgesY + (isPost ? 60 : 80);
+  // 5. Separator
+  const sep1Y = photoY + photoSize + (isPost ? 30 : 50);
+  ctx.strokeStyle = style.separatorColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(60, sep1Y);
+  ctx.lineTo(w - 60, sep1Y);
+  ctx.stroke();
+
+  // 6. Location
+  let cursorY = sep1Y + (isPost ? 40 : 50);
   if (professional.location) {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.font = `${isPost ? 28 : 34}px Arial, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText(`📍 ${professional.location}`, w / 2, locationY);
+    ctx.fillStyle = style.textSecondary;
+    ctx.font = `400 ${isPost ? 28 : 34}px Arial, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`📍  ${professional.location}`, 60, cursorY);
+    cursorY += isPost ? 44 : 54;
   }
 
-  // CTA Section
-  const ctaY = isPost ? h - 260 : h - 420;
-  const ctaWidth = w - 140;
-  const ctaHeight = isPost ? 120 : 140;
-  const ctaX = (w - ctaWidth) / 2;
+  // 7. Skills pills
+  const skills = (professional.services || []).slice(0, 6);
+  if (skills.length > 0) {
+    cursorY += isPost ? 10 : 16;
+    const pillH = isPost ? 38 : 44;
+    const pillPadX = isPost ? 20 : 24;
+    const pillGap = isPost ? 10 : 12;
+    const pillFont = `500 ${isPost ? 20 : 24}px Arial, sans-serif`;
+    ctx.font = pillFont;
 
-  ctx.save();
-  drawRoundRect(ctx, ctaX, ctaY, ctaWidth, ctaHeight, 28);
-  const ctaGradient = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaWidth, ctaY);
-  ctaGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
-  ctaGradient.addColorStop(1, 'rgba(255, 255, 255, 0.15)');
-  ctx.fillStyle = ctaGradient;
+    let rowX = 60;
+    let rowY = cursorY;
+    const maxRowW = w - 120;
+
+    for (const skill of skills) {
+      const name = skill.service_name.length > 22 ? skill.service_name.slice(0, 20) + '…' : skill.service_name;
+      const tw = ctx.measureText(name).width;
+      const pillW = tw + pillPadX * 2;
+
+      if (rowX + pillW > 60 + maxRowW) {
+        rowX = 60;
+        rowY += pillH + pillGap;
+      }
+
+      drawRoundRect(ctx, rowX, rowY, pillW, pillH, pillH / 2);
+      ctx.fillStyle = style.pillBg;
+      ctx.fill();
+
+      ctx.fillStyle = style.pillText;
+      ctx.font = pillFont;
+      ctx.textAlign = 'left';
+      ctx.fillText(name, rowX + pillPadX, rowY + pillH / 2 + (isPost ? 7 : 8));
+
+      rowX += pillW + pillGap;
+    }
+    cursorY = rowY + pillH + (isPost ? 20 : 28);
+  }
+
+  // 8. Rating
+  cursorY += isPost ? 6 : 12;
+  if (professional.rating) {
+    ctx.textAlign = 'left';
+    const starSize = isPost ? 30 : 36;
+    ctx.font = `${starSize}px Arial, sans-serif`;
+    ctx.fillStyle = '#fbbf24';
+    const filled = Math.round(professional.rating);
+    let stars = '';
+    for (let i = 0; i < 5; i++) stars += i < filled ? '★' : '☆';
+    ctx.fillText(stars, 60, cursorY);
+
+    const starsW = ctx.measureText(stars).width;
+    ctx.fillStyle = style.textPrimary;
+    ctx.font = `bold ${isPost ? 32 : 38}px Arial, sans-serif`;
+    ctx.fillText(professional.rating.toFixed(1), 60 + starsW + 14, cursorY);
+
+    if (professional.review_count) {
+      ctx.fillStyle = style.textSecondary;
+      ctx.font = `400 ${isPost ? 24 : 28}px Arial, sans-serif`;
+      const ratingW = ctx.measureText(professional.rating.toFixed(1)).width;
+      ctx.fillText(`(${professional.review_count} reseñas)`, 60 + starsW + 14 + ratingW + 10, cursorY);
+    }
+
+    cursorY += isPost ? 40 : 50;
+  }
+
+  // 9. Description / CTA text
+  if (professional.description) {
+    cursorY += isPost ? 6 : 12;
+    ctx.fillStyle = style.textSecondary;
+    ctx.font = `italic 400 ${isPost ? 24 : 28}px Arial, sans-serif`;
+    ctx.textAlign = 'left';
+    const descLines = wrapText(ctx, `"${professional.description}"`, w - 120);
+    descLines.slice(0, 3).forEach((line, i) => {
+      ctx.fillText(line, 60, cursorY + i * (isPost ? 32 : 38));
+    });
+    cursorY += Math.min(descLines.length, 3) * (isPost ? 32 : 38) + (isPost ? 10 : 16);
+  }
+
+  // 10. Separator
+  cursorY += isPost ? 10 : 16;
+  ctx.strokeStyle = style.separatorColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(60, cursorY);
+  ctx.lineTo(w - 60, cursorY);
+  ctx.stroke();
+
+  // 11. Contact icons row
+  cursorY += isPost ? 36 : 50;
+  const iconSize = isPost ? 44 : 52;
+  const iconGap = isPost ? 24 : 30;
+  const icons = ['📞', '✉️', '💬', '✓'];
+  const totalIconsW = icons.length * iconSize + (icons.length - 1) * iconGap;
+  let iconX = (w - totalIconsW) / 2;
+
+  for (const icon of icons) {
+    drawCircle(ctx, iconX + iconSize / 2, cursorY, iconSize / 2);
+    ctx.fillStyle = style.accentLight;
+    ctx.fill();
+    ctx.strokeStyle = style.accent;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = style.textPrimary;
+    ctx.font = `${isPost ? 22 : 26}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(icon, iconX + iconSize / 2, cursorY + (isPost ? 8 : 9));
+
+    iconX += iconSize + iconGap;
+  }
+
+  // 12. QR + CTA section
+  const qrSectionY = isPost ? h - 320 : h - 440;
+  const qrBoxH = isPost ? 220 : 280;
+  const qrBoxW = w - 120;
+  const qrBoxX = 60;
+
+  drawRoundRect(ctx, qrBoxX, qrSectionY, qrBoxW, qrBoxH, 20);
+  ctx.fillStyle = style.accentLight;
   ctx.fill();
-  ctx.restore();
 
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${isPost ? 38 : 48}px Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText('¡Contactame!', w / 2, ctaY + (isPost ? 50 : 60));
+  // CTA text
+  ctx.fillStyle = style.textPrimary;
+  ctx.font = `bold ${isPost ? 32 : 40}px Arial, sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.fillText('¡Escaneá y contactame!', qrBoxX + 30, qrSectionY + (isPost ? 50 : 60));
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-  ctx.font = `${isPost ? 24 : 30}px Arial, sans-serif`;
-  ctx.fillText('Tocá el link para ver mi perfil', w / 2, ctaY + (isPost ? 88 : 105));
-
-  // Profile URL - use slug if available
-  const urlY = isPost ? h - 100 : h - 200;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  ctx.font = `${isPost ? 26 : 30}px Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText('Ver perfil completo en:', w / 2, urlY);
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `bold ${isPost ? 32 : 38}px Arial, sans-serif`;
+  // Profile URL
   const displayUrl = professional.slug
     ? `chequealo.net/${professional.slug}`
     : `chequealo.net/p/${professional.id.substring(0, 8)}`;
-  ctx.fillText(displayUrl, w / 2, urlY + (isPost ? 42 : 50));
+  ctx.fillStyle = style.textSecondary;
+  ctx.font = `400 ${isPost ? 22 : 26}px Arial, sans-serif`;
+  ctx.fillText(displayUrl, qrBoxX + 30, qrSectionY + (isPost ? 88 : 105));
 
-  // Footer branding
-  if (!isPost) {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '26px Arial, sans-serif';
-    ctx.fillText('Profesionales verificados de confianza', w / 2, h - 80);
+  // QR code image (Google Charts API)
+  const profileUrl = professional.slug
+    ? `https://chequealo.net/${professional.slug}`
+    : `https://chequealo.net/professional/${professional.id}`;
+  const qrSize = isPost ? 140 : 180;
+  const qrX = qrBoxX + qrBoxW - qrSize - 30;
+  const qrY = qrSectionY + (qrBoxH - qrSize) / 2;
+
+  try {
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(profileUrl)}&bgcolor=${style.qrBg === '#ffffff' ? 'fff' : '0f172a'}&color=${style.qrBg === '#ffffff' ? '000' : 'fff'}&margin=0`;
+    const qrImg = await loadImage(qrApiUrl);
+    // Draw QR background
+    drawRoundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 12);
+    ctx.fillStyle = style.qrBg;
+    ctx.fill();
+    ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+  } catch {
+    // Fallback: just show text
+    ctx.fillStyle = style.textSecondary;
+    ctx.font = `400 ${isPost ? 18 : 22}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('[QR]', qrX + qrSize / 2, qrY + qrSize / 2);
   }
+
+  // 13. Footer branding
+  ctx.fillStyle = style.textSecondary;
+  ctx.font = `400 ${isPost ? 22 : 26}px Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Profesionales verificados de confianza', w / 2, h - (isPost ? 50 : 70));
 
   return canvas.toDataURL('image/png');
 };
 
+// ─── draw initials fallback ───────────────────────────────
+
 const drawInitials = (
   ctx: CanvasRenderingContext2D,
   fullName: string,
-  photoX: number,
-  photoY: number,
-  photoSize: number
+  cx: number,
+  cy: number,
+  radius: number,
+  style: CardStyleConfig
 ) => {
   ctx.save();
-  ctx.beginPath();
-  ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+  drawCircle(ctx, cx, cy, radius);
+  ctx.fillStyle = style.accentLight;
   ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 72px Arial, sans-serif';
+  ctx.fillStyle = style.accent;
+  ctx.font = `bold ${radius * 0.8}px Arial, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const initials = fullName
     .split(' ')
-    .map((n) => n[0])
+    .map(n => n[0])
     .join('')
     .substring(0, 2)
     .toUpperCase();
-  ctx.fillText(initials, photoX + photoSize / 2, photoY + photoSize / 2);
+  ctx.fillText(initials, cx, cy);
   ctx.restore();
 };
+
+// ─── hook ─────────────────────────────────────────────────
 
 export const useGenerateShareCard = () => {
   const generateMultipleCards = async (
@@ -438,18 +446,13 @@ export const useGenerateShareCard = () => {
   ): Promise<{ style: string; url: string; config: CardStyleConfig }[]> => {
     const suggestedStyles = getStylesForProfession(professional.profession, professional.professions);
 
-    const cards = await Promise.all(
-      suggestedStyles.map(async (styleName) => {
-        const url = await generateCard(professional, styleName, format);
-        return {
-          style: styleName,
-          url,
-          config: CARD_STYLES[styleName],
-        };
-      })
+    return Promise.all(
+      suggestedStyles.map(async (styleName) => ({
+        style: styleName,
+        url: await generateCard(professional, styleName, format),
+        config: CARD_STYLES[styleName],
+      }))
     );
-
-    return cards;
   };
 
   const generateRandomCards = async (
@@ -460,23 +463,14 @@ export const useGenerateShareCard = () => {
     const allStyles = Object.keys(CARD_STYLES);
     const randomStyles = allStyles.sort(() => Math.random() - 0.5).slice(0, count);
 
-    const cards = await Promise.all(
-      randomStyles.map(async (styleName) => {
-        const url = await generateCard(professional, styleName, format);
-        return {
-          style: styleName,
-          url,
-          config: CARD_STYLES[styleName],
-        };
-      })
+    return Promise.all(
+      randomStyles.map(async (styleName) => ({
+        style: styleName,
+        url: await generateCard(professional, styleName, format),
+        config: CARD_STYLES[styleName],
+      }))
     );
-
-    return cards;
   };
 
-  return {
-    generateCard,
-    generateMultipleCards,
-    generateRandomCards,
-  };
+  return { generateCard, generateMultipleCards, generateRandomCards };
 };

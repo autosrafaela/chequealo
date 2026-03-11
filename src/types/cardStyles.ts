@@ -1,175 +1,118 @@
-// Card style definitions for professional share cards
+// Card style definitions for professional share cards — Premium redesign
 
 export interface CardStyleConfig {
   name: string;
   description: string;
-  gradient: [string, string];
+  bgPrimary: string;
+  bgSecondary: string;
   cardBg: string;
-  textColor: string;
-  accentColor: string;
-  patternType: 'circles' | 'lines' | 'waves' | 'triangles' | 'dots';
+  textPrimary: string;
+  textSecondary: string;
+  accent: string;
+  accentLight: string;
+  pillBg: string;
+  pillText: string;
+  qrBg: string;
+  separatorColor: string;
 }
 
 export const CARD_STYLES: Record<string, CardStyleConfig> = {
-  modern: {
-    name: 'Moderno',
-    description: 'Limpio y minimalista',
-    gradient: ['#6366f1', '#8b5cf6'],
-    cardBg: '#ffffff',
-    textColor: '#1f2937',
-    accentColor: '#6366f1',
-    patternType: 'circles',
-  },
-  dark: {
-    name: 'Oscuro',
-    description: 'Elegante y profesional',
-    gradient: ['#1f2937', '#111827'],
-    cardBg: '#1f2937',
-    textColor: '#ffffff',
-    accentColor: '#60a5fa',
-    patternType: 'lines',
-  },
-  nature: {
-    name: 'Natural',
-    description: 'Fresco y orgánico',
-    gradient: ['#059669', '#10b981'],
-    cardBg: '#ffffff',
-    textColor: '#1f2937',
-    accentColor: '#059669',
-    patternType: 'waves',
-  },
-  warm: {
-    name: 'Cálido',
-    description: 'Amigable y cercano',
-    gradient: ['#f59e0b', '#f97316'],
-    cardBg: '#ffffff',
-    textColor: '#1f2937',
-    accentColor: '#f59e0b',
-    patternType: 'triangles',
-  },
-  ocean: {
-    name: 'Océano',
-    description: 'Tranquilo y confiable',
-    gradient: ['#0ea5e9', '#06b6d4'],
-    cardBg: '#ffffff',
-    textColor: '#1f2937',
-    accentColor: '#0ea5e9',
-    patternType: 'waves',
-  },
-  sunset: {
-    name: 'Atardecer',
-    description: 'Creativo y vibrante',
-    gradient: ['#ec4899', '#f43f5e'],
-    cardBg: '#ffffff',
-    textColor: '#1f2937',
-    accentColor: '#ec4899',
-    patternType: 'triangles',
-  },
-  corporate: {
-    name: 'Corporativo',
-    description: 'Serio y ejecutivo',
-    gradient: ['#475569', '#334155'],
-    cardBg: '#ffffff',
-    textColor: '#1f2937',
-    accentColor: '#475569',
-    patternType: 'dots',
-  },
-  tech: {
-    name: 'Tech',
-    description: 'Innovador y futurista',
-    gradient: ['#7c3aed', '#2563eb'],
+  executive: {
+    name: 'Ejecutivo',
+    description: 'Oscuro y sofisticado',
+    bgPrimary: '#0f172a',
+    bgSecondary: '#1e293b',
     cardBg: '#0f172a',
-    textColor: '#ffffff',
-    accentColor: '#7c3aed',
-    patternType: 'lines',
+    textPrimary: '#f8fafc',
+    textSecondary: '#94a3b8',
+    accent: '#0ea5e9',
+    accentLight: 'rgba(14,165,233,0.15)',
+    pillBg: 'rgba(14,165,233,0.12)',
+    pillText: '#38bdf8',
+    qrBg: '#ffffff',
+    separatorColor: 'rgba(148,163,184,0.2)',
+  },
+  clean: {
+    name: 'Limpio',
+    description: 'Blanco y minimalista',
+    bgPrimary: '#ffffff',
+    bgSecondary: '#f1f5f9',
+    cardBg: '#ffffff',
+    textPrimary: '#0f172a',
+    textSecondary: '#64748b',
+    accent: '#0ea5e9',
+    accentLight: 'rgba(14,165,233,0.08)',
+    pillBg: '#f1f5f9',
+    pillText: '#334155',
+    qrBg: '#0f172a',
+    separatorColor: 'rgba(15,23,42,0.08)',
+  },
+  brand: {
+    name: 'Marca',
+    description: 'Chequealo brand colors',
+    bgPrimary: '#0c4a6e',
+    bgSecondary: '#0369a1',
+    cardBg: '#0c4a6e',
+    textPrimary: '#f0f9ff',
+    textSecondary: '#bae6fd',
+    accent: '#38bdf8',
+    accentLight: 'rgba(56,189,248,0.15)',
+    pillBg: 'rgba(56,189,248,0.12)',
+    pillText: '#7dd3fc',
+    qrBg: '#ffffff',
+    separatorColor: 'rgba(186,230,253,0.2)',
   },
 };
 
 // AI-suggested styles based on profession keywords
 export const PROFESSION_STYLE_SUGGESTIONS: Record<string, string[]> = {
-  // Technical trades
-  plomero: ['ocean', 'modern', 'corporate'],
-  electricista: ['tech', 'modern', 'warm'],
-  gasista: ['warm', 'corporate', 'modern'],
-  técnico: ['tech', 'corporate', 'modern'],
-  mecanico: ['dark', 'corporate', 'tech'],
-  
+  // Technical
+  plomero: ['executive', 'brand', 'clean'],
+  electricista: ['executive', 'brand', 'clean'],
+  técnico: ['executive', 'brand', 'clean'],
+  programador: ['executive', 'clean', 'brand'],
+  desarrollador: ['executive', 'clean', 'brand'],
+
   // Creative
-  pintor: ['sunset', 'nature', 'warm'],
-  diseñador: ['sunset', 'tech', 'modern'],
-  fotógrafo: ['dark', 'sunset', 'modern'],
-  fotografo: ['dark', 'sunset', 'modern'],
-  artista: ['sunset', 'warm', 'nature'],
-  maquillador: ['sunset', 'warm', 'modern'],
-  
-  // Nature/outdoors
-  jardinero: ['nature', 'warm', 'ocean'],
-  paisajista: ['nature', 'ocean', 'modern'],
-  fumigador: ['nature', 'corporate', 'modern'],
-  
-  // Tech/digital
-  programador: ['tech', 'dark', 'ocean'],
-  desarrollador: ['tech', 'dark', 'modern'],
-  web: ['tech', 'modern', 'dark'],
-  
+  diseñador: ['clean', 'executive', 'brand'],
+  fotógrafo: ['executive', 'clean', 'brand'],
+  fotografo: ['executive', 'clean', 'brand'],
+  artista: ['clean', 'brand', 'executive'],
+
   // Services
-  limpieza: ['ocean', 'nature', 'modern'],
-  mudanza: ['corporate', 'modern', 'warm'],
-  cerrajero: ['dark', 'corporate', 'modern'],
-  
-  // Health/wellness
-  masajista: ['nature', 'ocean', 'warm'],
-  terapeuta: ['nature', 'ocean', 'modern'],
-  nutricionista: ['nature', 'modern', 'warm'],
-  
-  // Construction
-  albañil: ['corporate', 'warm', 'modern'],
-  constructor: ['corporate', 'dark', 'modern'],
-  arquitecto: ['modern', 'dark', 'tech'],
-  
-  // Default fallback
-  default: ['modern', 'corporate', 'ocean'],
+  jardinero: ['clean', 'brand', 'executive'],
+  abogado: ['executive', 'clean', 'brand'],
+  contador: ['executive', 'clean', 'brand'],
+  gestor: ['executive', 'clean', 'brand'],
+
+  // Default
+  default: ['executive', 'clean', 'brand'],
 };
 
-// Helper to get AI-suggested styles based on profession
-export const getStylesForProfession = (profession: string, professions?: { profession: string; is_primary?: boolean }[]): string[] => {
-  // First try with custom professions from the array
+export const getStylesForProfession = (
+  profession: string,
+  professions?: { profession: string; is_primary?: boolean }[]
+): string[] => {
   if (professions && professions.length > 0) {
-    const primaryProfession = professions.find(p => p.is_primary)?.profession || professions[0].profession;
-    const matchedStyles = findStylesForText(primaryProfession);
-    if (matchedStyles.length > 0) return matchedStyles;
+    const primary = professions.find(p => p.is_primary)?.profession || professions[0].profession;
+    const matched = findStylesForText(primary);
+    if (matched.length > 0) return matched;
   }
-  
-  // Then try with the legacy profession field
-  const matchedStyles = findStylesForText(profession);
-  if (matchedStyles.length > 0) return matchedStyles;
-  
+
+  const matched = findStylesForText(profession);
+  if (matched.length > 0) return matched;
+
   return PROFESSION_STYLE_SUGGESTIONS.default;
 };
 
 const findStylesForText = (text: string): string[] => {
   if (!text) return [];
-  
-  const normalizedText = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  
-  // Check for tech/digital keywords
-  const techKeywords = ['developer', 'desarrollador', 'programador', 'digital', 'web', 'app', 'software', 'tech', 'founder', 'builder', 'cto', 'ceo'];
-  if (techKeywords.some(k => normalizedText.includes(k))) {
-    return ['tech', 'dark', 'modern'];
-  }
-  
-  // Check for creative keywords  
-  const creativeKeywords = ['diseño', 'design', 'creative', 'creativo', 'artista', 'artist', 'fotograf', 'photo'];
-  if (creativeKeywords.some(k => normalizedText.includes(k))) {
-    return ['sunset', 'modern', 'dark'];
-  }
-  
-  // Check predefined professions
+  const normalized = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
   for (const [key, styles] of Object.entries(PROFESSION_STYLE_SUGGESTIONS)) {
-    if (normalizedText.includes(key)) {
+    if (key !== 'default' && normalized.includes(key)) {
       return styles;
     }
   }
-  
   return [];
 };
