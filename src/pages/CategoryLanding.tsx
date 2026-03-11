@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { parseCategorySlug, deslugify } from '@/utils/seoSlug';
+import { parseCategorySlug } from '@/utils/seoSlug';
+import { getCategoryMapping, getCityMapping } from '@/utils/categoryMapping';
 import { SEOHead, generateFAQSchema } from '@/components/SEO/SEOHead';
 import { MobileOptimizedHeader } from '@/components/MobileOptimizedHeader';
 import ProfessionalCard from '@/components/ProfessionalCard';
@@ -20,27 +21,41 @@ const CategoryLanding = () => {
     categorySlug ? parseCategorySlug(categorySlug) : null
   , [categorySlug]);
 
-  const categoryLabel = parsed ? deslugify(parsed.category) : '';
-  const cityLabel = parsed ? deslugify(parsed.city) : '';
+  const categoryMapping = parsed ? getCategoryMapping(parsed.category) : null;
+  const cityMapping = parsed ? getCityMapping(parsed.city) : null;
+
+  // Use mapping labels (with proper accents) instead of deslugify
+  const categoryLabel = categoryMapping?.label || '';
+  const cityLabel = cityMapping?.label || (parsed ? parsed.city.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '');
+
+  const isValidSlug = !!(parsed && categoryMapping);
 
   useEffect(() => {
-    if (!parsed) {
+    if (!parsed || !categoryMapping) {
       setLoading(false);
       return;
     }
 
-    const fetch = async () => {
+    const fetchProfessionals = async () => {
       setLoading(true);
-      const categorySearch = parsed.category.replace(/-/g, ' ');
-      const citySearch = parsed.city.replace(/-/g, ' ');
 
-      const { data } = await supabase
+      let query = supabase
         .from('professionals_public')
         .select('*')
         .eq('is_verified', true)
         .eq('is_blocked', false)
-        .ilike('profession', `%${categorySearch}%`)
-        .ilike('location', `%${citySearch}%`)
+        .in('profession', categoryMapping.dbValues);
+
+      // Apply city filter
+      if (cityMapping) {
+        query = query.ilike('location', `%${cityMapping.dbPattern}%`);
+      } else if (parsed.city) {
+        // Fallback: use raw city slug for ilike if not in CITY_MAP
+        const citySearch = parsed.city.replace(/-/g, ' ');
+        query = query.ilike('location', `%${citySearch}%`);
+      }
+
+      const { data } = await query
         .order('rating', { ascending: false })
         .limit(50);
 
@@ -48,8 +63,8 @@ const CategoryLanding = () => {
       setLoading(false);
     };
 
-    fetch();
-  }, [parsed]);
+    fetchProfessionals();
+  }, [parsed, categoryMapping, cityMapping]);
 
   const avgRating = useMemo(() => {
     if (!professionals.length) return 0;
@@ -64,7 +79,7 @@ const CategoryLanding = () => {
   const isEmpty = !loading && professionals.length === 0;
 
   // Dynamic FAQ content
-  const faqs = parsed ? [
+  const faqs = isValidSlug ? [
     {
       question: `¿Cómo encuentro ${categoryLabel} confiables en ${cityLabel}?`,
       answer: `En Chequealo verificamos la identidad de cada profesional. ${professionals.length > 0 ? `Actualmente contamos con ${professionals.length} ${categoryLabel.toLowerCase()} verificados en ${cityLabel}` : `Estamos sumando ${categoryLabel.toLowerCase()} a nuestra plataforma en ${cityLabel}`}. Podés ver sus calificaciones, fotos de trabajos y contactarlos directamente.`
@@ -80,7 +95,7 @@ const CategoryLanding = () => {
   ] : [];
 
   // Structured data
-  const structuredData = !isEmpty && parsed ? {
+  const structuredData = !isEmpty && isValidSlug ? {
     "@context": "https://schema.org",
     "@type": "ItemList",
     "name": `${categoryLabel} en ${cityLabel}`,
@@ -111,16 +126,16 @@ const CategoryLanding = () => {
     }))
   } : undefined;
 
-  const combinedStructuredData = !isEmpty && parsed ? [
+  const combinedStructuredData = !isEmpty && isValidSlug ? [
     structuredData,
     generateFAQSchema(faqs)
   ] : undefined;
 
-  const seoTitle = parsed
+  const seoTitle = isValidSlug
     ? `${categoryLabel} en ${cityLabel} | Chequealo.net - Contacto directo`
     : 'Profesionales Verificados | Chequealo.net';
 
-  const seoDescription = parsed
+  const seoDescription = isValidSlug
     ? `Encontrá los mejores ${categoryLabel.toLowerCase()} en ${cityLabel}. ${professionals.length} profesionales verificados${avgRating > 0 ? `, rating promedio ${avgRating}/5` : ''}. Presupuestos gratis en Chequealo.`
     : 'Encontrá profesionales verificados en Argentina.';
 
@@ -130,7 +145,7 @@ const CategoryLanding = () => {
         title={seoTitle}
         description={seoDescription}
         canonical={`/profesionales/${categorySlug}`}
-        noIndex={isEmpty}
+        noIndex={isEmpty || !isValidSlug}
         structuredData={combinedStructuredData ? { "@context": "wrapper", graphs: combinedStructuredData } : undefined}
       />
 
@@ -143,7 +158,7 @@ const CategoryLanding = () => {
             <li><Link to="/" className="hover:text-primary transition-colors">Inicio</Link></li>
             <li>/</li>
             <li><Link to="/search" className="hover:text-primary transition-colors">Profesionales</Link></li>
-            {parsed && (
+            {isValidSlug && (
               <>
                 <li>/</li>
                 <li className="text-foreground font-medium">{categoryLabel} en {cityLabel}</li>
@@ -155,9 +170,9 @@ const CategoryLanding = () => {
         {/* Hero H1 */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-            {parsed ? `Los mejores ${categoryLabel} en ${cityLabel}` : 'Categoría no encontrada'}
+            {isValidSlug ? `Los mejores ${categoryLabel} en ${cityLabel}` : 'Categoría no encontrada'}
           </h1>
-          {!loading && !isEmpty && (
+          {!loading && !isEmpty && isValidSlug && (
             <p className="text-lg text-muted-foreground">
               Encontramos <strong className="text-foreground">{professionals.length}</strong> {categoryLabel.toLowerCase()} verificados en {cityLabel}
             </p>
@@ -199,15 +214,19 @@ const CategoryLanding = () => {
           </div>
         )}
 
-        {/* Empty state */}
-        {isEmpty && (
+        {/* Empty / invalid state */}
+        {!loading && (isEmpty || !isValidSlug) && (
           <div className="text-center py-16">
             <Search className="h-16 w-16 mx-auto text-muted-foreground/40 mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              No encontramos {categoryLabel.toLowerCase()} en {cityLabel}
+              {!isValidSlug
+                ? 'Categoría no encontrada'
+                : `No encontramos ${categoryLabel.toLowerCase()} en ${cityLabel}`}
             </h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Todavía no tenemos profesionales verificados en esta categoría y zona. Probá ampliando tu búsqueda.
+              {!isValidSlug
+                ? 'La categoría que buscás no existe. Probá buscando en nuestra página de búsqueda.'
+                : 'Todavía no tenemos profesionales verificados en esta categoría y zona. Probá ampliando tu búsqueda.'}
             </p>
             <Button asChild>
               <Link to="/search">
@@ -261,7 +280,7 @@ const CategoryLanding = () => {
         )}
 
         {/* CTA */}
-        {!isEmpty && (
+        {!isEmpty && isValidSlug && (
           <div className="bg-primary/5 border border-primary/20 rounded-2xl p-8 text-center">
             <h2 className="text-xl font-bold text-foreground mb-2">
               ¿Sos {categoryLabel.toLowerCase().replace(/s$/, '')} en {cityLabel}?
