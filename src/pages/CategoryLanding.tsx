@@ -150,7 +150,7 @@ const CategoryLanding = () => {
         description={seoDescription}
         canonical={`/profesionales/${categorySlug}`}
         noIndex={isEmpty || !isValidSlug}
-        structuredData={combinedStructuredData ? { "@context": "wrapper", graphs: combinedStructuredData } : undefined}
+        structuredData={combinedStructuredData}
       />
 
       <MobileOptimizedHeader />
