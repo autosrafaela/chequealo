@@ -173,7 +173,7 @@ const CategoryLanding = () => {
               <p className="text-xs text-muted-foreground">Profesionales</p>
             </div>
             <div className="bg-card border border-border rounded-xl p-4 text-center">
-              <Star className="h-5 w-5 mx-auto mb-1 text-amber-500" />
+              <Star className="h-5 w-5 mx-auto mb-1 text-yellow-500" />
               <p className="text-2xl font-bold text-foreground">{avgRating || '—'}</p>
               <p className="text-xs text-muted-foreground">Rating promedio</p>
             </div>
