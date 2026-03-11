@@ -26,16 +26,14 @@ export const useUserRole = () => {
       
       // Check admin role - ONLY use role-based access control (RBAC)
       // SECURITY: Never check admin status using email comparison
-      const { data: adminCheck, error: adminError } = await supabase
+      const { data: adminCheck } = await supabase
         .rpc('has_role', { _user_id: user.id, _role: 'admin' });
-      console.log('[useUserRole] adminCheck', { userId: user.id, adminCheck, adminError });
 
       setIsAdmin(!!adminCheck);
       
       // Check moderator role
-      const { data: moderatorCheck, error: modError } = await supabase
+      const { data: moderatorCheck } = await supabase
         .rpc('has_role', { _user_id: user.id, _role: 'moderator' });
-      console.log('[useUserRole] moderatorCheck', { userId: user.id, moderatorCheck, modError });
 
       setIsModerator(!!moderatorCheck);
     } catch (error) {

@@ -318,11 +318,19 @@ const AdminDashboard = () => {
     if (!newAdminEmail.trim()) return;
 
     try {
-      // First, find the user by email
-      const { data: users } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .ilike('full_name', `%${newAdminEmail}%`);
+      // Find the user by exact email via the RPC function
+      const { data: roleResult, error: rpcError } = await supabase
+        .rpc('add_user_admin_role', { _email: newAdminEmail.trim() });
+
+      if (rpcError) throw rpcError;
+
+      toast.success(`Admin agregado: ${newAdminEmail}`);
+      setNewAdminEmail('');
+    } catch (error) {
+      console.error('Error adding admin:', error);
+      toast.error('Error al agregar admin');
+    }
+  };
 
       if (!users || users.length === 0) {
         toast.error('Usuario no encontrado');
