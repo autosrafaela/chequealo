@@ -45,6 +45,7 @@ const Install = lazy(() => import("./pages/Install"));
 const Messages = lazy(() => import("./pages/Messages"));
 const MyBookingsPage = lazy(() => import("./pages/MyBookingsPage"));
 const ProfessionalBookingsPage = lazy(() => import("./pages/ProfessionalBookingsPage"));
+const ActualizarPassword = lazy(() => import("./pages/ActualizarPassword"));
 
 // Campaign Landing Pages - lazy loaded
 const Urgencias24 = lazy(() => import("./pages/campaigns/Urgencias24"));
@@ -135,6 +136,7 @@ const App = () => {
             <Route path="/mensajes" element={<Messages />} />
             <Route path="/mis-reservas" element={<MyBookingsPage />} />
             <Route path="/solicitudes-reservas" element={<ProfessionalBookingsPage />} />
+            <Route path="/actualizar-password" element={<ActualizarPassword />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/test-results" element={<TestResults />} />

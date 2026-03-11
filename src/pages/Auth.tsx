@@ -54,16 +54,17 @@ const Auth = () => {
 
     const finalize = async () => {
       try {
-        if (hasCode) {
-          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-          if (error) {
-            console.error('[Auth] exchangeCodeForSession error:', error);
-            setError('No se pudo completar el inicio de sesión. Intenta nuevamente.');
-          }
-          url.search = '';
-          window.history.replaceState({}, '', url.toString());
-        } else if (hasAccessToken) {
+        // Detect recovery tokens and redirect to password update page
+        if (hasAccessToken) {
           const hash = new URLSearchParams(window.location.hash.substring(1));
+          const tokenType = hash.get('type');
+          
+          if (tokenType === 'recovery') {
+            // Redirect to password update page with the full hash
+            navigate('/actualizar-password' + window.location.hash, { replace: true });
+            return;
+          }
+
           const access_token = hash.get('access_token') || '';
           const refresh_token = hash.get('refresh_token') || '';
           if (access_token) {
@@ -74,6 +75,14 @@ const Auth = () => {
             }
             window.location.hash = '';
           }
+        } else if (hasCode) {
+          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+          if (error) {
+            console.error('[Auth] exchangeCodeForSession error:', error);
+            setError('No se pudo completar el inicio de sesión. Intenta nuevamente.');
+          }
+          url.search = '';
+          window.history.replaceState({}, '', url.toString());
         }
       } catch (e) {
         console.error('[Auth] OAuth finalize error:', e);
