@@ -1061,7 +1061,13 @@ const ProfessionalProfile = () => {
 
       {/* ===== SHARE MODAL (hidden trigger) ===== */}
       <ProfileShareCard 
-        professional={professional}
+        professional={{
+          ...professional,
+          services: services?.map(s => ({ service_name: s.service_name })),
+          description: professional.description || undefined,
+          phone: professional.phone,
+          email: professional.email,
+        }}
         trigger={
           <button 
             id="share-modal-trigger" 

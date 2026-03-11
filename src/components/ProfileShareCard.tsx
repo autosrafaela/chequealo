@@ -26,6 +26,10 @@ interface ProfileShareCardProps {
     is_verified?: boolean;
     slug?: string | null;
     professions?: ProfessionItem[];
+    services?: { service_name: string }[];
+    description?: string;
+    phone?: string | null;
+    email?: string | null;
   };
   trigger?: React.ReactNode;
 }
