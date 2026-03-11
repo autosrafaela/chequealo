@@ -136,6 +136,7 @@ const App = () => {
             <Route path="/mensajes" element={<Messages />} />
             <Route path="/mis-reservas" element={<MyBookingsPage />} />
             <Route path="/solicitudes-reservas" element={<ProfessionalBookingsPage />} />
+            <Route path="/actualizar-password" element={<ActualizarPassword />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/test-results" element={<TestResults />} />
