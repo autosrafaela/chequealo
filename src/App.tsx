@@ -51,6 +51,7 @@ const ActualizarPassword = lazy(() => import("./pages/ActualizarPassword"));
 const Urgencias24 = lazy(() => import("./pages/campaigns/Urgencias24"));
 const PromoDescuento = lazy(() => import("./pages/campaigns/PromoDescuento"));
 const SenaOnline = lazy(() => import("./pages/campaigns/SenaOnline"));
+const CategoryLanding = lazy(() => import("./pages/CategoryLanding"));
 
 // Global audio initialization on first user interaction
 const useGlobalAudioInit = () => {
