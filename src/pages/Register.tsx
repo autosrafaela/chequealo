@@ -29,8 +29,8 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const urlType = searchParams.get('type');
-  const urlEmail = searchParams.get('email');
-  const urlName = searchParams.get('name');
+  const urlEmail = searchParams.get('email') || sessionStorage.getItem('register_email');
+  const urlName = searchParams.get('name') || sessionStorage.getItem('register_name');
   const urlDni = searchParams.get('dni') || sessionStorage.getItem('register_dni');
   
   const [userType, setUserType] = useState<'professional' | 'client'>(

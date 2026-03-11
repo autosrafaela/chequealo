@@ -199,7 +199,9 @@ const Auth = () => {
       } else {
         if (isProfessional) {
           sessionStorage.setItem('register_dni', dni);
-          navigate(`/register?type=professional&email=${encodeURIComponent(signupEmail)}&name=${encodeURIComponent(fullName)}`, { replace: true });
+          sessionStorage.setItem('register_email', signupEmail);
+          sessionStorage.setItem('register_name', fullName);
+          navigate('/register?type=professional', { replace: true });
         } else {
           const { error: loginError } = await signIn(signupEmail, signupPassword);
           

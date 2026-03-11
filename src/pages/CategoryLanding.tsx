@@ -126,10 +126,14 @@ const CategoryLanding = () => {
     }))
   } : undefined;
 
-  const combinedStructuredData = !isEmpty && isValidSlug ? [
-    structuredData,
-    generateFAQSchema(faqs)
-  ] : undefined;
+  // Use @graph for valid JSON-LD
+  const combinedStructuredData = !isEmpty && isValidSlug ? {
+    "@context": "https://schema.org",
+    "@graph": [
+      { ...structuredData, "@context": undefined },
+      { ...generateFAQSchema(faqs), "@context": undefined }
+    ]
+  } : undefined;
 
   const seoTitle = isValidSlug
     ? `${categoryLabel} en ${cityLabel} | Chequealo.net - Contacto directo`

@@ -60,13 +60,9 @@ const ActualizarPassword = () => {
         setChecking(false);
       }
     } else {
-      // Check if user already has an active session (came from onAuthStateChange PASSWORD_RECOVERY)
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setIsRecovery(true);
-        }
-        setChecking(false);
-      });
+      // No recovery hash — do NOT allow password change just because a session exists.
+      // Only PASSWORD_RECOVERY event or type=recovery hash should enable the form.
+      setChecking(false);
     }
 
     return () => subscription.unsubscribe();
