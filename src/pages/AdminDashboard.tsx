@@ -332,25 +332,6 @@ const AdminDashboard = () => {
     }
   };
 
-      if (!users || users.length === 0) {
-        toast.error('Usuario no encontrado');
-        return;
-      }
-
-      // Add admin role
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({ user_id: users[0].user_id, role: 'admin' });
-
-      if (error) throw error;
-
-      toast.success(`Admin agregado: ${newAdminEmail}`);
-      setNewAdminEmail('');
-    } catch (error) {
-      console.error('Error adding admin:', error);
-      toast.error('Error al agregar admin');
-    }
-  };
 
   const getStatusBadge = (isVerified: boolean) => {
     return isVerified ? (
