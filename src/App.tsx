@@ -45,6 +45,7 @@ const Install = lazy(() => import("./pages/Install"));
 const Messages = lazy(() => import("./pages/Messages"));
 const MyBookingsPage = lazy(() => import("./pages/MyBookingsPage"));
 const ProfessionalBookingsPage = lazy(() => import("./pages/ProfessionalBookingsPage"));
+const ActualizarPassword = lazy(() => import("./pages/ActualizarPassword"));
 
 // Campaign Landing Pages - lazy loaded
 const Urgencias24 = lazy(() => import("./pages/campaigns/Urgencias24"));
