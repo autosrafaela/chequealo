@@ -147,6 +147,9 @@ const App = () => {
             <Route path="/promo" element={<PromoDescuento />} />
             <Route path="/sena" element={<SenaOnline />} />
             
+            {/* SEO Programmatic Landing Pages */}
+            <Route path="/profesionales/:categorySlug" element={<CategoryLanding />} />
+            
             {/* SEO-friendly URLs - Must be after all other routes with 3+ segments */}
             <Route path="/p/:profession/:location/:name" element={<SeoLanding />} />
             
