@@ -32,14 +32,27 @@ Deno.serve(async (req) => {
       throw new Error('Method not allowed');
     }
 
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // No JWT validation required - verify_jwt = false in config.toml
-    // This is a one-time seeding function
+    // Validate JWT and admin role
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) throw new Error('Unauthorized: Invalid token');
+
+    const { data: isAdmin, error: roleError } = await supabaseAdmin.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin',
+    });
+    if (roleError || !isAdmin) throw new Error('Unauthorized: Admin role required');
 
     console.log('[seed-gomerias] Starting...');
 
@@ -69,9 +82,10 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        const randomPassword = crypto.randomUUID() + '-X1!';
         const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
           email: fakeEmail,
-          password: 'Pionero2026!',
+          password: randomPassword,
           email_confirm: true,
           user_metadata: { full_name: g.full_name },
         });

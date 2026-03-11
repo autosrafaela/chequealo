@@ -318,23 +318,11 @@ const AdminDashboard = () => {
     if (!newAdminEmail.trim()) return;
 
     try {
-      // First, find the user by email
-      const { data: users } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .ilike('full_name', `%${newAdminEmail}%`);
+      // Find the user by exact email via the RPC function
+      const { data: roleResult, error: rpcError } = await supabase
+        .rpc('add_user_admin_role', { _email: newAdminEmail.trim() });
 
-      if (!users || users.length === 0) {
-        toast.error('Usuario no encontrado');
-        return;
-      }
-
-      // Add admin role
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({ user_id: users[0].user_id, role: 'admin' });
-
-      if (error) throw error;
+      if (rpcError) throw rpcError;
 
       toast.success(`Admin agregado: ${newAdminEmail}`);
       setNewAdminEmail('');
@@ -343,6 +331,7 @@ const AdminDashboard = () => {
       toast.error('Error al agregar admin');
     }
   };
+
 
   const getStatusBadge = (isVerified: boolean) => {
     return isVerified ? (

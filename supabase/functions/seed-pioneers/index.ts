@@ -238,9 +238,10 @@ Deno.serve(async (req) => {
 
         console.log(`[seed-pioneers] Processing: ${p.full_name} -> ${fakeEmail}`);
 
+        const randomPassword = crypto.randomUUID() + '-X1!';
         const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
           email: fakeEmail,
-          password: 'Pionero2026!',
+          password: randomPassword,
           email_confirm: true,
           user_metadata: { full_name: p.full_name },
         });
