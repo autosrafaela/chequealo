@@ -1,37 +1,73 @@
 
 
-# Plan: Add "Sacar Foto" / "Buscar en Galería" options to profile photo upload
+# Plan: Flujo completo de Recuperación de Contraseña
 
-## Problem
-Currently, clicking the camera icon immediately opens the file picker. On mobile devices, users expect to choose between taking a photo with their camera or selecting from gallery.
+## Diagnóstico (Macanas encontradas)
 
-## Solution
-Replace the direct file input trigger with a bottom sheet (Drawer) that presents two options: "Sacar Foto" (capture from camera) and "Buscar en Galería" (pick from gallery). Each option uses a separate hidden `<input type="file">` with the appropriate `capture` attribute.
+**CRITICO para Pioneros**: El flujo de recovery está **roto**. Cuando un Pionero (o cualquier usuario) hace clic en "Recuperar Contraseña":
 
-## Changes
+1. `resetPasswordForEmail()` envía el email con `redirectTo: /auth`
+2. El usuario hace clic en el link del email
+3. Supabase redirige a `/auth#access_token=...&type=recovery`
+4. `Auth.tsx` (líneas 53-76) procesa el hash, llama `setSession()`, y **loguea al usuario automáticamente**
+5. El `useEffect` de línea 86-92 detecta `user` y lo manda al dashboard
+6. **Nunca se muestra un formulario para cambiar la contraseña**
 
-### 1. Update `src/components/profile/ProfileHeroSection.tsx`
-- Add state `showPhotoMenu` (boolean) to control the Drawer visibility
-- Replace the camera button's `onClick` from directly triggering file input to opening the Drawer
-- Add two hidden file inputs:
-  - One with `capture="environment"` (or `capture="user"`) for camera capture
-  - One without `capture` for gallery selection
-- Render a `Drawer` (from vaul, already available) with two options:
-  - **Sacar Foto** (Camera icon) — triggers the capture input
-  - **Buscar en Galería** (ImageIcon) — triggers the gallery input
-- Both inputs share the same `onPhotoUpload` handler
+El Pionero queda logueado con la contraseña UUID random que ni conoce. Si cierra sesión, queda afuera de vuelta. Bucle infinito de recovery sin recovery real.
 
-### Key UI:
+## Solución
+
+### 1. Crear `src/pages/ActualizarPassword.tsx`
+Página dedicada que:
+- Escucha `onAuthStateChange` para el evento `PASSWORD_RECOVERY`
+- Muestra formulario con nueva contraseña + confirmación + indicador de fortaleza
+- Llama `supabase.auth.updateUser({ password })` al enviar
+- Redirige al dashboard tras éxito
+- Si el usuario llega sin token de recovery, muestra mensaje de error con link a `/auth`
+
+### 2. Actualizar `src/contexts/AuthContext.tsx`
+Cambiar `redirectTo` en `resetPassword()`:
 ```
-┌──────────────────────────┐
-│   Cambiar foto de perfil │
-│                          │
-│  📷  Sacar Foto          │
-│  🖼️  Buscar en Galería   │
-│                          │
-│      Cancelar            │
-└──────────────────────────┘
+const redirectUrl = `${window.location.origin}/actualizar-password`;
 ```
 
-No changes needed in `ProfessionalProfile.tsx` — the `onPhotoUpload` callback remains the same since both inputs fire the same `onChange` event.
+### 3. Actualizar `src/App.tsx`
+- Importar lazy `ActualizarPassword`
+- Agregar ruta: `<Route path="/actualizar-password" element={<ActualizarPassword />} />`
+
+### 4. Actualizar `Auth.tsx` (líneas 50-84)
+En el bloque que procesa el hash, detectar si `type=recovery` y redirigir a `/actualizar-password` en vez de loguear silenciosamente. Esto cubre el caso donde Supabase redirige a `/auth` por algún email viejo.
+
+### 5. Actualizar email template de recovery
+En `send-custom-auth-email/index.ts`, el `confirmationUrl` ya usa el `redirect_to` que viene del payload, así que se actualizará automáticamente cuando cambiemos el `redirectTo` del frontend.
+
+## Diseño de la página `/actualizar-password`
+
+```text
+┌─────────────────────────────────┐
+│         [Logo CHEQUEALO]        │
+│                                 │
+│   Crear tu nueva contraseña     │
+│                                 │
+│   ┌─────────────────────────┐   │
+│   │ Nueva contraseña        │   │
+│   └─────────────────────────┘   │
+│   [████████░░] Buena            │
+│                                 │
+│   ┌─────────────────────────┐   │
+│   │ Confirmar contraseña    │   │
+│   └─────────────────────────┘   │
+│                                 │
+│   [  Actualizar Contraseña  ]   │
+│                                 │
+└─────────────────────────────────┘
+```
+
+Mismo estilo visual que Auth.tsx (fondo hero, card blanca centrada, botón gradient amber/orange).
+
+## Archivos a modificar
+- **Crear** `src/pages/ActualizarPassword.tsx`
+- **Editar** `src/contexts/AuthContext.tsx` — cambiar redirectTo
+- **Editar** `src/App.tsx` — agregar ruta
+- **Editar** `src/pages/Auth.tsx` — detectar `type=recovery` en hash y redirigir
 
