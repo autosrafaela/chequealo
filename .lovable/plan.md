@@ -1,37 +1,37 @@
 
 
-# Plan: SEO Programático — Landing Pages Dinámicas por Categoría+Ciudad
+# Plan: Add "Sacar Foto" / "Buscar en Galería" options to profile photo upload
 
-## Ruta
+## Problem
+Currently, clicking the camera icon immediately opens the file picker. On mobile devices, users expect to choose between taking a photo with their camera or selecting from gallery.
 
-`/profesionales/:categorySlug` donde `categorySlug` = `cerrajeros-en-rafaela`, `plomeros-en-buenos-aires`, etc.
+## Solution
+Replace the direct file input trigger with a bottom sheet (Drawer) that presents two options: "Sacar Foto" (capture from camera) and "Buscar en Galería" (pick from gallery). Each option uses a separate hidden `<input type="file">` with the appropriate `capture` attribute.
 
-El componente parsea el slug separando por `-en-` para extraer categoría y ciudad.
+## Changes
 
-## Archivos
+### 1. Update `src/components/profile/ProfileHeroSection.tsx`
+- Add state `showPhotoMenu` (boolean) to control the Drawer visibility
+- Replace the camera button's `onClick` from directly triggering file input to opening the Drawer
+- Add two hidden file inputs:
+  - One with `capture="environment"` (or `capture="user"`) for camera capture
+  - One without `capture` for gallery selection
+- Render a `Drawer` (from vaul, already available) with two options:
+  - **Sacar Foto** (Camera icon) — triggers the capture input
+  - **Buscar en Galería** (ImageIcon) — triggers the gallery input
+- Both inputs share the same `onPhotoUpload` handler
 
-### 1. Crear `src/pages/CategoryLanding.tsx`
-Página completa con:
+### Key UI:
+```
+┌──────────────────────────┐
+│   Cambiar foto de perfil │
+│                          │
+│  📷  Sacar Foto          │
+│  🖼️  Buscar en Galería   │
+│                          │
+│      Cancelar            │
+└──────────────────────────┘
+```
 
-- **Parseo del slug**: Split por `-en-` → `categoria` + `ciudad`. Desnormalizar acentos no es necesario porque la DB se consulta con `ilike`.
-- **Query Supabase**: `professionals_public` filtrado por `ilike('profession', '%categoria%')` + `ilike('location', '%ciudad%')` + `is_verified = true`.
-- **H1 dinámico**: "Los mejores {Categoría} en {Ciudad}" con conteo: "Encontramos {N} profesionales verificados".
-- **Stats agregados**: Rating promedio calculado client-side del resultado.
-- **SEOHead**: Title `{Categoría} en {Ciudad} | Chequealo.net`, description con stats dinámicos, structured data `ItemList`.
-- **noindex si vacío**: Si 0 resultados → `<SEOHead noIndex={true} />` + estado vacío amigable con link a `/search`.
-- **Listado**: Reutiliza `ProfessionalCard` existente para mostrar cada profesional.
-- **FAQs dinámicos**: 3-4 preguntas generadas con variables (categoría, ciudad, count, rating) + schema FAQ.
-- **Header + BottomNavigation** para consistencia.
-
-### 2. Editar `src/App.tsx`
-- Agregar lazy import: `const CategoryLanding = lazy(() => import("./pages/CategoryLanding"));`
-- Agregar ruta **antes** del catch-all `/:slug`: `<Route path="/profesionales/:categorySlug" element={<CategoryLanding />} />`
-
-### 3. Crear `src/utils/seoSlug.ts`
-Utilidad para:
-- `parseCategorySlug(slug)` → `{ category, city }` (split por `-en-`)
-- `buildCategorySlug(category, city)` → slug sanitizado
-- `deslugify(slug)` → texto legible (guiones → espacios, capitalize)
-
-No se requieren cambios en la DB ni migraciones. Se usa la vista `professionals_public` existente que ya tiene `profession`, `location`, `rating`, `review_count`.
+No changes needed in `ProfessionalProfile.tsx` — the `onPhotoUpload` callback remains the same since both inputs fire the same `onChange` event.
 
