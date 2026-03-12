@@ -274,6 +274,19 @@ const ProfessionalProfile = () => {
   };
 
   const handleWhatsApp = () => {
+    // Fire-and-forget lead tracking
+    if (id) {
+      try {
+        supabase.from('lead_clicks').insert({
+          professional_id: id,
+          clicker_id: currentUser?.id || null,
+          source: 'profile'
+        } as any);
+      } catch {
+        // Silent failure
+      }
+    }
+
     const phone = contactInfo?.phone?.replace(/[^0-9]/g, '');
     if (phone) {
       const message = `Hola ${professional?.full_name}, vi tu perfil en Chequealo y me gustaría contactarte.`;

@@ -1,18 +1,43 @@
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface WhatsAppContactButtonProps {
   phone?: string;
   professionalName: string;
+  professionalId?: string;
+  source?: string;
   message?: string;
 }
 
 export const WhatsAppContactButton = ({ 
   phone, 
   professionalName, 
+  professionalId,
+  source = 'profile',
   message 
 }: WhatsAppContactButtonProps) => {
+  const { user } = useAuth();
+
+  const trackClick = () => {
+    if (!professionalId) return;
+    // Fire-and-forget — never blocks WhatsApp opening
+    try {
+      supabase.from('lead_clicks').insert({
+        professional_id: professionalId,
+        clicker_id: user?.id || null,
+        source
+      } as any);
+    } catch {
+      // Silent failure
+    }
+  };
+
   const handleWhatsAppContact = () => {
+    // Track BEFORE opening WhatsApp
+    trackClick();
+
     if (!phone) {
       alert('Este profesional no tiene número de WhatsApp disponible. Usa "Pedir Presupuesto" para contactarlo por la plataforma.');
       return;
