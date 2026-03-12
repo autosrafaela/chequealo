@@ -35,7 +35,8 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
   professional,
   compact = false,
   showDistance = true,
-  featured = false
+  featured = false,
+  isVip = false
 }) => {
   const navigate = useNavigate();
   const { favorites, toggleFavorite, loading: favoritesLoading } = useFavorites();
