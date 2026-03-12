@@ -1041,6 +1041,30 @@ export type Database = {
           },
         ]
       }
+      lead_clicks: {
+        Row: {
+          clicker_id: string | null
+          created_at: string
+          id: string
+          professional_id: string
+          source: string | null
+        }
+        Insert: {
+          clicker_id?: string | null
+          created_at?: string
+          id?: string
+          professional_id: string
+          source?: string | null
+        }
+        Update: {
+          clicker_id?: string | null
+          created_at?: string
+          id?: string
+          professional_id?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       lead_coupons: {
         Row: {
           code: string
