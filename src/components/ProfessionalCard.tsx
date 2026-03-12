@@ -41,6 +41,9 @@ const ProfessionalCard = ({
   const { user } = useAuth();
   const [isVerified, setIsVerified] = useState(verifiedProp || false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  
+  // Defense in depth: VIP glow only if rating >= 4
+  const showVipGlow = isVip && rating >= 4.0;
 
   useEffect(() => {
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
