@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Heart, Clock, User, Shield, Eye, MessageCircle } from "lucide-react";
+import { Star, MapPin, Heart, Clock, User, Shield, Eye, MessageCircle, Crown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
