@@ -89,8 +89,18 @@ const ProfessionalCard = ({
 
   return (
     <>
-      <div className="bg-background rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-border hover:border-primary/20 overflow-hidden">
-        {/* Card Header */}
+      <div className={`bg-background rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-border hover:border-primary/20 overflow-hidden relative ${showVipGlow ? 'card-vip-glow' : ''}`}>
+        {/* VIP Badge */}
+        {showVipGlow && (
+          <div className="absolute top-3 right-3 z-10">
+            <div className="flex items-center gap-1 bg-foreground text-background px-2.5 py-1 rounded-full shadow-lg">
+              <Crown className="h-3 w-3" style={{ color: '#D4AF37' }} />
+              <span className="text-[10px] sm:text-xs font-bold tracking-wide" style={{ color: '#D4AF37' }}>
+                SELECCIÓN PREMIUM
+              </span>
+            </div>
+          </div>
+        )}
         <div className="p-6 pb-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">
