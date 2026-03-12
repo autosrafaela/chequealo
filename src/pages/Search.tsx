@@ -33,6 +33,9 @@ const Search = () => {
     searchProfessionals
   } = useAdvancedSearch();
 
+  const professionalIds = useMemo(() => professionals.map(p => p.id), [professionals]);
+  const { data: vipMap } = useVipStatus(professionalIds);
+
   // Initialize search from URL params
   React.useEffect(() => {
     const queryParam = searchParams.get('q');
