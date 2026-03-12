@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { EnhancedProfessionalCard } from "@/components/EnhancedProfessionalCard";
 import { ProfessionalCardSkeleton } from "@/components/ProfessionalCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useVipStatus } from "@/hooks/useVipStatus";
 
 interface Professional {
   id: string;
