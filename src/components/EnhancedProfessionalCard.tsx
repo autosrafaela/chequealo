@@ -28,6 +28,7 @@ interface EnhancedProfessionalCardProps {
   compact?: boolean;
   showDistance?: boolean;
   featured?: boolean;
+  isVip?: boolean;
 }
 
 export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> = ({
