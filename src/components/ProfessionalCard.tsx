@@ -20,6 +20,7 @@ interface ProfessionalCardProps {
   verified?: boolean;
   availability: string;
   image?: string;
+  isVip?: boolean;
 }
 
 const ProfessionalCard = ({
