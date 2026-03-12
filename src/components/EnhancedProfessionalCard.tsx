@@ -84,13 +84,26 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
 
   return (
     <Card 
-      className={`group cursor-pointer card-hover-premium border shadow-sm ${
+      className={`group cursor-pointer card-hover-premium border shadow-sm relative ${
+        showVipGlow ? 'card-vip-glow' : ''
+      } ${
         featured 
           ? 'border-primary/20 shadow-md h-full' 
           : 'hover:border-primary/30 hover:shadow-lg'
       } ${professional.is_verified ? 'hover:shadow-[0_20px_40px_rgba(var(--primary),0.1)]' : ''}`}
       onClick={handleCardClick}
     >
+      {/* VIP Badge */}
+      {showVipGlow && (
+        <div className="absolute top-2 right-2 z-10">
+          <div className="flex items-center gap-1 bg-foreground text-background px-2.5 py-1 rounded-full shadow-lg">
+            <Crown className="h-3 w-3" style={{ color: '#D4AF37' }} />
+            <span className="text-[10px] sm:text-xs font-bold tracking-wide" style={{ color: '#D4AF37' }}>
+              SELECCIÓN PREMIUM
+            </span>
+          </div>
+        </div>
+      )}
       <CardContent className={`${featured ? 'p-4 sm:p-6' : 'p-3 sm:p-4'} ${compact ? 'pb-2 sm:pb-3' : 'pb-3 sm:pb-4'} h-full`}>
         <div className="flex gap-3 sm:gap-4">
           {/* Avatar and Status - Responsive */}
