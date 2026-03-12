@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, MessageCircle, Heart, Shield, Clock, User, CheckCircle } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Heart, Shield, Clock, User, CheckCircle, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFavorites } from '@/hooks/useFavorites';
 import { ZonaTodayBadge } from '@/components/ZonaTodayBadge';
