@@ -741,6 +741,10 @@ const AdminDashboard = () => {
             <CampaignMetricsPanel />
           </TabsContent>
 
+          <TabsContent value="leads">
+            <LeadClicksPanel />
+          </TabsContent>
+
           <TabsContent value="moderation">
             <ModerationQueue />
           </TabsContent>
