@@ -101,6 +101,13 @@ export type Database = {
             foreignKeyName: "agenda_slots_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -163,6 +170,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_slots_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -309,6 +323,13 @@ export type Database = {
             foreignKeyName: "bookings_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -398,6 +419,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_events_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -576,6 +604,13 @@ export type Database = {
             foreignKeyName: "chat_quotes_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_quotes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -675,6 +710,13 @@ export type Database = {
             foreignKeyName: "combo_reservations_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combo_reservations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -743,6 +785,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -923,6 +972,13 @@ export type Database = {
             foreignKeyName: "conversations_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -967,6 +1023,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -1036,6 +1099,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_coupons_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -1310,6 +1380,13 @@ export type Database = {
             foreignKeyName: "pro_routes_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_routes_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -1396,6 +1473,13 @@ export type Database = {
             foreignKeyName: "professional_professions_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_professions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -1455,6 +1539,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -1523,6 +1614,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_services_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -1804,6 +1902,13 @@ export type Database = {
             foreignKeyName: "review_responses_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_responses_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -1879,6 +1984,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -2436,6 +2548,13 @@ export type Database = {
             foreignKeyName: "weekly_rankings_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
+            referencedRelation: "professionals_vip_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_rankings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
             referencedRelation: "professionals_with_contact"
             referencedColumns: ["id"]
           },
@@ -2510,6 +2629,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_photos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -2592,6 +2718,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "professionals_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals_vip_status"
             referencedColumns: ["id"]
           },
           {
@@ -2709,6 +2842,21 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           verification_date?: string | null
+        }
+        Relationships: []
+      }
+      professionals_vip_status: {
+        Row: {
+          id: string | null
+          is_vip: boolean | null
+        }
+        Insert: {
+          id?: string | null
+          is_vip?: never
+        }
+        Update: {
+          id?: string | null
+          is_vip?: never
         }
         Relationships: []
       }

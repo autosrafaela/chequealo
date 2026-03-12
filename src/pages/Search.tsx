@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { SearchFilters } from '@/components/SearchFilters';
 import ProfessionalCard from '@/components/ProfessionalCard';
@@ -12,6 +12,7 @@ import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { BottomNavigation } from '@/components/BottomNavigation';
+import { useVipStatus } from '@/hooks/useVipStatus';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -31,6 +32,9 @@ const Search = () => {
     clearFilters,
     searchProfessionals
   } = useAdvancedSearch();
+
+  const professionalIds = useMemo(() => professionals.map(p => p.id), [professionals]);
+  const { data: vipMap } = useVipStatus(professionalIds);
 
   // Initialize search from URL params
   React.useEffect(() => {
@@ -164,6 +168,7 @@ const Search = () => {
                     verified={professional.is_verified}
                     availability={professional.availability}
                     image={professional.image_url}
+                    isVip={vipMap?.get(professional.id) || false}
                   />
                 ))}
               </div>

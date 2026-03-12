@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Heart, Clock, User, Shield, Eye, MessageCircle } from "lucide-react";
+import { Star, MapPin, Heart, Clock, User, Shield, Eye, MessageCircle, Crown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ interface ProfessionalCardProps {
   verified?: boolean;
   availability: string;
   image?: string;
+  isVip?: boolean;
 }
 
 const ProfessionalCard = ({
@@ -33,12 +34,16 @@ const ProfessionalCard = ({
   verified: verifiedProp,
   availability,
   image,
+  isVip = false,
 }: ProfessionalCardProps) => {
   const navigate = useNavigate();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { user } = useAuth();
   const [isVerified, setIsVerified] = useState(verifiedProp || false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  
+  // Defense in depth: VIP glow only if rating >= 4
+  const showVipGlow = isVip && rating >= 4.0;
 
   useEffect(() => {
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -84,8 +89,18 @@ const ProfessionalCard = ({
 
   return (
     <>
-      <div className="bg-background rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-border hover:border-primary/20 overflow-hidden">
-        {/* Card Header */}
+      <div className={`bg-background rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-border hover:border-primary/20 overflow-hidden relative ${showVipGlow ? 'card-vip-glow' : ''}`}>
+        {/* VIP Badge */}
+        {showVipGlow && (
+          <div className="absolute top-3 right-3 z-10">
+            <div className="flex items-center gap-1 bg-foreground text-background px-2.5 py-1 rounded-full shadow-lg">
+              <Crown className="h-3 w-3" style={{ color: '#D4AF37' }} />
+              <span className="text-[10px] sm:text-xs font-bold tracking-wide" style={{ color: '#D4AF37' }}>
+                SELECCIÓN PREMIUM
+              </span>
+            </div>
+          </div>
+        )}
         <div className="p-6 pb-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">

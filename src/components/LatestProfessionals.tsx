@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { EnhancedProfessionalCard } from "@/components/EnhancedProfessionalCard";
 import { ProfessionalCardSkeleton } from "@/components/ProfessionalCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useVipStatus } from "@/hooks/useVipStatus";
 
 interface Professional {
   id: string;
@@ -61,6 +62,9 @@ export const LatestProfessionals = () => {
     fetchFeaturedProfessionals();
   }, []);
 
+  const professionalIds = useMemo(() => professionals.map(p => p.id), [professionals]);
+  const { data: vipMap } = useVipStatus(professionalIds);
+
   if (loading) {
     return (
       <section className="py-10 sm:py-14 md:py-20 bg-background">
@@ -112,6 +116,7 @@ export const LatestProfessionals = () => {
                   professional={professional}
                   compact={!isFeatured}
                   featured={isFeatured}
+                  isVip={vipMap?.get(professional.id) || false}
                 />
               </div>
             );
