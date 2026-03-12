@@ -116,6 +116,7 @@ export const LatestProfessionals = () => {
                   professional={professional}
                   compact={!isFeatured}
                   featured={isFeatured}
+                  isVip={vipMap?.get(professional.id) || false}
                 />
               </div>
             );

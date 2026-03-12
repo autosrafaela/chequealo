@@ -168,6 +168,7 @@ const Search = () => {
                     verified={professional.is_verified}
                     availability={professional.availability}
                     image={professional.image_url}
+                    isVip={vipMap?.get(professional.id) || false}
                   />
                 ))}
               </div>
