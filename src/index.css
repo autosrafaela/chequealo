@@ -245,3 +245,22 @@ All colors MUST be HSL.
 [data-state="active"] .tab-icon-colored {
   color: white !important;
 }
+
+/* VIP Golden Glow Animation */
+@keyframes vip-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.25), 0 0 30px rgba(212, 175, 55, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4), 0 0 40px rgba(212, 175, 55, 0.15);
+  }
+}
+
+.card-vip-glow {
+  border: 2px solid hsl(43, 74%, 52%);
+  animation: vip-pulse 3s ease-in-out infinite;
+}
+
+.card-vip-glow:hover {
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.5), 0 0 50px rgba(212, 175, 55, 0.2) !important;
+}
