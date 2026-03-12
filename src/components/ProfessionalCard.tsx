@@ -34,6 +34,7 @@ const ProfessionalCard = ({
   verified: verifiedProp,
   availability,
   image,
+  isVip = false,
 }: ProfessionalCardProps) => {
   const navigate = useNavigate();
   const { toggleFavorite, isFavorite } = useFavorites();
