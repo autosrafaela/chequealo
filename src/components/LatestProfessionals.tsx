@@ -62,6 +62,9 @@ export const LatestProfessionals = () => {
     fetchFeaturedProfessionals();
   }, []);
 
+  const professionalIds = useMemo(() => professionals.map(p => p.id), [professionals]);
+  const { data: vipMap } = useVipStatus(professionalIds);
+
   if (loading) {
     return (
       <section className="py-10 sm:py-14 md:py-20 bg-background">
