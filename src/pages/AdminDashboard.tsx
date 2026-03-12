@@ -19,6 +19,7 @@ import { CarouselManager } from '@/components/admin/CarouselManager';
 import PlatformUpdatesManager from '@/components/admin/PlatformUpdatesManager';
 import { LogoManager } from '@/components/admin/LogoManager';
 import CampaignMetricsPanel from '@/components/analytics/CampaignMetricsPanel';
+import LeadClicksPanel from '@/components/admin/LeadClicksPanel';
 import { ContactRequestsPanel } from '@/components/ContactRequestsPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
