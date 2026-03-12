@@ -46,6 +46,9 @@ export const EnhancedProfessionalCard: React.FC<EnhancedProfessionalCardProps> =
   
   const activeRoute = activeRoutes?.find(r => r.professional_id === professional.id);
   const hasZonaToday = !!activeRoute;
+  
+  // Defense in depth: double-check rating >= 4 on client
+  const showVipGlow = isVip && professional.rating >= 4.0;
 
   const handleCardClick = () => {
     navigate(`/professional/${professional.id}`);
