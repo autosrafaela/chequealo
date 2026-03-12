@@ -23,11 +23,15 @@ export const WhatsAppContactButton = ({
   const trackClick = () => {
     if (!professionalId) return;
     // Fire-and-forget — never blocks WhatsApp opening
-    supabase.from('lead_clicks').insert({
-      professional_id: professionalId,
-      clicker_id: user?.id || null,
-      source
-    } as any).then(() => {}).catch(() => {});
+    try {
+      supabase.from('lead_clicks').insert({
+        professional_id: professionalId,
+        clicker_id: user?.id || null,
+        source
+      } as any);
+    } catch {
+      // Silent failure
+    }
   };
 
   const handleWhatsAppContact = () => {

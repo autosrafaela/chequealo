@@ -179,6 +179,8 @@ const FavoritesPanel = ({ favorites: propFavorites = [], onRemoveFavorite: propO
                           <WhatsAppContactButton 
                             phone={contactInfos[professional.id].phone || undefined}
                             professionalName={professional.full_name}
+                            professionalId={professional.id}
+                            source="favorites"
                           />
                         </div>
                       )}
