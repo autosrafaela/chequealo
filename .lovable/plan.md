@@ -1,37 +1,89 @@
 
 
-# Plan: Add "Sacar Foto" / "Buscar en Galería" options to profile photo upload
+# Plan: Lead Tracking en WhatsApp — Tabla `lead_clicks` + Fire-and-Forget INSERT
 
-## Problem
-Currently, clicking the camera icon immediately opens the file picker. On mobile devices, users expect to choose between taking a photo with their camera or selecting from gallery.
+## Qué se hace
 
-## Solution
-Replace the direct file input trigger with a bottom sheet (Drawer) that presents two options: "Sacar Foto" (capture from camera) and "Buscar en Galería" (pick from gallery). Each option uses a separate hidden `<input type="file">` with the appropriate `capture` attribute.
+Cada clic en WhatsApp (en el perfil, en las tarjetas, en favoritos) registra un INSERT silencioso en `lead_clicks` antes de abrir WhatsApp. Si el INSERT falla, WhatsApp se abre igual.
 
-## Changes
+## Hallazgos del Hacker Ético
 
-### 1. Update `src/components/profile/ProfileHeroSection.tsx`
-- Add state `showPhotoMenu` (boolean) to control the Drawer visibility
-- Replace the camera button's `onClick` from directly triggering file input to opening the Drawer
-- Add two hidden file inputs:
-  - One with `capture="environment"` (or `capture="user"`) for camera capture
-  - One without `capture` for gallery selection
-- Render a `Drawer` (from vaul, already available) with two options:
-  - **Sacar Foto** (Camera icon) — triggers the capture input
-  - **Buscar en Galería** (ImageIcon) — triggers the gallery input
-- Both inputs share the same `onPhotoUpload` handler
+1. **Ya tenés `campaign_events`** con `whatsapp_click` — pero solo se usa en las 3 landing pages de campañas. Los clics de WhatsApp desde perfiles y tarjetas **no se trackean**. Ahí perdés la data más importante.
+2. **`ProfessionalCard.tsx` no abre WhatsApp directo** — navega a `/professional/{id}?contact=whatsapp`. O sea que el clic real pasa en `WhatsAppContactButton` dentro de `ProfessionalProfile`. Eso ya es un solo punto de captura, lo cual facilita.
+3. **`EnhancedProfessionalCard.tsx`** tiene un botón "WhatsApp" que navega a `#contact` en el perfil. Mismo caso.
+4. **No hay riesgo para Pioneros** en este cambio. Es solo lectura de datos agregados.
 
-### Key UI:
-```
-┌──────────────────────────┐
-│   Cambiar foto de perfil │
-│                          │
-│  📷  Sacar Foto          │
-│  🖼️  Buscar en Galería   │
-│                          │
-│      Cancelar            │
-└──────────────────────────┘
+## Arquitectura
+
+```text
+User clicks WhatsApp → fire-and-forget INSERT → open wa.me (always)
+                              ↓
+                     lead_clicks table
+                     (anon INSERT, admin SELECT)
 ```
 
-No changes needed in `ProfessionalProfile.tsx` — the `onPhotoUpload` callback remains the same since both inputs fire the same `onChange` event.
+## Archivos
+
+### 1. SQL Migration — Tabla `lead_clicks`
+
+```sql
+CREATE TABLE public.lead_clicks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  professional_id uuid NOT NULL,
+  clicker_id uuid,              -- NULL if anonymous
+  source text DEFAULT 'profile', -- 'profile', 'card', 'favorites', 'campaign'
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.lead_clicks ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can insert (fire-and-forget, no auth required)
+CREATE POLICY "Anyone can insert lead clicks"
+  ON public.lead_clicks FOR INSERT
+  WITH CHECK (true);
+
+-- Only admins can read
+CREATE POLICY "Admins can read lead clicks"
+  ON public.lead_clicks FOR SELECT
+  USING (public.has_role(auth.uid(), 'admin'::app_role));
+
+-- No update/delete for anyone except admins
+CREATE POLICY "Admins can manage lead clicks"
+  ON public.lead_clicks FOR ALL
+  USING (public.has_role(auth.uid(), 'admin'::app_role));
+
+-- Index for analytics queries
+CREATE INDEX idx_lead_clicks_professional ON public.lead_clicks(professional_id);
+CREATE INDEX idx_lead_clicks_created ON public.lead_clicks(created_at);
+```
+
+### 2. Edit `src/components/WhatsAppContactButton.tsx`
+
+Add `professionalId` prop. Before opening WhatsApp, do a fire-and-forget:
+
+```typescript
+// Fire-and-forget — never blocks WhatsApp opening
+supabase.from('lead_clicks').insert({
+  professional_id: professionalId,
+  clicker_id: user?.id || null,
+  source
+}).then(() => {}).catch(() => {});
+```
+
+Then immediately open WhatsApp (existing logic unchanged).
+
+### 3. Edit callers to pass `professionalId`
+
+- `ProfessionalProfile.tsx` — already has the professional ID, pass it to `<WhatsAppContactButton>`
+- `FavoritesPanel.tsx` — pass `professionalId={professional.id}` and `source="favorites"`
+
+### 4. Minor: `ProfessionalCard.tsx` WhatsApp icon button
+
+Currently navigates to profile. No change needed — the tracking fires in `WhatsAppContactButton` on the profile page.
+
+## Security Notes
+
+- **No FK constraint** on `professional_id` intentionally — avoids cascade issues and allows tracking even if profile is later deleted. The index is enough for joins.
+- **No rate limiting** needed here — INSERT is cheap, and if someone spams it, worst case is inflated numbers (not a security risk). Could add a rate limit later if needed.
+- Admins-only SELECT prevents competitors from scraping lead data.
 
