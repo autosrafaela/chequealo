@@ -928,6 +928,10 @@ const ProfessionalDashboard = () => {
                   <User className="h-4 w-4 mr-1.5 tab-icon-colored text-orange-500" />
                   Mi Perfil
                 </TabsTrigger>
+                <TabsTrigger value="slug" className="shrink-0 snap-center min-w-fit text-xs px-3 py-2 rounded-full bg-gray-100/80 hover:bg-primary/10 transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md border-0">
+                  <Link2 className="h-4 w-4 mr-1.5 tab-icon-colored text-blue-500" />
+                  Personalizar URL
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="messages">
