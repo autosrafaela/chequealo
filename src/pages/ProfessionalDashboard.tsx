@@ -1009,6 +1009,16 @@ const ProfessionalDashboard = () => {
                   }}
                 />
               </TabsContent>
+
+              <TabsContent value="slug">
+                <SlugConfiguration 
+                  professionalId={professional.id} 
+                  currentSlug={professional.slug || null}
+                  onSlugUpdated={(newSlug) => {
+                    setProfessional((prev: any) => ({ ...prev, slug: newSlug }));
+                  }}
+                />
+              </TabsContent>
             </Tabs>
           )}
           
