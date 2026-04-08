@@ -85,6 +85,7 @@ const ProfileTabContent = ({ professional, user, onTabChange, onUpdate }: {
     description: professional?.description || '',
   });
   const [saving, setSaving] = useState(false);
+  const [slugDialogOpen, setSlugDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
