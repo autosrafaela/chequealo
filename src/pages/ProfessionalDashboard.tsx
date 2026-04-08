@@ -33,6 +33,7 @@ import { calculateProfileCompletion, calculateDaysSinceLastLogin } from '@/utils
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { 
   MessageCircle, 
   Users, 
@@ -46,7 +47,9 @@ import {
   Star,
   Briefcase,
   CreditCard,
-  User
+  User,
+  Link2,
+  Copy
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -298,6 +301,43 @@ const ProfileTabContent = ({ professional, user, onTabChange, onUpdate }: {
                   {professional.location || '—'}
                 </span>
               </div>
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-muted-foreground w-24">Mi Link</span>
+                {professional.slug ? (
+                  <span className="font-medium flex items-center gap-1.5">
+                    <Link2 className="h-3.5 w-3.5" />
+                    chequealo.net/{professional.slug}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://chequealo.net/${professional.slug}`);
+                        toast.success('URL copiada');
+                      }}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-6 px-1 text-xs"
+                      onClick={() => setSlugDialogOpen(true)}
+                    >
+                      Editar
+                    </Button>
+                  </span>
+                ) : (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-6 px-0 text-xs"
+                    onClick={() => setSlugDialogOpen(true)}
+                  >
+                    Configurar tu link →
+                  </Button>
+                )}
+              </div>
               {professional.description && (
                 <div className="pt-2">
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -310,14 +350,20 @@ const ProfileTabContent = ({ professional, user, onTabChange, onUpdate }: {
         </CardContent>
       </Card>
 
-      {/* URL Personalizada */}
-      <SlugConfiguration 
-        professionalId={professional.id} 
-        currentSlug={professional.slug || null}
-        onSlugUpdated={(newSlug) => {
-          onUpdate({ ...professional, slug: newSlug });
-        }}
-      />
+      {/* Dialog para URL Personalizada */}
+      <Dialog open={slugDialogOpen} onOpenChange={setSlugDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogTitle className="sr-only">URL Personalizada</DialogTitle>
+          <SlugConfiguration 
+            professionalId={professional.id} 
+            currentSlug={professional.slug || null}
+            onSlugUpdated={(newSlug) => {
+              onUpdate({ ...professional, slug: newSlug });
+              setSlugDialogOpen(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Acceso a Galería */}
       <Button
