@@ -1,37 +1,50 @@
 
 
-# Plan: Add "Sacar Foto" / "Buscar en Galería" options to profile photo upload
+# Plan: Hacer la URL personalizada más visible y accesible
 
-## Problem
-Currently, clicking the camera icon immediately opens the file picker. On mobile devices, users expect to choose between taking a photo with their camera or selecting from gallery.
+## Problema actual
 
-## Solution
-Replace the direct file input trigger with a bottom sheet (Drawer) that presents two options: "Sacar Foto" (capture from camera) and "Buscar en Galería" (pick from gallery). Each option uses a separate hidden `<input type="file">` with the appropriate `capture` attribute.
+El `SlugConfiguration` está enterrado como una Card separada debajo de la info de perfil en la pestaña "Mi Perfil" del dashboard profesional. Pasa desapercibido — el profesional tiene que scrollear para encontrarlo.
 
-## Changes
+## Solución
 
-### 1. Update `src/components/profile/ProfileHeroSection.tsx`
-- Add state `showPhotoMenu` (boolean) to control the Drawer visibility
-- Replace the camera button's `onClick` from directly triggering file input to opening the Drawer
-- Add two hidden file inputs:
-  - One with `capture="environment"` (or `capture="user"`) for camera capture
-  - One without `capture` for gallery selection
-- Render a `Drawer` (from vaul, already available) with two options:
-  - **Sacar Foto** (Camera icon) — triggers the capture input
-  - **Buscar en Galería** (ImageIcon) — triggers the gallery input
-- Both inputs share the same `onPhotoUpload` handler
+Integrar el slug directamente dentro de la Card de perfil (la tarjeta de identidad), como un campo más al lado de WhatsApp y Ubicación. En lugar de un componente Card pesado con reglas y botones, mostrar una versión compacta e inline:
 
-### Key UI:
-```
-┌──────────────────────────┐
-│   Cambiar foto de perfil │
-│                          │
-│  📷  Sacar Foto          │
-│  🖼️  Buscar en Galería   │
-│                          │
-│      Cancelar            │
-└──────────────────────────┘
+**Vista normal (no editing):** Debajo de Ubicación, mostrar una fila:
+```text
+URL personalizada    chequealo.net/tu-slug  [📋 Copiar]
+— o si no tiene —
+URL personalizada    [Configurar tu link →]
 ```
 
-No changes needed in `ProfessionalProfile.tsx` — the `onPhotoUpload` callback remains the same since both inputs fire the same `onChange` event.
+**Al hacer clic en "Configurar tu link"** o en el slug existente: se abre un Dialog/Sheet con el `SlugConfiguration` completo (el componente actual, sin cambios).
+
+Esto elimina el scroll innecesario y pone el link personalizado al mismo nivel visual que WhatsApp y Ubicación — exactamente donde el profesional mira.
+
+## Archivos a modificar
+
+### 1. Editar `src/pages/ProfessionalDashboard.tsx`
+- En la vista "no editing" de la Card de perfil (líneas ~289-308), agregar una fila más para el slug con botón de copiar y link para editar
+- Envolver el `SlugConfiguration` existente en un `Dialog` que se abre al hacer clic
+- Eliminar el `SlugConfiguration` suelto como Card separada (líneas 313-320)
+
+### 2. Sin cambios en `SlugConfiguration.tsx`
+Se reutiliza tal cual dentro del Dialog.
+
+## Resultado visual
+
+La Card de perfil queda:
+```text
+┌─────────────────────────────────┐
+│  [Avatar]  NOMBRE               │
+│  Profesiones • aquí             │
+│                                 │
+│  WhatsApp     +54 341 xxx       │
+│  Ubicación    📍 Rafaela        │
+│  Mi Link      🔗 chequealo.net/slug [📋] │
+│               (toca para editar)│
+│                                 │
+│  Descripción breve...           │
+└─────────────────────────────────┘
+```
 
