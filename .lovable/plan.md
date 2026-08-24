@@ -1,50 +1,53 @@
+# Plan: App Nativa Android + iOS para Chequealo.net
 
+## Enfoque recomendado
 
-# Plan: Hacer la URL personalizada más visible y accesible
+No reescribir la plataforma desde cero. Usar **Capacitor** para convertir la app web React existente en una app nativa instalable, y agregar código Kotlin/Swift solo donde sea estrictamente necesario (plugins nativos, configuraciones de plataforma, splash screen, etc.).
 
-## Problema actual
+El proyecto ya tiene `capacitor.config.ts` con:
+- `appId`: `app.lovable.f6bb3e036006482e858f9a265175f27d`
+- `appName`: `chequealo`
+- server URL apuntando a `https://chequealo.net`
 
-El `SlugConfiguration` está enterrado como una Card separada debajo de la info de perfil en la pestaña "Mi Perfil" del dashboard profesional. Pasa desapercibido — el profesional tiene que scrollear para encontrarlo.
+## Alcance de este plan
 
-## Solución
+1. Verificar/instalar dependencias de Capacitor (`@capacitor/core`, `@capacitor/cli`, `@capacitor/android`, `@capacitor/ios`).
+2. Inicializar/actualizar configuración nativa (`capacitor.config.ts` ya existe, se ajustará si es necesario).
+3. Agregar plataformas Android e iOS (`npx cap add android`, `npx cap add ios`).
+4. Configurar assets nativos:
+   - Splash screen
+   - Iconos adaptativos (Android) y app icon (iOS)
+   - Status bar / safe areas
+   - Permisos básicos si se requieren (notificaciones push, ubicación, cámara)
+5. Sincronizar build web con plataformas nativas (`npm run build` + `npx cap sync`).
+6. Crear código nativo mínimo requerido:
+   - Kotlin: `MainActivity.kt` personalizado si se necesita deep linking o plugins custom.
+   - Swift: `AppDelegate.swift` / configuración de escena si se necesita.
+7. Documentar cómo ejecutar en emulador/dispositivo físico.
 
-Integrar el slug directamente dentro de la Card de perfil (la tarjeta de identidad), como un campo más al lado de WhatsApp y Ubicación. En lugar de un componente Card pesado con reglas y botones, mostrar una versión compacta e inline:
+## Lo que NO incluye este plan
 
-**Vista normal (no editing):** Debajo de Ubicación, mostrar una fila:
-```text
-URL personalizada    chequealo.net/tu-slug  [📋 Copiar]
-— o si no tiene —
-URL personalizada    [Configurar tu link →]
-```
+- Reescribir pantallas de React a Kotlin/Swift.
+- Publicación en App Store / Google Play (se puede agregar en un plan posterior).
+- Funcionalidades nativas complejas como background tracking, pasarelas de pago nativas, etc. (se pueden agregar como plugins posteriores).
 
-**Al hacer clic en "Configurar tu link"** o en el slug existente: se abre un Dialog/Sheet con el `SlugConfiguration` completo (el componente actual, sin cambios).
+## Archivos a crear/modificar
 
-Esto elimina el scroll innecesario y pone el link personalizado al mismo nivel visual que WhatsApp y Ubicación — exactamente donde el profesional mira.
+- `android/` (carpeta generada por Capacitor)
+- `ios/` (carpeta generada por Capacitor)
+- `capacitor.config.ts` — ajustar `server.url` para desarrollo local/emulador si es necesario
+- `package.json` — agregar scripts como `sync:android`, `sync:ios`, `open:android`, `open:ios`
+- `public/manifest.json` / `index.html` — ajustar theme-color, viewport-fit=cover, íconos
 
-## Archivos a modificar
+## Consideraciones de seguridad
 
-### 1. Editar `src/pages/ProfessionalDashboard.tsx`
-- En la vista "no editing" de la Card de perfil (líneas ~289-308), agregar una fila más para el slug con botón de copiar y link para editar
-- Envolver el `SlugConfiguration` existente en un `Dialog` que se abre al hacer clic
-- Eliminar el `SlugConfiguration` suelto como Card separada (líneas 313-320)
+- El `server.url` actual apunta a `https://chequealo.net`. Para desarrollo/debug se puede apuntar al preview local, pero nunca debe quedar hardcodeado a localhost en producción.
+- Las credenciales de Supabase y otras keys deben seguir viniendo de variables de entorno del build web, no del código nativo.
+- El tráfico HTTP cleartext ya está habilitado (`cleartext: true`); revisar si es necesario para desarrollo local y deshabilitar en producción.
 
-### 2. Sin cambios en `SlugConfiguration.tsx`
-Se reutiliza tal cual dentro del Dialog.
+## Entregables
 
-## Resultado visual
-
-La Card de perfil queda:
-```text
-┌─────────────────────────────────┐
-│  [Avatar]  NOMBRE               │
-│  Profesiones • aquí             │
-│                                 │
-│  WhatsApp     +54 341 xxx       │
-│  Ubicación    📍 Rafaela        │
-│  Mi Link      🔗 chequealo.net/slug [📋] │
-│               (toca para editar)│
-│                                 │
-│  Descripción breve...           │
-└─────────────────────────────────┘
-```
-
+- Proyecto Android listo para abrir en Android Studio (`npx cap open android`).
+- Proyecto iOS listo para abrir en Xcode (`npx cap open ios`).
+- Instrucciones de ejecución en emulador/dispositivo físico.
+- Notas sobre qué partes están en Kotlin/Swift real vs. web envuelta en Capacitor.
